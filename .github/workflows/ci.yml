@@ -1,0 +1,50 @@
+name: Qualité du thème
+
+# Analyse statique (PHPStan) et style de code (PHP-CS-Fixer).
+# IMPORTANT : on analyse UNIQUEMENT le thème (www/wp-content/themes/luziapi).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "www/wp-content/themes/luziapi/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "www/wp-content/themes/luziapi/**"
+
+jobs:
+  quality:
+    name: PHPStan + CS-Fixer (thème)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: www/wp-content/themes/luziapi
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: www/wp-content/themes/luziapi/vendor
+          key: composer-${{ hashFiles('www/wp-content/themes/luziapi/composer.json') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: PHP-CS-Fixer (vérification du style)
+        run: composer cs:check
+
+      - name: PHPStan (analyse statique)
+        run: composer stan

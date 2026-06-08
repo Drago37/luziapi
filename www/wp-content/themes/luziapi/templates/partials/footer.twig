@@ -1,0 +1,44 @@
+{% set home = function('home_url', '/') %}
+{% set shop = function('wc_get_page_permalink', 'shop') %}
+<footer class="site-footer">
+    <div class="wrap foot">
+        <div>
+            <a class="brand" href="{{ home }}">
+                <svg class="bee" viewBox="0 0 48 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <ellipse cx="12" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(-26 12 20)"/>
+                    <ellipse cx="36" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(26 36 20)"/>
+                    <clipPath id="beebodyf"><ellipse cx="24" cy="33" rx="11" ry="15"/></clipPath>
+                    <ellipse cx="24" cy="33" rx="11" ry="15" fill="#e0a124"/>
+                    <g clip-path="url(#beebodyf)" fill="#2b1d10">
+                        <rect x="11" y="25" width="26" height="4.4"/>
+                        <rect x="11" y="34" width="26" height="4.4"/>
+                        <rect x="11" y="43" width="26" height="4.4"/>
+                    </g>
+                    <circle cx="24" cy="14" r="6.4" fill="#2b1d10"/>
+                    <path d="M21 9 Q18 4 15.5 4.2" stroke="#2b1d10" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <path d="M27 9 Q30 4 32.5 4.2" stroke="#2b1d10" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <circle cx="15.5" cy="4" r="1.5" fill="#2b1d10"/><circle cx="32.5" cy="4" r="1.5" fill="#2b1d10"/>
+                </svg>
+                <span class="wm">Luzi<b>Api</b></span>
+            </a>
+            <p>Miel artisanal récolté, extrait et mis en pot à Luzillé, au cœur de l'Indre-et-Loire. Le goût d'une apiculture patiente et locale.</p>
+        </div>
+        <div>
+            <h4>Navigation</h4>
+            <a class="lnk" href="{{ home }}#apiculteur">L'apiculteur</a>
+            <a class="lnk" href="{{ home }}#savoir-faire">Savoir-faire</a>
+            <a class="lnk" href="{{ home }}#produits">Nos miels</a>
+            <a class="lnk" href="{{ home }}#localisation">Nous trouver</a>
+        </div>
+        <div>
+            <h4>Informations</h4>
+            <a class="lnk" href="{{ home }}#contact">Contact</a>
+            {% if shop %}<a class="lnk" href="{{ shop }}">Boutique</a>{% endif %}
+            <a class="lnk" href="{{ home }}mentions-legales/">Mentions légales</a>
+        </div>
+    </div>
+    <div class="wrap foot-bottom">
+        <span>© {{ "now"|date("Y") }} {{ contact.marque }} — {{ contact.nom }}</span>
+        <span class="credit">Photographies © {{ credit_photo }}</span>
+    </div>
+</footer>

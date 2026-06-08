@@ -1,0 +1,52 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<article class="page legal">
+    <div class="wrap page-narrow">
+        <h1>Mentions légales</h1>
+
+        {# Si la page « Mentions légales » a un contenu saisi dans WordPress, il s'affiche.
+           Sinon, le gabarit ci-dessous (pré-rempli) sert de base. #}
+        {% if post.content|trim %}
+            <div class="prose">{{ post.content }}</div>
+        {% else %}
+        <div class="prose">
+            <h2>Éditeur du site</h2>
+            <p>
+                {{ contact.nom }} — Entrepreneur individuel<br>
+                {{ contact.adresse }}, {{ contact.cp_ville }}<br>
+                SIREN : 811 203 314 · SIRET : 811 203 314 00026 · Code NAF : 0149Z (Élevage d'autres animaux)<br>
+                N° TVA intracommunautaire : FR40 811203314 — <em>TVA non applicable, art. 293 B du CGI.</em><br>
+                Téléphone : {{ contact.tel }} · E-mail : {{ contact.email }}
+            </p>
+
+            <h2>Directeur de la publication</h2>
+            <p>{{ contact.nom }}.</p>
+
+            <h2>Hébergeur</h2>
+            <p>
+                o2switch — 222-224 boulevard Gustave Flaubert, 63000 Clermont-Ferrand<br>
+                Téléphone : 04 44 44 60 40 — <a href="https://www.o2switch.fr">o2switch.fr</a>
+            </p>
+
+            <h2>Propriété intellectuelle</h2>
+            <p>L'ensemble des contenus de ce site (textes, photographies, illustrations, logo) est protégé.
+            Toute reproduction, totale ou partielle, sans autorisation préalable est interdite.</p>
+
+            <h2>Crédits photographiques</h2>
+            <p>Photographies © {{ credit_photo }}.</p>
+
+            <h2>Données personnelles (RGPD)</h2>
+            <p>Les informations transmises via le formulaire de contact et lors d'une commande sont utilisées
+            uniquement pour traiter votre demande et assurer le suivi de la vente. Elles ne sont jamais cédées à des tiers.
+            Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données :
+            il suffit d'en faire la demande à {{ contact.email }}.</p>
+
+            <h2>Cookies</h2>
+            <p>Ce site dépose uniquement les cookies techniques nécessaires à son fonctionnement
+            (panier WooCommerce, session). La carte est fournie par OpenStreetMap (Leaflet) et ne dépose pas de cookie tiers.</p>
+        </div>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}

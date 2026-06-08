@@ -1,0 +1,32 @@
+# --- Environnement & système ---
+.env
+*.log
+.DS_Store
+Thumbs.db
+
+# --- Dépendances ---
+/www/wp-content/themes/luziapi/vendor/
+node_modules/
+
+# --- WordPress core (fourni par Docker / l'hébergeur, non versionné) ---
+/www/wp-admin/
+/www/wp-includes/
+/www/wp-*.php
+/www/index.php
+/www/xmlrpc.php
+/www/license.txt
+/www/readme.html
+/www/.htaccess
+/www/wp-config.php
+/www/wp-config-sample.php
+
+# --- wp-content : on ne versionne QUE notre thème ---
+/www/wp-content/plugins/*
+!/www/wp-content/plugins/.gitkeep
+/www/wp-content/uploads/*
+!/www/wp-content/uploads/.gitkeep
+/www/wp-content/upgrade/
+/www/wp-content/cache/
+/www/wp-content/index.php
+/www/wp-content/themes/*
+!/www/wp-content/themes/luziapi/

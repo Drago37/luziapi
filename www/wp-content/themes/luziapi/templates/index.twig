@@ -1,0 +1,15 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<div class="wrap page-narrow">
+    <h1>{{ title|default('Actualités') }}</h1>
+    {% for post in posts %}
+        <article class="post-teaser">
+            <h2><a href="{{ post.link }}">{{ post.title }}</a></h2>
+            <div class="prose">{{ post.preview }}</div>
+        </article>
+    {% else %}
+        <p>Aucun contenu pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}

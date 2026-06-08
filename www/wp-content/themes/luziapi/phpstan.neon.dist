@@ -1,0 +1,16 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - functions.php
+        - front-page.php
+        - page.php
+        - index.php
+        - woocommerce.php
+        - inc
+    scanFiles:
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false

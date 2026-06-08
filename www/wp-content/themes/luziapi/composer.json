@@ -1,0 +1,25 @@
+{
+    "name": "luziapi/theme",
+    "description": "Thème WordPress vitrine + boutique pour LuziApi (apiculture, Luzillé 37).",
+    "type": "wordpress-theme",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2",
+        "timber/timber": "^2.4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "php-stubs/woocommerce-stubs": "^9.0"
+    },
+    "scripts": {
+        "cs": "php-cs-fixer fix",
+        "cs:check": "php-cs-fixer fix --dry-run --diff",
+        "stan": "phpstan analyse"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}

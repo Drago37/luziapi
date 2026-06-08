@@ -1,0 +1,14 @@
+/*
+Theme Name: LuziApi
+Theme URI: https://luziapi.fr
+Author: Anthony Graule
+Description: Thème vitrine + boutique pour l'activité apicole LuziApi (Luzillé, 37). Basé sur Timber/Twig et WooCommerce. Palette miel & bois.
+Version: 1.0.0
+Requires at least: 6.5
+Tested up to: 7.0
+Requires PHP: 8.2
+License: GPL-2.0-or-later
+Text Domain: luziapi
+*/
+
+/* Les styles réels sont dans assets/css/main.css (chargé via inc/setup.php). */

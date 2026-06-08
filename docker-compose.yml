@@ -1,0 +1,78 @@
+services:
+  db:
+    image: mariadb:11
+    container_name: luziapi-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-luziapi}
+      MYSQL_USER: ${DB_USER:-luziapi}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-luziapi}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  wordpress:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    image: luziapi-wordpress
+    container_name: luziapi-wp
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WP_PORT:-8080}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME:-luziapi}
+      WORDPRESS_DB_USER: ${DB_USER:-luziapi}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-luziapi}
+      WORDPRESS_DEBUG: 1
+      # WP_HOME / WP_SITEURL en local
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'http://localhost:${WP_PORT:-8080}');
+        define('WP_SITEURL', 'http://localhost:${WP_PORT:-8080}');
+        define('WP_DEBUG_LOG', true);
+    volumes:
+      # Le code WordPress (core) est déposé ici par l'image au 1er démarrage,
+      # et notre thème est déjà présent et versionné.
+      - ./www:/var/www/html
+      - ./docker/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: luziapi-pma
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: db
+      UPLOAD_LIMIT: 256M
+
+  # Service utilitaire : wp-cli (commandes WordPress).
+  # Usage : docker compose run --rm wpcli wp <commande>
+  wpcli:
+    image: wordpress:cli-php8.3
+    depends_on:
+      db:
+        condition: service_healthy
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME:-luziapi}
+      WORDPRESS_DB_USER: ${DB_USER:-luziapi}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-luziapi}
+    volumes:
+      - ./www:/var/www/html
+    profiles: ["cli"]
+
+volumes:
+  db_data:

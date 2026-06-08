@@ -1,0 +1,194 @@
+{% extends "base.twig" %}
+
+{% macro jar(fill, light) %}
+    {% set gid = 'g' ~ fill|replace({'#': ''}) %}
+    <svg viewBox="0 0 200 250" class="jar" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="{{ gid }}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="{{ light }}"/><stop offset="1" stop-color="{{ fill }}"/>
+        </linearGradient></defs>
+        <rect x="56" y="32" width="88" height="26" rx="7" fill="#4a3018"/>
+        <rect x="52" y="52" width="96" height="13" rx="5" fill="#5e3c1d"/>
+        <path d="M50 70 h100 a14 14 0 0 1 14 14 v116 a18 18 0 0 1 -18 18 H54 a18 18 0 0 1 -18 -18 V84 a14 14 0 0 1 14 -14 z" fill="url(#{{ gid }})" stroke="#e6d2a8" stroke-width="1"/>
+        <rect x="54" y="80" width="15" height="116" rx="7" fill="#ffffff" opacity="0.22"/>
+        <rect x="58" y="118" width="84" height="64" rx="7" fill="#fbf1da" stroke="#e6d2a8"/>
+        <polygon points="100,127 110,132 110,142 100,147 90,142 90,132" fill="#e0a124"/>
+        <text x="100" y="168" text-anchor="middle" font-family="Fraunces,serif" font-weight="800" font-size="16" fill="#4a3018">LuziApi</text>
+    </svg>
+{% endmacro %}
+{% import _self as ui %}
+
+{% block content %}
+
+{# ---------- HERO ---------- #}
+<section class="hero" id="top">
+    <div class="hero-img" style="background-image:url('{{ asset('img/hero.jpg') }}')"></div>
+    <div class="wrap">
+        <div class="hero-card">
+            <span class="eyebrow">Apiculture artisanale · Luzillé (37)</span>
+            <h1>Un miel <em>récolté</em> au rythme des saisons</h1>
+            <p class="lead">Anthony Graule élève ses abeilles au cœur de l'Indre-et-Loire et récolte, extrait et met en pot un miel pur, sans transformation industrielle.</p>
+            <div class="cta">
+                <a class="btn btn-primary" href="#produits">Découvrir nos miels</a>
+                <a class="btn btn-ghost" href="#apiculteur">L'histoire d'Anthony</a>
+            </div>
+        </div>
+    </div>
+    <div class="scroll-tag">Défiler</div>
+</section>
+
+{# ---------- L'APICULTEUR ---------- #}
+<section class="about" id="apiculteur">
+    <div class="wrap split rev">
+        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche"></div>
+        <div>
+            <span class="eyebrow">L'apiculteur</span>
+            <h2>Anthony, passeur de saisons</h2>
+            <p>Derrière LuziApi, il y a un homme, ses ruches et une conviction simple&nbsp;: respecter l'abeille pour obtenir un grand miel. Installé à Luzillé, Anthony conduit ses colonies à la main, observe ses essaims et n'intervient qu'au bon moment.</p>
+            <p>L'aventure débute en 2013 avec les premières ruches. Au fil des saisons, le cheptel s'agrandit et la récolte finit par dépasser la consommation familiale&nbsp;: c'est ainsi qu'en 2019, Anthony se met à proposer son miel à la vente.</p>
+            <p>Chaque pot raconte une floraison locale&nbsp;: colza, acacia, châtaignier, tournesol… Un miel vivant, de proximité, que l'on suit du rucher jusqu'à votre table.</p>
+            <div class="timeline">
+                <div class="ms"><span class="yr">2013</span><span class="lb">Premières ruches</span></div>
+                <div class="ms"><span class="yr">2019</span><span class="lb">Début de la vente</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ---------- SAVOIR-FAIRE ---------- #}
+<section id="savoir-faire" class="craft">
+    <div class="wrap split">
+        <div>
+            <span class="eyebrow">Au cœur des ruches</span>
+            <h2>Le geste, la patience, l'enfumoir</h2>
+            <p>Ouvrir une ruche ne s'improvise pas. Quelques bouffées d'enfumoir pour apaiser la colonie, le couvre-cadres que l'on soulève doucement, et l'on découvre le travail des abeilles&nbsp;: les cadres de couvain, les réserves de pollen, et les hausses qui se remplissent de miel au fil des floraisons.</p>
+            <p>Tout au long de la saison, Anthony rend visite à chaque ruche. Il contrôle la santé de la colonie, s'assure de la présence de la reine, ajoute une hausse quand la miellée s'annonce et veille à ne jamais épuiser ses abeilles. C'est un métier d'observation et de patience, où l'on agit au rythme de la nature plutôt qu'à celui du calendrier.</p>
+            <p>Cette attention de chaque instant, c'est ce qui fait la différence dans le pot&nbsp;: un miel récolté à pleine maturité, dans le respect de l'abeille, qui conserve tout l'arôme de sa floraison et de son terroir.</p>
+        </div>
+        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles"></div>
+    </div>
+</section>
+
+{# ---------- DU RUCHER AU POT ---------- #}
+<section class="process hexbg">
+    <div class="wrap">
+        <div class="sec-head">
+            <span class="eyebrow gold">Du rucher au pot</span>
+            <h2>Quatre gestes, zéro raccourci</h2>
+            <p>Un miel brut, simplement filtré, jamais chauffé. Le colza et le tournesol sont brassés pour rester souples et crémeux.</p>
+        </div>
+        <div class="steps">
+            <div class="step"><div class="num">1</div><h3>Récolte</h3><p>Les hausses sont prélevées à maturité, lorsque les alvéoles sont operculées.</p></div>
+            <div class="step"><div class="num">2</div><h3>Désoperculation</h3><p>La fine pellicule de cire est retirée à la main pour libérer le miel.</p></div>
+            <div class="step"><div class="num">3</div><h3>Extraction</h3><p>Les cadres tournent dans l'extracteur&nbsp;: le miel s'écoule par la force centrifuge.</p></div>
+            <div class="step"><div class="num">4</div><h3>Maturation &amp; mise en pot</h3><p>Filtré, laissé décanter, parfois brassé, puis mis en pot — prêt à déguster.</p></div>
+        </div>
+    </div>
+</section>
+
+{# ---------- NOS MIELS ---------- #}
+<section class="products" id="produits">
+    <div class="wrap">
+        <div class="sec-head">
+            <span class="eyebrow">La boutique</span>
+            <h2>Nos miels</h2>
+            <p>Récolte de l'année, en pot de 1&nbsp;kg — quantités limitées selon les floraisons.</p>
+        </div>
+
+        <div class="promo">
+            <span class="badge">Offre</span>
+            <span>À partir de 2&nbsp;pots&nbsp;: <b>−1&nbsp;€ sur chaque pot</b></span>
+            <span class="sep">•</span>
+            <span><b>Livraison à domicile gratuite</b> sur Luzillé et Bléré</span>
+        </div>
+
+        {% if honeys is not empty %}
+        <div class="grid-honeys">
+            {% for h in honeys %}
+            <article class="card {{ h.coming ? 'coming' : '' }}">
+                {% if h.coming %}<span class="ribbon">À venir</span>{% endif %}
+                <a class="pic" href="{{ h.permalink }}">
+                    {% if h.image %}
+                        <img src="{{ h.image }}" alt="{{ h.name }}">
+                    {% else %}
+                        {{ ui.jar(h.jar_fill, h.jar_light) }}
+                    {% endif %}
+                </a>
+                <div class="body">
+                    {% if h.tag %}<span class="tag">{{ h.tag }}</span>{% endif %}
+                    <h3><a href="{{ h.permalink }}">{{ h.name }}</a></h3>
+                    {% if h.desc %}<p class="desc">{{ h.desc }}</p>{% endif %}
+                    <div class="row">
+                        <span class="price {{ h.coming ? 'soon' : '' }}">{{ h.price_html|raw }}</span>
+                        {% if h.coming %}
+                            <span class="add disabled">À venir</span>
+                        {% else %}
+                            <a class="add" href="{{ h.add_url }}">Ajouter</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-note">Les produits apparaîtront ici une fois ajoutés dans WooCommerce.</p>
+        {% endif %}
+
+        <p class="keep">🍯 Se conserve <b>2&nbsp;ans</b> — à conserver à l'abri de la lumière et de la chaleur.</p>
+        {% set shop = function('wc_get_page_permalink', 'shop') %}
+        {% if shop %}<div class="shop-all"><a class="btn btn-primary" href="{{ shop }}">Voir toute la boutique</a></div>{% endif %}
+    </div>
+</section>
+
+{# ---------- OU NOUS TROUVER ---------- #}
+<section class="locate" id="localisation">
+    <div class="wrap lay">
+        <div class="info-card">
+            <span class="eyebrow">Où nous trouver</span>
+            <h2>Au rucher, à Luzillé</h2>
+            <p class="muted">Vente directe sur place, sur rendez-vous. Contactez Anthony par téléphone ou e-mail pour commander ou convenir d'un passage.</p>
+            <ul class="info-list">
+                <li><span class="ic">📍</span><span><b>{{ contact.adresse }}</b><br>{{ contact.cp_ville }}, Indre-et-Loire</span></li>
+                <li><span class="ic">📞</span><span><b><a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a></b><br>Rendez-vous &amp; commandes</span></li>
+                <li><span class="ic">✉️</span><span><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></span></li>
+            </ul>
+            <div class="rdv">🚚 <b>Livraison à domicile offerte sur Luzillé et Bléré.</b> Sur rendez-vous par téléphone ou e-mail.</div>
+        </div>
+        <div id="map"></div>
+    </div>
+</section>
+
+{# ---------- CONTACT ---------- #}
+<section class="contact" id="contact">
+    <div class="wrap lay">
+        <div>
+            <span class="eyebrow gold">Contact</span>
+            <h2>Une question, une commande&nbsp;?</h2>
+            <p class="sub">Écrivez-nous&nbsp;: Anthony vous répond personnellement. Pour une commande, précisez le miel et la quantité souhaitée.</p>
+            <div class="ways">
+                <span>📞 <b><a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a></b></span>
+                <span>✉️ <b><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></b></span>
+                <span class="soft">Prise de rendez-vous possible par téléphone ou e-mail.</span>
+            </div>
+        </div>
+        <div class="form-wrap">
+            {% if contact_form_shortcode %}
+                {{ function('do_shortcode', contact_form_shortcode)|raw }}
+            {% else %}
+            {# Remplacer ce bloc par le shortcode Contact Form 7 — voir README. #}
+            <form class="form" onsubmit="return false">
+                <div class="field"><label>Nom &amp; prénom</label><input type="text" placeholder="Votre nom"></div>
+                <div class="field row2">
+                    <div><label>E-mail</label><input type="email" placeholder="vous@email.fr"></div>
+                    <div><label>Téléphone</label><input type="tel" placeholder="Facultatif"></div>
+                </div>
+                <div class="field"><label>Message</label><textarea rows="4" placeholder="Votre message…"></textarea></div>
+                <label class="consent"><input type="checkbox"> J'accepte que mes informations soient utilisées pour traiter ma demande (RGPD).</label>
+                <button class="btn btn-primary full" type="button">Envoyer le message</button>
+                <p class="note">Formulaire d'exemple — à remplacer par Contact Form 7 (voir README).</p>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
