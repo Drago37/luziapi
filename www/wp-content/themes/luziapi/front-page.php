@@ -18,4 +18,8 @@ $context['honeys'] = function_exists('luziapi_get_honeys') ? luziapi_get_honeys(
 // $context['contact_form_shortcode'] = '[contact-form-7 id="123" title="Contact"]';
 $context['contact_form_shortcode'] = defined('LUZIAPI_CF7') ? LUZIAPI_CF7 : '';
 
+// Formulaire newsletter (shortcode du plugin d'e-mailing, ex. Brevo/MailPoet) :
+// define('LUZIAPI_NEWSLETTER', '[sibwp_form id=1]'); dans wp-config.php
+$context['newsletter_shortcode'] = defined('LUZIAPI_NEWSLETTER') ? LUZIAPI_NEWSLETTER : '';
+
 Timber\Timber::render('front-page.twig', $context);

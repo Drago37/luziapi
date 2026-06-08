@@ -83,22 +83,49 @@ Activer le **Retrait sur place** : **Réglages → Expédition → Retrait local
    Le formulaire s'affichera alors dans la section Contact à la place du formulaire d'exemple.
 4. **E-mails** : sur un hébergement mutualisé, installer une extension **SMTP** (ex. *WP Mail SMTP*) avec un compte d'envoi, sinon les mails risquent de partir en spam.
 
-## 6. Anti-spam (à faire plus tard)
+## 6. Newsletter (e-mail & SMS)
+
+Le thème prévoit un encart d'inscription sur la page d'accueil (section « Newsletter »). Il affiche le **formulaire du plugin d'e-mailing** que vous choisissez ; tant qu'aucun shortcode n'est défini, un formulaire d'exemple s'affiche.
+
+### Choix du plugin
+- **Brevo** (recommandé) — société française, données en UE (RGPD), offre gratuite (~300 e-mails/jour), **+ SMS** en option (crédits payants). Extension : *Brevo for WooCommerce / Newsletter, SMTP, Email Marketing*. Formulaire d'inscription via shortcode `[sibwp_form id=1]`.
+- **MailPoet** — tout dans l'admin WordPress, gratuit jusqu'à ~1 000 abonnés, **e-mail uniquement**. Formulaire via `[mailpoet_form id="1"]`.
+
+### Mise en place
+1. Installer le plugin choisi, créer une **liste** d'abonnés.
+2. Activer le **double opt-in** (l'abonné confirme par e-mail) — recommandé pour le RGPD.
+3. Créer un formulaire d'inscription et récupérer son **shortcode**.
+4. Le déclarer dans `wp-config.php` :
+   ```php
+   define('LUZIAPI_NEWSLETTER', '[sibwp_form id=1]'); // ou [mailpoet_form id="1"]
+   ```
+   Le formulaire s'affiche alors dans l'encart « Newsletter ».
+5. **Ajouter des abonnés manuellement** : dans l'admin du plugin (Contacts/Abonnés → Ajouter, ou importer un CSV).
+6. **Envoyer une campagne** (nouvelle récolte, info) : depuis l'admin du plugin (Campagnes → Nouvelle).
+
+### SMS (optionnel, via Brevo)
+- Acheter des crédits SMS dans Brevo, puis créer une campagne SMS vers les contacts ayant un numéro + consentement.
+- **Règles** : opt-in explicite, mention « STOP » obligatoire, pas d'envoi le soir/dimanche/jours fériés (reco CNIL). Pour collecter les numéros, ajouter un champ téléphone + une case de consentement SMS au formulaire Brevo.
+
+### RGPD
+Case de consentement, double opt-in, lien de désinscription dans chaque e-mail (géré par le plugin) et mention de la newsletter dans la politique de confidentialité.
+
+## 7. Anti-spam (à faire plus tard)
 
 Recommandation : **Cloudflare Turnstile** (gratuit, RGPD-friendly) + honeypot.
 Extension *Contact Form 7 – Turnstile* ou l'intégration native, plus le module honeypot de CF7.
 
-## 7. Carte de localisation
+## 8. Carte de localisation
 
 Les coordonnées du point de retrait sont dans `inc/setup.php` (`wp_localize_script … LUZIAPI_MAP`).
 Ajuster `lat` / `lng` si besoin pour pointer précisément l'adresse. La carte utilise Leaflet + OpenStreetMap (sans clé API, sans cookie tiers).
 
-## 8. Photos
+## 9. Photos
 
 Trois photos sont dans `assets/img/` (`hero.jpg`, `apiculteur.jpg`, `savoir-faire.jpg`).
 Pour en changer, remplacer les fichiers en gardant les mêmes noms. Crédit © Thomas Bourdilleau (déjà au pied de page).
 
-## 9. Qualité du code (optionnel)
+## 10. Qualité du code (optionnel)
 
 ```bash
 composer cs:check   # style (PHP-CS-Fixer)
