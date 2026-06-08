@@ -39,7 +39,7 @@
 {# ---------- L'APICULTEUR ---------- #}
 <section class="about" id="apiculteur">
     <div class="wrap split rev">
-        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche"></div>
+        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy"></div>
         <div>
             <span class="eyebrow">L'apiculteur</span>
             <h2>Anthony, passeur de saisons</h2>
@@ -64,7 +64,7 @@
             <p>Tout au long de la saison, Anthony rend visite à chaque ruche. Il contrôle la santé de la colonie, s'assure de la présence de la reine, ajoute une hausse quand la miellée s'annonce et veille à ne jamais épuiser ses abeilles. C'est un métier d'observation et de patience, où l'on agit au rythme de la nature plutôt qu'à celui du calendrier.</p>
             <p>Cette attention de chaque instant, c'est ce qui fait la différence dans le pot&nbsp;: un miel récolté à pleine maturité, dans le respect de l'abeille, qui conserve tout l'arôme de sa floraison et de son terroir.</p>
         </div>
-        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles"></div>
+        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy"></div>
     </div>
 </section>
 
@@ -108,7 +108,7 @@
                 {% if h.coming %}<span class="ribbon">À venir</span>{% endif %}
                 <a class="pic" href="{{ h.permalink }}">
                     {% if h.image %}
-                        <img src="{{ h.image }}" alt="{{ h.name }}">
+                        <img src="{{ h.image }}" alt="{{ h.name }}" loading="lazy">
                     {% else %}
                         {{ ui.jar(h.jar_fill, h.jar_light) }}
                     {% endif %}
@@ -152,7 +152,7 @@
             {% for p in latest_posts %}
             <article class="post-card">
                 <a href="{{ p.link }}">
-                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}"></div>{% endif %}
+                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}" loading="lazy"></div>{% endif %}
                     <div class="pc-body">
                         <span class="pc-date">{{ p.date('j F Y') }}</span>
                         <h3>{{ p.title }}</h3>

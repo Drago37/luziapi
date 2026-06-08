@@ -44,20 +44,27 @@ add_action('wp_enqueue_scripts', static function (): void {
         null
     );
 
-    // Leaflet (carte OpenStreetMap, sans clé API).
-    wp_enqueue_style(
+    // Leaflet (carte OpenStreetMap) — enregistré, chargé uniquement sur l'accueil.
+    wp_register_style(
         'leaflet',
         'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
         [],
         '1.9.4'
     );
-    wp_enqueue_script(
+    wp_register_script(
         'leaflet',
         'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
         [],
         '1.9.4',
         true
     );
+
+    $main_deps = [];
+    if (is_front_page()) {
+        wp_enqueue_style('leaflet');
+        wp_enqueue_script('leaflet');
+        $main_deps[] = 'leaflet';
+    }
 
     // Feuille de style du thème.
     wp_enqueue_style(
@@ -67,11 +74,11 @@ add_action('wp_enqueue_scripts', static function (): void {
         LUZIAPI_VERSION
     );
 
-    // Scripts du thème (init carte, menu mobile…).
+    // Scripts du thème (menu mobile partout ; init carte seulement si Leaflet présent).
     wp_enqueue_script(
         'luziapi-main',
         LUZIAPI_URI . '/assets/js/main.js',
-        ['leaflet'],
+        $main_deps,
         LUZIAPI_VERSION,
         true
     );

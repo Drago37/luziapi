@@ -8,6 +8,9 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__ . '/page.php',
         __DIR__ . '/index.php',
         __DIR__ . '/woocommerce.php',
+        __DIR__ . '/home.php',
+        __DIR__ . '/single.php',
+        __DIR__ . '/404.php',
     ]);
 
 return (new PhpCsFixer\Config())

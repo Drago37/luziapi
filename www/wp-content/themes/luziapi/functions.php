@@ -38,5 +38,6 @@ Timber\Timber::init();
 
 require_once LUZIAPI_DIR . '/inc/setup.php';
 require_once LUZIAPI_DIR . '/inc/timber.php';
+require_once LUZIAPI_DIR . '/inc/seo.php';
 require_once LUZIAPI_DIR . '/inc/shop.php';
 require_once LUZIAPI_DIR . '/inc/woocommerce.php';

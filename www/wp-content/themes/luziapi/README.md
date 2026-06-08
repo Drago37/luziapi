@@ -156,6 +156,29 @@ composer stan       # analyse statique (PHPStan + stubs WordPress)
 
 ---
 
+## 12. Référencement (SEO)
+
+Le thème intègre les bases ; un plugin + une fiche Google font le reste.
+
+### Déjà dans le thème
+- HTML5 sémantique, **un seul `<h1>` par page**, hiérarchie de titres propre, `lang="fr"`, responsive.
+- `<title>` (title-tag), `alt` sur les images, `loading="lazy"` sur les images secondaires, `preload` de l'image hero (LCP).
+- Carte Leaflet chargée **uniquement sur l'accueil** (pages plus légères).
+- **Meta description + Open Graph** (aperçus réseaux sociaux) en repli.
+- **Données structurées JSON-LD** : `LocalBusiness` (accueil), `WebSite`, `BlogPosting` (articles).
+- WordPress fournit déjà `sitemap.xml` et `robots.txt`.
+
+> Les balises de repli se **désactivent automatiquement** si un plugin SEO (Yoast, Rank Math, SEOPress, AIOSEO) est actif, pour éviter les doublons.
+
+### Recommandé en plus
+1. **Plugin SEO** (Rank Math ou Yoast) : titres et meta descriptions fins **par page**, Open Graph, sitemap avancé, canoniques, fil d'Ariane. Viser des mots-clés locaux (ex. titre « Miel artisanal à Luzillé (37) — vente directe | LuziApi »).
+2. **Google Business Profile** (fiche d'établissement gratuite) : **le levier n°1 en local**. Créer la fiche LuziApi (adresse, tél, horaires, photos) → présence dans Google Maps et le « pack local ».
+3. **Contenu** : publier des actualités régulières (le blog) avec un vocabulaire naturel (« miel de printemps Touraine », « apiculteur Indre-et-Loire »…) et soigner les descriptions produits WooCommerce.
+4. **Search Console** : déclarer le site et soumettre le sitemap (`https://luziapi.fr/wp-sitemap.xml`).
+5. **Performance** : un plugin de cache (ex. WP Super Cache, gratuit) + images optimisées améliorent les Core Web Vitals.
+
+> Pour un commerce de proximité, la fiche Google Business Profile et les avis clients pèsent souvent plus que l'optimisation technique. Le référencement local met quelques semaines à s'installer.
+
 ## Structure
 
 ```

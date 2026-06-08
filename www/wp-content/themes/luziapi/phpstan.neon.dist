@@ -9,6 +9,9 @@ parameters:
         - page.php
         - index.php
         - woocommerce.php
+        - home.php
+        - single.php
+        - 404.php
         - inc
     scanFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php

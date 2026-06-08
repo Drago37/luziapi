@@ -14,7 +14,7 @@
             {% for p in posts %}
             <article class="post-card">
                 <a href="{{ p.link }}">
-                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}"></div>{% endif %}
+                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}" loading="lazy"></div>{% endif %}
                     <div class="pc-body">
                         <span class="pc-date">{{ p.date('j F Y') }}</span>
                         <h3>{{ p.title }}</h3>

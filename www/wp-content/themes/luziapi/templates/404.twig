@@ -1,0 +1,15 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<section class="page error-404">
+    <div class="wrap page-narrow" style="text-align:center">
+        <span class="eyebrow">Erreur 404</span>
+        <h1>Page introuvable</h1>
+        <p class="muted">Cette page n'existe pas ou a été déplacée. Le miel, lui, est toujours là.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:1.6rem">
+            <a class="btn btn-primary" href="{{ function('home_url', '/') }}">Retour à l'accueil</a>
+            <a class="btn btn-outline-wood" href="{{ blog_url }}">Les actualités</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
