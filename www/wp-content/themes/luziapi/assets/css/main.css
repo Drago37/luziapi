@@ -45,6 +45,12 @@ p{margin:0}
 .menu .btn{padding:.55em 1.15em}
 .burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
 .burger span{width:26px;height:2px;background:var(--gold);display:block;transition:.25s}
+.nav-right{display:flex;align-items:center;gap:16px}
+.call-btn{display:inline-flex;align-items:center;gap:.5em;background:var(--honey);color:var(--espresso);font-weight:800;font-size:.95rem;padding:.55em 1.1em;border-radius:999px;border:2px solid var(--honey);transition:.25s;white-space:nowrap}
+.call-btn:hover{background:var(--gold);border-color:var(--gold);transform:translateY(-1px)}
+.call-btn svg{width:16px;height:16px;flex:none}
+.btn-outline-gold{border-color:var(--gold);color:var(--gold);background:transparent}
+.btn-outline-gold:hover{background:var(--gold);color:var(--espresso)}
 
 /* ---------- HERO ---------- */
 .hero{position:relative;min-height:84vh;display:flex;align-items:center;color:#fff;overflow:hidden}
@@ -205,4 +211,6 @@ section{padding:96px 0}
 @media(max-width:540px){
   .steps{grid-template-columns:1fr}
   .field.row2{grid-template-columns:1fr}
+  .call-btn{font-size:.82rem;padding:.5em .8em}
+  .nav-right{gap:10px}
 }
