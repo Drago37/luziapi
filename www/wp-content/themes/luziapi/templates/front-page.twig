@@ -149,13 +149,15 @@
             {% if newsletter_shortcode %}
                 {{ function('do_shortcode', newsletter_shortcode)|raw }}
             {% else %}
-            {# Remplacer par le shortcode du plugin d'e-mailing (Brevo / MailPoet) — voir README. #}
+            {# Remplacer par le shortcode du formulaire Brevo — voir README. #}
             <form class="nl-form" onsubmit="return false">
                 <input type="email" placeholder="votre@email.fr" aria-label="Votre adresse e-mail">
+                <input type="tel" placeholder="Téléphone (pour les SMS — facultatif)" aria-label="Votre téléphone">
+                <label class="nl-consent"><input type="checkbox"> J'accepte de recevoir les actualités de LuziApi par <b>e-mail</b> (RGPD).</label>
+                <label class="nl-consent"><input type="checkbox"> J'accepte aussi d'être prévenu par <b>SMS</b> (facultatif). « STOP » pour me désinscrire.</label>
                 <button type="button">Je m'inscris</button>
             </form>
-            <label class="nl-consent"><input type="checkbox"> J'accepte de recevoir les actualités de LuziApi par e-mail (RGPD). Désinscription possible à tout moment.</label>
-            <p class="nl-note">Formulaire d'exemple — à remplacer par votre outil d'e-mailing (voir README).</p>
+            <p class="nl-note">Formulaire d'exemple — à remplacer par le formulaire Brevo (e-mail + SMS), voir README.</p>
             {% endif %}
         </div>
     </div>

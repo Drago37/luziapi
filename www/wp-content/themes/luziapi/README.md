@@ -83,32 +83,38 @@ Activer le **Retrait sur place** : **Réglages → Expédition → Retrait local
    Le formulaire s'affichera alors dans la section Contact à la place du formulaire d'exemple.
 4. **E-mails** : sur un hébergement mutualisé, installer une extension **SMTP** (ex. *WP Mail SMTP*) avec un compte d'envoi, sinon les mails risquent de partir en spam.
 
-## 6. Newsletter (e-mail & SMS)
+## 6. Newsletter Brevo (e-mail + SMS)
 
-Le thème prévoit un encart d'inscription sur la page d'accueil (section « Newsletter »). Il affiche le **formulaire du plugin d'e-mailing** que vous choisissez ; tant qu'aucun shortcode n'est défini, un formulaire d'exemple s'affiche.
+L'encart « Newsletter » de la page d'accueil affiche le **formulaire Brevo** (e-mail + SMS). Tant qu'aucun shortcode n'est défini, un formulaire d'exemple s'affiche.
 
-### Choix du plugin
-- **Brevo** (recommandé) — société française, données en UE (RGPD), offre gratuite (~300 e-mails/jour), **+ SMS** en option (crédits payants). Extension : *Brevo for WooCommerce / Newsletter, SMTP, Email Marketing*. Formulaire d'inscription via shortcode `[sibwp_form id=1]`.
-- **MailPoet** — tout dans l'admin WordPress, gratuit jusqu'à ~1 000 abonnés, **e-mail uniquement**. Formulaire via `[mailpoet_form id="1"]`.
+**Pourquoi Brevo** : société française, données en UE (RGPD), e-mail gratuit (~300/jour), SMS en option (crédits), et il peut aussi servir de **SMTP** pour les e-mails du site (contact, commandes) → meilleure délivrabilité, un seul outil. (Alternative e-mail seul : MailPoet, `[mailpoet_form id="1"]`.)
 
-### Mise en place
-1. Installer le plugin choisi, créer une **liste** d'abonnés.
-2. Activer le **double opt-in** (l'abonné confirme par e-mail) — recommandé pour le RGPD.
-3. Créer un formulaire d'inscription et récupérer son **shortcode**.
-4. Le déclarer dans `wp-config.php` :
+### a) Connexion
+1. Créer un compte sur [brevo.com](https://www.brevo.com/fr/) (gratuit).
+2. Installer l'extension WordPress **Brevo** (ex-Sendinblue) et la connecter avec la **clé API** (Brevo → SMTP & API → Clés API).
+3. **SMTP / e-mails du site** : dans l'extension, activer l'envoi des e-mails WordPress via Brevo (remplace WP Mail SMTP — voir §5).
+
+### b) Liste + formulaire d'inscription
+4. Créer une **liste** de contacts (ex. « Clients / Newsletter »).
+5. Construire un **formulaire d'inscription** Brevo avec : champ **Email**, champ **SMS** (téléphone, au format international, ex. +33…), une **case de consentement e-mail** et une **case de consentement SMS distincte**. Activer le **double opt-in**.
+6. Récupérer le shortcode du formulaire, puis le déclarer dans `wp-config.php` :
    ```php
-   define('LUZIAPI_NEWSLETTER', '[sibwp_form id=1]'); // ou [mailpoet_form id="1"]
+   define('LUZIAPI_NEWSLETTER', '[sibwp_form id=1]'); // remplacer 1 par l'ID du formulaire
    ```
-   Le formulaire s'affiche alors dans l'encart « Newsletter ».
-5. **Ajouter des abonnés manuellement** : dans l'admin du plugin (Contacts/Abonnés → Ajouter, ou importer un CSV).
-6. **Envoyer une campagne** (nouvelle récolte, info) : depuis l'admin du plugin (Campagnes → Nouvelle).
+   Le formulaire Brevo remplace alors l'exemple dans l'encart.
 
-### SMS (optionnel, via Brevo)
-- Acheter des crédits SMS dans Brevo, puis créer une campagne SMS vers les contacts ayant un numéro + consentement.
-- **Règles** : opt-in explicite, mention « STOP » obligatoire, pas d'envoi le soir/dimanche/jours fériés (reco CNIL). Pour collecter les numéros, ajouter un champ téléphone + une case de consentement SMS au formulaire Brevo.
+### c) Ajouter des contacts soi-même
+7. Brevo → **Contacts → Ajouter un contact** (ou **Importer** un CSV). Renseigner l'e-mail et/ou le numéro, et cocher l'appartenance à la liste. Veiller à n'ajouter que des personnes ayant donné leur accord.
 
-### RGPD
-Case de consentement, double opt-in, lien de désinscription dans chaque e-mail (géré par le plugin) et mention de la newsletter dans la politique de confidentialité.
+### d) Envoyer une info
+8. **E-mail** : Brevo → Campagnes → **Email** → choisir la liste → rédiger → envoyer.
+9. **SMS** : acheter des **crédits SMS** ; définir l'**expéditeur** (nom alphanumérique, ≤ 11 caractères, ex. `LuziApi`) ; Campagnes → **SMS** → cibler les contacts ayant un numéro **et** le consentement SMS. Brevo ajoute/gère automatiquement le **STOP**.
+
+### e) RGPD / CNIL
+- Double opt-in, **consentement SMS explicite et séparé** du consentement e-mail.
+- Lien de désinscription dans chaque e-mail (auto) ; **STOP** pour les SMS (auto).
+- **SMS** : pas d'envoi le soir, le dimanche ni les jours fériés (reco CNIL) ; coût ~0,05–0,08 €/SMS.
+- Mentionner la newsletter dans la politique de confidentialité.
 
 ## 7. Anti-spam (à faire plus tard)
 
