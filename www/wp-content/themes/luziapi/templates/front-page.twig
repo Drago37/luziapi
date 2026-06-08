@@ -139,13 +139,42 @@
     </div>
 </section>
 
+{# ---------- ACTUALITÉS ---------- #}
+{% if latest_posts is not empty %}
+<section class="news" id="actualites">
+    <div class="wrap">
+        <div class="sec-head">
+            <span class="eyebrow">Le journal du rucher</span>
+            <h2>Dernières nouvelles</h2>
+            <p>Suivez la vie des ruches, les récoltes et les nouveautés au fil des saisons.</p>
+        </div>
+        <div class="news-grid">
+            {% for p in latest_posts %}
+            <article class="post-card">
+                <a href="{{ p.link }}">
+                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}"></div>{% endif %}
+                    <div class="pc-body">
+                        <span class="pc-date">{{ p.date('j F Y') }}</span>
+                        <h3>{{ p.title }}</h3>
+                        <p>{{ p.preview.length(26) }}</p>
+                        <span class="pc-more">Lire la suite →</span>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="news-all"><a class="btn btn-primary" href="{{ blog_url }}">Voir toutes les actualités</a></div>
+    </div>
+</section>
+{% endif %}
+
 {# ---------- NEWSLETTER ---------- #}
 <section class="newsletter" id="newsletter">
     <div class="wrap">
         <div class="nl-card">
             <span class="eyebrow">Newsletter</span>
-            <h2>Ne manquez aucune récolte</h2>
-            <p>Inscrivez-vous pour être prévenu dès qu'un nouveau miel est disponible (châtaignier, tournesol…) et suivre l'actualité du rucher. Quelques messages par an, désinscription en un clic.</p>
+            <h2>Ne rien manquer du rucher</h2>
+            <p>Inscrivez-vous pour être prévenu des nouvelles récoltes et des actualités de LuziApi. Quelques messages par an, désinscription en un clic.</p>
             {% if newsletter_shortcode %}
                 {{ function('do_shortcode', newsletter_shortcode)|raw }}
             {% else %}

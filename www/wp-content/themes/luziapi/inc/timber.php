@@ -13,6 +13,9 @@ if (! defined('ABSPATH')) {
 add_filter('timber/context', static function (array $context): array {
     $context['site_name'] = get_bloginfo('name');
     $context['theme_uri'] = LUZIAPI_URI;
+    $context['blog_url']  = get_option('page_for_posts')
+        ? get_permalink((int) get_option('page_for_posts'))
+        : home_url('/');
 
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
     $context['contact'] = [

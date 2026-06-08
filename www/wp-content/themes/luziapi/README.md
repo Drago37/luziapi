@@ -116,22 +116,38 @@ L'encart « Newsletter » de la page d'accueil affiche le **formulaire Brevo** (
 - **SMS** : pas d'envoi le soir, le dimanche ni les jours fériés (reco CNIL) ; coût ~0,05–0,08 €/SMS.
 - Mentionner la newsletter dans la politique de confidentialité.
 
-## 7. Anti-spam (à faire plus tard)
+## 7. Blog / Actualités
+
+Publier des articles fait vivre le site : chaque actualité (récolte, info diverse) apparaît dans la rubrique « Actualités », et les **3 derniers articles s'affichent automatiquement sur la page d'accueil**.
+
+### Activer la page des actualités
+1. Créer une page vide « Actualités » (slug `actualites`).
+2. **Réglages → Lecture → « La page des articles » → Actualités.**
+   Le thème utilise alors `blog.twig` (liste) et `single.twig` (article).
+3. Le lien « Voir toutes les actualités » de l'accueil et l'entrée « Actualités » du menu pointent vers cette page.
+
+### Écrire un article
+**Articles → Ajouter** : un titre, le contenu, et une **image mise en avant** (elle sert de vignette sur l'accueil/la liste, et de couverture en haut de l'article).
+
+### Lien avec la newsletter (pratique)
+Brevo peut envoyer automatiquement vos nouveaux articles par e-mail via une **campagne RSS** : on lui fournit le flux du blog (`https://luziapi.fr/feed/`) et chaque article publié part en newsletter, sans double saisie. À configurer dans Brevo → Campagnes → RSS.
+
+## 8. Anti-spam (à faire plus tard)
 
 Recommandation : **Cloudflare Turnstile** (gratuit, RGPD-friendly) + honeypot.
 Extension *Contact Form 7 – Turnstile* ou l'intégration native, plus le module honeypot de CF7.
 
-## 8. Carte de localisation
+## 9. Carte de localisation
 
 Les coordonnées du point de retrait sont dans `inc/setup.php` (`wp_localize_script … LUZIAPI_MAP`).
 Ajuster `lat` / `lng` si besoin pour pointer précisément l'adresse. La carte utilise Leaflet + OpenStreetMap (sans clé API, sans cookie tiers).
 
-## 9. Photos
+## 10. Photos
 
 Trois photos sont dans `assets/img/` (`hero.jpg`, `apiculteur.jpg`, `savoir-faire.jpg`).
 Pour en changer, remplacer les fichiers en gardant les mêmes noms. Crédit © Thomas Bourdilleau (déjà au pied de page).
 
-## 10. Qualité du code (optionnel)
+## 11. Qualité du code (optionnel)
 
 ```bash
 composer cs:check   # style (PHP-CS-Fixer)
@@ -154,13 +170,16 @@ luziapi/
 │   └── woocommerce.php    habillage des pages boutique
 ├── templates/           Twig (rendu via Timber uniquement)
 │   ├── base.twig
-│   ├── front-page.twig   la one-page (toutes les sections)
+│   ├── front-page.twig   la one-page (toutes les sections + actualités)
+│   ├── blog.twig         liste des articles (page Actualités)
+│   ├── single.twig       article détaillé
 │   ├── page.twig
 │   ├── page-mentions-legales.twig
 │   ├── woocommerce.twig
 │   ├── index.twig
-│   └── partials/{header,footer}.twig
+│   └── partials/{header,footer,sticky-actions}.twig
 ├── assets/{css,js,img}
-├── front-page.php · page.php · index.php · woocommerce.php   (contrôleurs)
+├── front-page.php · page.php · index.php · woocommerce.php
+├── home.php · single.php    (contrôleurs blog)
 └── README.md
 ```

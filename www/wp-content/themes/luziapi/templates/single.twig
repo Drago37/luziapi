@@ -1,0 +1,20 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<article class="single-post">
+    <div class="wrap page-narrow">
+        <a class="back-link" href="{{ blog_url }}">← Toutes les actualités</a>
+        <span class="pc-date">{{ post.date('j F Y') }}</span>
+        <h1>{{ post.title }}</h1>
+        {% if post.thumbnail %}
+        <div class="single-cover"><img src="{{ post.thumbnail.src('large') }}" alt="{{ post.title }}"></div>
+        {% endif %}
+        <div class="prose">{{ post.content }}</div>
+
+        <div class="single-foot">
+            <a class="btn btn-primary" href="{{ blog_url }}">← Retour aux actualités</a>
+            <a class="btn btn-outline-wood" href="{{ function('home_url', '/#newsletter') }}">S'abonner pour ne rien manquer</a>
+        </div>
+    </div>
+</article>
+{% endblock %}

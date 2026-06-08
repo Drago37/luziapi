@@ -22,4 +22,12 @@ $context['contact_form_shortcode'] = defined('LUZIAPI_CF7') ? LUZIAPI_CF7 : '';
 // define('LUZIAPI_NEWSLETTER', '[sibwp_form id=1]'); dans wp-config.php
 $context['newsletter_shortcode'] = defined('LUZIAPI_NEWSLETTER') ? LUZIAPI_NEWSLETTER : '';
 
+// Derniers articles pour la section « Actualités » de l'accueil.
+$context['latest_posts'] = Timber\Timber::get_posts([
+    'post_type'      => 'post',
+    'post_status'    => 'publish',
+    'posts_per_page' => 3,
+    'ignore_sticky_posts' => true,
+]);
+
 Timber\Timber::render('front-page.twig', $context);

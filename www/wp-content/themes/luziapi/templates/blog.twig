@@ -1,0 +1,46 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<section class="news blog-page">
+    <div class="wrap">
+        <div class="sec-head">
+            <span class="eyebrow">Le journal du rucher</span>
+            <h1>Actualités</h1>
+            <p>La vie des ruches, les récoltes et les nouveautés de LuziApi.</p>
+        </div>
+
+        {% if posts is not empty %}
+        <div class="news-grid">
+            {% for p in posts %}
+            <article class="post-card">
+                <a href="{{ p.link }}">
+                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}"></div>{% endif %}
+                    <div class="pc-body">
+                        <span class="pc-date">{{ p.date('j F Y') }}</span>
+                        <h3>{{ p.title }}</h3>
+                        <p>{{ p.preview.length(28) }}</p>
+                        <span class="pc-more">Lire la suite →</span>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% if posts.pagination.pages|length > 1 %}
+        <nav class="pagination">
+            {% for page in posts.pagination.pages %}
+                {% if page.link %}
+                    <a href="{{ page.link }}" class="{{ page.current ? 'current' : '' }}">{{ page.title }}</a>
+                {% else %}
+                    <span class="dots">{{ page.title }}</span>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <p class="empty-note">Aucune actualité pour le moment. Revenez bientôt&nbsp;!</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
