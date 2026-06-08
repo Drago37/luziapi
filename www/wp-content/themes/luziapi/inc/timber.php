@@ -23,7 +23,7 @@ add_filter('timber/context', static function (array $context): array {
         'tel'       => '06 32 85 34 93',
         'tel_lien'  => '+33632853493',
         'email'     => 'luziapi37150@gmail.com',
-        'facebook'  => 'https://www.facebook.com/', // ← remplacer par l'URL exacte de la page Facebook
+        'facebook'  => 'https://www.facebook.com/luziapi',
     ];
 
     // Crédit photo affiché en pied de page.
