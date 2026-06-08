@@ -29,6 +29,14 @@ add_filter('timber/context', static function (array $context): array {
     // Crédit photo affiché en pied de page.
     $context['credit_photo'] = 'Thomas Bourdilleau';
 
+    // Photographe partenaire.
+    $context['photographe'] = [
+        'nom'      => 'Thomas Bourdilleau',
+        'tagline'  => 'Capturer vos émotions',
+        'url'      => 'https://capturervosemotions.pixieset.com/',
+        'tags'     => ['Mariages', 'Baptêmes', 'Événementiel', 'Portrait', 'Familles & Couples', 'Sport', 'Paysages'],
+    ];
+
     return $context;
 });
 
