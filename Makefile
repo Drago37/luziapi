@@ -12,7 +12,7 @@ ARGS   ?=
 IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 
 .DEFAULT_GOAL := help
-.PHONY: help env up start stop restart down destroy build logs ps install wait \
+.PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
         cs cs-check stan qa
 
@@ -30,6 +30,9 @@ env: ## Crée le fichier .env depuis .env.example (si absent)
 
 install: env up wait composer wp-install theme plugins ## Installe tout (1er lancement complet)
 	@printf "\n\033[1;32m✔  Site prêt :\033[0m http://localhost:8080  (admin / admin)\n\n"
+
+fixtures: ## Charge le contenu de démo (4 miels + actualités, devise EUR) — idempotent
+	$(DC) run --rm wpcli wp eval-file $(THEME)/tools/fixtures.php --user=admin
 
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."
