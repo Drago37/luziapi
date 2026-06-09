@@ -236,13 +236,13 @@ section{padding:96px 0}
 .foot-bottom{border-top:1px solid rgba(224,161,36,.18);margin-top:46px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.8rem;color:#a8946f}
 .credit{color:var(--gold)}
 .credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-.partner{background:var(--cream)}
-.partner-card{max-width:760px;margin:0 auto;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:48px 38px;box-shadow:0 30px 60px -40px rgba(67,44,22,.5)}
-.partner-card h2{font-size:clamp(1.8rem,3.5vw,2.6rem);margin:.3em 0 .15em}
-.partner-card .tagline{font-family:var(--serif);font-style:italic;color:var(--honey-deep);font-size:1.25rem;margin-bottom:1rem}
-.partner-card .ptxt{color:var(--muted);max-width:50ch;margin:0 auto 1.4rem}
-.partner-card .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:1.8rem}
-.partner-card .tags span{font-size:.74rem;font-weight:600;color:var(--wood);background:var(--cream-2);border:1px solid var(--line);padding:.4em .85em;border-radius:999px}
+.partner{background:var(--cream);padding:54px 0}
+.partner-card{max-width:720px;margin:0 auto;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:30px 34px;box-shadow:0 18px 44px -34px rgba(67,44,22,.5)}
+.partner-card h2{font-size:clamp(1.5rem,3vw,2rem);margin:.2em 0 .1em}
+.partner-card .tagline{font-family:var(--serif);font-style:italic;color:var(--honey-deep);font-size:1.1rem;margin-bottom:.7rem}
+.partner-card .ptxt{color:var(--muted);max-width:54ch;margin:0 auto 1rem}
+.partner-card .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:1.1rem}
+.partner-card .tags span{font-size:.72rem;font-weight:600;color:var(--wood);background:var(--cream-2);border:1px solid var(--line);padding:.35em .75em;border-radius:999px}
 
 /* ---------- WOOCOMMERCE (habillage) ---------- */
 .wc-wrap{padding:60px 0}
