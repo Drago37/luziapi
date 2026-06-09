@@ -243,20 +243,4 @@
     </div>
 </section>
 
-{# ---------- PHOTOGRAPHE PARTENAIRE ---------- #}
-<section class="partner" id="photographe">
-    <div class="wrap">
-        <div class="partner-card">
-            <span class="eyebrow">En partenariat</span>
-            <h2>Photographies signées {{ photographe.nom }}</h2>
-            <p class="tagline">« {{ photographe.tagline }} »</p>
-            <p class="ptxt">Toutes les photos de ce site sont signées {{ photographe.nom }}, photographe partenaire de LuziApi.</p>
-            <div class="tags">
-                {% for t in photographe.tags %}<span>{{ t }}</span>{% endfor %}
-            </div>
-            <a class="btn btn-primary" href="{{ photographe.url }}" target="_blank" rel="noopener">Découvrir son portfolio</a>
-        </div>
-    </div>
-</section>
-
 {% endblock %}
