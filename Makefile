@@ -19,6 +19,8 @@ THEME_SRC   := www/wp-content/themes/luziapi/
 DEPLOY_EXCLUDES := --exclude='.git' --exclude='node_modules' --exclude='tools' \
 	--exclude='.php-cs-fixer.dist.php' --exclude='.php-cs-fixer.cache' \
 	--exclude='phpstan.neon.dist' --exclude='README.md'
+# Expanse un éventuel ~ en tête de DEPLOY_KEY (non expansé entre guillemets côté shell).
+DEPLOY_KEY := $(patsubst ~/%,$(HOME)/%,$(DEPLOY_KEY))
 # Commande SSH (ajoute -i <clé> si DEPLOY_KEY est défini) et destination rsync.
 DEPLOY_SSH_OPT := ssh -p $(DEPLOY_PORT)$(if $(DEPLOY_KEY), -i $(DEPLOY_KEY))
 DEPLOY_DEST    := $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
