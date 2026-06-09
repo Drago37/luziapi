@@ -28,7 +28,7 @@ help: ## Affiche cette aide
 env: ## Crée le fichier .env depuis .env.example (si absent)
 	@test -f .env || (cp .env.example .env && echo "✔  .env créé")
 
-install: env up wait composer wp-install theme plugins ## Installe tout (1er lancement complet)
+install: env up wait composer wp-install theme plugins fixtures ## Installe tout (1er lancement complet)
 	@printf "\n\033[1;32m✔  Site prêt :\033[0m http://localhost:8080  (admin / admin)\n\n"
 
 fixtures: ## Charge le contenu de démo (4 miels + actualités, devise EUR) — idempotent
@@ -63,6 +63,7 @@ db-reset: ## Réinitialise la base et réinstalle WordPress + thème + plugins (
 	@$(MAKE) --no-print-directory wp-install
 	@$(MAKE) --no-print-directory theme
 	@$(MAKE) --no-print-directory plugins
+	@$(MAKE) --no-print-directory fixtures
 	@printf "\n\033[1;32m✔  Base réinitialisée — site remis à neuf\033[0m\n\n"
 
 ##@ Docker
