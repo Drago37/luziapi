@@ -25,6 +25,8 @@ DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' \
 LFTP_SETTINGS := set ftp:ssl-force true; set ftp:ssl-protect-data true; \
 	set ftp:ssl-protect-list true; set ssl:verify-certificate $(DEPLOY_FTP_VERIFY); \
 	set ftp:passive-mode true; set net:max-retries 2; set net:timeout 15;
+# Mot de passe FTP lu au runtime depuis .env.local (make tronque une valeur contenant un #).
+READ_FTP_PASS = sed -n 's/^[[:space:]]*DEPLOY_FTP_PASS=//p' .env.local 2>/dev/null | tr -d '\r' | tail -1
 
 # Exécute une commande dans le dossier du thème, à l'intérieur du conteneur.
 IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
@@ -149,18 +151,18 @@ deploy-check: ## Vérifie la config FTPS (.env / .env.local) et la présence de 
 	@command -v lftp >/dev/null || { printf "\033[1;31m✗  lftp manquant\033[0m — installe-le : sudo apt-get install -y lftp\n"; exit 1; }
 	@test -n "$(DEPLOY_FTP_HOST)" || { printf "\033[1;31m✗  DEPLOY_FTP_HOST manquant\033[0m (ex: luziapi.fr) — voir .env.local\n"; exit 1; }
 	@test -n "$(DEPLOY_FTP_USER)" || { printf "\033[1;31m✗  DEPLOY_FTP_USER manquant\033[0m (compte FTP) — voir .env.local\n"; exit 1; }
-	@test -n "$(DEPLOY_FTP_PASS)" || { printf "\033[1;31m✗  DEPLOY_FTP_PASS manquant\033[0m — voir .env.local\n"; exit 1; }
+	@test -n "$$($(READ_FTP_PASS))" || { printf "\033[1;31m✗  DEPLOY_FTP_PASS manquant\033[0m dans .env.local\n"; exit 1; }
 	@test -n "$(DEPLOY_FTP_PATH)" || { printf "\033[1;31m✗  DEPLOY_FTP_PATH manquant\033[0m (ex: public_html/wp-content/themes/luziapi) — voir .env.local\n"; exit 1; }
 	@printf "✔  Cible FTPS : \033[36m%s@%s:%s\033[0m  (port %s, verify-cert=%s)\n" "$(DEPLOY_FTP_USER)" "$(DEPLOY_FTP_HOST)" "$(DEPLOY_FTP_PATH)" "$(DEPLOY_FTP_PORT)" "$(DEPLOY_FTP_VERIFY)"
 
 deploy-dry: deploy-check ## Simulation du déploiement (mirror --dry-run, n'envoie rien)
 	@printf "🔍  Simulation FTPS (aucun fichier envoyé)…\n"
-	@LFTP_PASSWORD='$(DEPLOY_FTP_PASS)' lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
+	@LFTP_PASSWORD="$$($(READ_FTP_PASS))" lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
 		-e "$(LFTP_SETTINGS) mirror -R --delete --dry-run --verbose $(DEPLOY_EXCLUDES) $(THEME_SRC) $(DEPLOY_FTP_PATH); bye"
 
 deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (FTPS) puis restaure les deps de dev
 	@printf "🚀  Déploiement FTPS vers \033[36m%s:%s\033[0m…\n" "$(DEPLOY_FTP_HOST)" "$(DEPLOY_FTP_PATH)"
-	@LFTP_PASSWORD='$(DEPLOY_FTP_PASS)' lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
+	@LFTP_PASSWORD="$$($(READ_FTP_PASS))" lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
 		-e "$(LFTP_SETTINGS) mirror -R --delete --verbose $(DEPLOY_EXCLUDES) $(THEME_SRC) $(DEPLOY_FTP_PATH); bye"
 	@printf "🔧  Restauration des dépendances de dev en local…\n"
 	@$(call IN_THEME,composer install --no-interaction)
