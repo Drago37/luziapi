@@ -8,13 +8,28 @@ WP     := wordpress
 THEME  := wp-content/themes/luziapi
 ARGS   ?=
 
+# Charge les variables d'environnement : .env (valeurs par défaut) puis
+# .env.local (overrides & secrets, non versionné) qui a la priorité.
+-include .env
+-include .env.local
+
+# Déploiement o2switch (renseigner les DEPLOY_* dans .env / .env.local — voir .env.example).
+DEPLOY_PORT ?= 22
+THEME_SRC   := www/wp-content/themes/luziapi/
+DEPLOY_EXCLUDES := --exclude='.git' --exclude='node_modules' --exclude='tools' \
+	--exclude='.php-cs-fixer.dist.php' --exclude='.php-cs-fixer.cache' \
+	--exclude='phpstan.neon.dist' --exclude='README.md'
+# Commande SSH (ajoute -i <clé> si DEPLOY_KEY est défini) et destination rsync.
+DEPLOY_SSH_OPT := ssh -p $(DEPLOY_PORT)$(if $(DEPLOY_KEY), -i $(DEPLOY_KEY))
+DEPLOY_DEST    := $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
+
 # Exécute une commande dans le dossier du thème, à l'intérieur du conteneur.
 IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 
 .DEFAULT_GOAL := help
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
-        cs cs-check stan qa
+        cs cs-check stan qa deploy deploy-dry deploy-check
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -116,3 +131,21 @@ stan: ## Analyse statique (PHPStan)
 
 qa: cs-check stan ## Lance toutes les vérifications (style + analyse)
 	@printf "\033[1;32m✔  Vérifications terminées\033[0m\n"
+
+##@ Déploiement (o2switch)
+deploy-check: ## Vérifie que la config de déploiement est renseignée (.env / .env.local)
+	@test -n "$(DEPLOY_HOST)" || { printf "\033[1;31m✗  DEPLOY_HOST manquant\033[0m (ex: nodeXXXX.n0c.com) — voir .env.local\n"; exit 1; }
+	@test -n "$(DEPLOY_USER)" || { printf "\033[1;31m✗  DEPLOY_USER manquant\033[0m (ton login cPanel) — voir .env.local\n"; exit 1; }
+	@test -n "$(DEPLOY_PATH)" || { printf "\033[1;31m✗  DEPLOY_PATH manquant\033[0m (ex: ~/public_html/wp-content/themes/luziapi) — voir .env.local\n"; exit 1; }
+	@printf "✔  Cible : \033[36m%s\033[0m  (port %s%s)\n" "$(DEPLOY_DEST)" "$(DEPLOY_PORT)" "$(if $(DEPLOY_KEY), , — aucune clé : mot de passe demandé)"
+
+deploy-dry: deploy-check ## Simulation du déploiement (rsync --dry-run, n'envoie rien)
+	@printf "🔍  Simulation (aucun fichier envoyé)…\n"
+	@rsync -rltzv --dry-run --delete -e "$(DEPLOY_SSH_OPT)" $(DEPLOY_EXCLUDES) $(THEME_SRC) "$(DEPLOY_DEST)/"
+
+deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (rsync/SSH) puis restaure les deps de dev
+	@printf "🚀  Déploiement vers \033[36m%s\033[0m…\n" "$(DEPLOY_DEST)"
+	@rsync -rltz --delete -e "$(DEPLOY_SSH_OPT)" $(DEPLOY_EXCLUDES) $(THEME_SRC) "$(DEPLOY_DEST)/"
+	@printf "🔧  Restauration des dépendances de dev en local…\n"
+	@$(call IN_THEME,composer install --no-interaction)
+	@printf "\n\033[1;32m✔  Thème déployé\033[0m  →  https://luziapi.fr\n\n"

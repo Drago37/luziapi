@@ -92,7 +92,33 @@ Deux approches possibles :
 
 ## Mettre à jour le thème ensuite
 
-Le thème est versionné sur GitHub. Pour livrer une évolution :
+### Méthode automatisée — `make deploy` (rsync/SSH) — recommandé
+
+Une fois la configuration faite (une seule fois), livrer une évolution tient en une commande :
+```bash
+make deploy        # build des deps en prod + rsync du thème vers o2switch
+make deploy-dry    # simulation (n'envoie rien) — pour vérifier la connexion/chemin
+```
+`make deploy` ne pousse **que le thème** (`www/wp-content/themes/luziapi/`, avec son
+`vendor/` en mode prod). Il **ne touche pas** au cœur WordPress, à la base ni aux
+médias — qui vivent sur le serveur. Les outils de dev (`tools/`, PHPStan, CS-Fixer,
+`README.md`) sont exclus de l'envoi.
+
+**Configuration (une fois).** Les accès se mettent dans `.env.local` (non versionné) :
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `DEPLOY_HOST` | hôte SSH o2switch | `node1234.n0c.com` |
+| `DEPLOY_USER` | login cPanel | `luziapi` |
+| `DEPLOY_PORT` | port SSH (défaut 22) | `22` |
+| `DEPLOY_PATH` | dossier du thème sur le serveur | `~/public_html/wp-content/themes/luziapi` |
+| `DEPLOY_KEY`  | clé SSH privée locale | `~/.ssh/id_ed25519_o2switch` |
+
+Pré-requis o2switch : activer l'**accès SSH** dans cPanel, **générer une clé**
+(`ssh-keygen -t ed25519`) et **autoriser la clé publique** dans cPanel → « Accès SSH ».
+
+### Méthode manuelle (repli)
+
 ```bash
 cd www/wp-content/themes/luziapi
 composer install --no-dev --optimize-autoloader   # si dépendances modifiées

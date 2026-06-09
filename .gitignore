@@ -1,5 +1,7 @@
 # --- Environnement & système ---
 .env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 Thumbs.db
