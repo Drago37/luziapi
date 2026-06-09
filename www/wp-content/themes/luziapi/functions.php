@@ -36,6 +36,9 @@ if (! class_exists('Timber\\Timber')) {
 
 Timber\Timber::init();
 
+// Les gabarits Twig du thème vivent dans templates/ (le dossier par défaut de Timber est « views »).
+Timber\Timber::$dirname = 'templates';
+
 require_once LUZIAPI_DIR . '/inc/setup.php';
 require_once LUZIAPI_DIR . '/inc/timber.php';
 require_once LUZIAPI_DIR . '/inc/seo.php';
