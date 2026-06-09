@@ -12,7 +12,7 @@ luziapi/
 │       └── uploads/             (non versionné)
 ├── docker/                      Dockerfile + réglages PHP
 ├── docker-compose.yml           WordPress + MariaDB + phpMyAdmin + wp-cli
-├── .env.example
+├── .env                         valeurs par défaut (versionné) ; overrides → .env.local
 ├── .github/workflows/ci.yml     PHPStan + CS-Fixer (thème uniquement)
 ├── DEPLOIEMENT.md               passage du local au serveur o2switch
 └── README.md
@@ -37,8 +37,9 @@ luziapi/
 > Puis va sur http://localhost:8080 (admin / admin). Les commandes ci-dessous sont l'équivalent « manuel ».
 
 ```bash
-# 1. Configuration
-cp .env.example .env
+# 1. Configuration : .env est déjà versionné (valeurs par défaut).
+#    Pour des réglages locaux ou les accès de déploiement, créer .env.local :
+make env   # crée .env.local si absent (sinon, rien à faire)
 
 # 2. Démarrer la stack (construit l'image, lance WordPress + base + phpMyAdmin)
 docker compose up -d --build

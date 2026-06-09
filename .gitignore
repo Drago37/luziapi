@@ -1,5 +1,5 @@
 # --- Environnement & système ---
-.env
+# .env est versionné (valeurs par défaut, sans secret) ; seuls les overrides locaux sont ignorés.
 .env.local
 .env.*.local
 *.log

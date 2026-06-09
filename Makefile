@@ -40,8 +40,17 @@ help: ## Affiche cette aide
 	@printf "\n"
 
 ##@ Installation
-env: ## Crée le fichier .env depuis .env.example (si absent)
-	@test -f .env || (cp .env.example .env && echo "✔  .env créé")
+env: ## Crée .env.local (overrides locaux : secrets, accès o2switch) si absent
+	@test -f .env.local && echo "✔  .env.local déjà présent" || { \
+		printf '%s\n' \
+			'# Overrides locaux — NON versionné. Surcharge .env.' \
+			'# Accès o2switch pour `make deploy` (voir .env pour la doc des variables) :' \
+			'DEPLOY_HOST=' \
+			'DEPLOY_USER=' \
+			'#DEPLOY_PORT=22' \
+			'DEPLOY_PATH=' \
+			'DEPLOY_KEY=' \
+		> .env.local && echo "✔  .env.local créé — à compléter pour le déploiement"; }
 
 install: env up wait composer wp-install theme plugins fixtures ## Installe tout (1er lancement complet)
 	@printf "\n\033[1;32m✔  Site prêt :\033[0m http://localhost:8080  (admin / admin)\n\n"
