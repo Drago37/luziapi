@@ -4,6 +4,10 @@
 .DS_Store
 Thumbs.db
 
+# --- IDE ---
+.idea/
+.vscode/
+
 # --- Dépendances ---
 /www/wp-content/themes/luziapi/vendor/
 node_modules/
