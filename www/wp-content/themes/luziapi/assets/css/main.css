@@ -49,9 +49,9 @@ p{margin:0}
 .call-btn{display:inline-flex;align-items:center;gap:.5em;background:transparent;color:var(--gold);font-weight:800;font-size:.95rem;padding:.55em 1.1em;border-radius:999px;border:2px solid var(--gold);transition:.25s;white-space:nowrap}
 .call-btn:hover{background:var(--gold);color:var(--bark);border-color:var(--gold);transform:translateY(-1px)}
 .call-btn svg{width:16px;height:16px;flex:none}
-.btn-outline-gold{border-color:var(--gold);color:var(--gold);background:transparent}
-.btn-outline-gold:hover{background:var(--gold);color:var(--espresso)}
-.btn-gold{background:var(--honey);color:var(--bark);border-color:var(--honey);font-weight:800}
+.btn-soft{background:var(--gold-soft);color:var(--bark);border-color:var(--gold-soft);font-weight:700}
+.btn-soft:hover{background:var(--gold);border-color:var(--gold);color:var(--bark)}
+.btn-gold{background:var(--honey);color:var(--bark);border-color:var(--honey);font-weight:800;box-shadow:0 8px 20px -12px rgba(43,29,16,.85)}
 .btn-gold:hover{background:var(--gold);border-color:var(--gold);color:var(--bark)}
 .fab{position:fixed;right:16px;bottom:18px;z-index:1100;display:flex;flex-direction:column;gap:10px}
 .fab a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:64px;padding:9px 4px;border-radius:16px;background:var(--espresso);color:var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);border:2px solid rgba(224,161,36,.45);transition:.25s;text-align:center}
