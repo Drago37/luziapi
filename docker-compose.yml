@@ -60,7 +60,7 @@ services:
   # Service utilitaire : wp-cli (commandes WordPress).
   # Usage : docker compose run --rm wpcli wp <commande>
   wpcli:
-    image: wordpress:cli-php8.3
+    image: wordpress:cli-php8.4
     depends_on:
       db:
         condition: service_healthy
