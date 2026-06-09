@@ -92,30 +92,36 @@ Deux approches possibles :
 
 ## Mettre à jour le thème ensuite
 
-### Méthode automatisée — `make deploy` (rsync/SSH) — recommandé
+### Méthode automatisée — `make deploy` (FTPS) — recommandé
 
 Une fois la configuration faite (une seule fois), livrer une évolution tient en une commande :
 ```bash
-make deploy        # build des deps en prod + rsync du thème vers o2switch
+make deploy        # build des deps en prod + envoi FTPS du thème vers o2switch
 make deploy-dry    # simulation (n'envoie rien) — pour vérifier la connexion/chemin
 ```
 `make deploy` ne pousse **que le thème** (`www/wp-content/themes/luziapi/`, avec son
-`vendor/` en mode prod). Il **ne touche pas** au cœur WordPress, à la base ni aux
-médias — qui vivent sur le serveur. Les outils de dev (`tools/`, PHPStan, CS-Fixer,
-`README.md`) sont exclus de l'envoi.
+`vendor/` en mode prod), via **FTPS** (FTP chiffré par TLS, port 21). Il **ne touche pas**
+au cœur WordPress, à la base ni aux médias — qui vivent sur le serveur. Les outils de
+dev (`tools/`, PHPStan, CS-Fixer, `README.md`) sont exclus de l'envoi.
+
+> Le SSH/rsync (port 22) est bloqué par le pare-feu o2switch tant que l'IP n'est pas
+> débloquée ; on utilise donc FTPS (port 21), chiffré, qui passe sans déblocage.
+
+**Outil requis** : `lftp` (`sudo apt-get install -y lftp`).
 
 **Configuration (une fois).** Les accès se mettent dans `.env.local` (non versionné) :
 
 | Variable | Rôle | Exemple |
 |---|---|---|
-| `DEPLOY_HOST` | hôte SSH o2switch | `node1234.n0c.com` |
-| `DEPLOY_USER` | login cPanel | `luziapi` |
-| `DEPLOY_PORT` | port SSH (défaut 22) | `22` |
-| `DEPLOY_PATH` | dossier du thème sur le serveur | `~/public_html/wp-content/themes/luziapi` |
-| `DEPLOY_KEY`  | clé SSH privée locale | `~/.ssh/id_ed25519_o2switch` |
+| `DEPLOY_FTP_HOST` | hôte FTP | `luziapi.fr` |
+| `DEPLOY_FTP_USER` | compte FTP (cPanel ou dédié) | `gran4488` |
+| `DEPLOY_FTP_PASS` | mot de passe FTP (secret) | `••••••` |
+| `DEPLOY_FTP_PATH` | dossier du thème sur le serveur | `public_html/wp-content/themes/luziapi` |
+| `DEPLOY_FTP_PORT` | port FTP (défaut 21) | `21` |
+| `DEPLOY_FTP_VERIFY` | vérifier le certificat TLS | `yes` (ou `no` si mismatch de hostname) |
 
-Pré-requis o2switch : activer l'**accès SSH** dans cPanel, **générer une clé**
-(`ssh-keygen -t ed25519`) et **autoriser la clé publique** dans cPanel → « Accès SSH ».
+Sécurité : privilégier un **compte FTP dédié** (cPanel → Comptes FTP) limité au dossier
+du thème, plutôt que le compte cPanel principal.
 
 ### Méthode manuelle (repli)
 

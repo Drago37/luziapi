@@ -13,17 +13,18 @@ ARGS   ?=
 -include .env
 -include .env.local
 
-# Déploiement o2switch (renseigner les DEPLOY_* dans .env / .env.local — voir .env.example).
-DEPLOY_PORT ?= 22
-THEME_SRC   := www/wp-content/themes/luziapi/
-DEPLOY_EXCLUDES := --exclude='.git' --exclude='node_modules' --exclude='tools' \
-	--exclude='.php-cs-fixer.dist.php' --exclude='.php-cs-fixer.cache' \
-	--exclude='phpstan.neon.dist' --exclude='README.md'
-# Expanse un éventuel ~ en tête de DEPLOY_KEY (non expansé entre guillemets côté shell).
-DEPLOY_KEY := $(patsubst ~/%,$(HOME)/%,$(DEPLOY_KEY))
-# Commande SSH (ajoute -i <clé> si DEPLOY_KEY est défini) et destination rsync.
-DEPLOY_SSH_OPT := ssh -p $(DEPLOY_PORT)$(if $(DEPLOY_KEY), -i $(DEPLOY_KEY))
-DEPLOY_DEST    := $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
+# Déploiement o2switch en FTPS (renseigner les DEPLOY_FTP_* dans .env / .env.local).
+DEPLOY_FTP_PORT   ?= 21
+DEPLOY_FTP_VERIFY ?= yes
+THEME_SRC := www/wp-content/themes/luziapi/
+# Exclusions (globs lftp) : outils de dev, dépôt git, modules.
+DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' \
+	-X '.php-cs-fixer.dist.php' -X '.php-cs-fixer.cache' \
+	-X 'phpstan.neon.dist' -X 'README.md'
+# Réglages lftp : FTPS forcé + chiffrement des données, mode passif, timeouts courts.
+LFTP_SETTINGS := set ftp:ssl-force true; set ftp:ssl-protect-data true; \
+	set ftp:ssl-protect-list true; set ssl:verify-certificate $(DEPLOY_FTP_VERIFY); \
+	set ftp:passive-mode true; set net:max-retries 2; set net:timeout 15;
 
 # Exécute une commande dans le dossier du thème, à l'intérieur du conteneur.
 IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
@@ -143,20 +144,24 @@ stan: ## Analyse statique (PHPStan)
 qa: cs-check stan ## Lance toutes les vérifications (style + analyse)
 	@printf "\033[1;32m✔  Vérifications terminées\033[0m\n"
 
-##@ Déploiement (o2switch)
-deploy-check: ## Vérifie que la config de déploiement est renseignée (.env / .env.local)
-	@test -n "$(DEPLOY_HOST)" || { printf "\033[1;31m✗  DEPLOY_HOST manquant\033[0m (ex: nodeXXXX.n0c.com) — voir .env.local\n"; exit 1; }
-	@test -n "$(DEPLOY_USER)" || { printf "\033[1;31m✗  DEPLOY_USER manquant\033[0m (ton login cPanel) — voir .env.local\n"; exit 1; }
-	@test -n "$(DEPLOY_PATH)" || { printf "\033[1;31m✗  DEPLOY_PATH manquant\033[0m (ex: ~/public_html/wp-content/themes/luziapi) — voir .env.local\n"; exit 1; }
-	@printf "✔  Cible : \033[36m%s\033[0m  (port %s%s)\n" "$(DEPLOY_DEST)" "$(DEPLOY_PORT)" "$(if $(DEPLOY_KEY), , — aucune clé : mot de passe demandé)"
+##@ Déploiement (o2switch, FTPS)
+deploy-check: ## Vérifie la config FTPS (.env / .env.local) et la présence de lftp
+	@command -v lftp >/dev/null || { printf "\033[1;31m✗  lftp manquant\033[0m — installe-le : sudo apt-get install -y lftp\n"; exit 1; }
+	@test -n "$(DEPLOY_FTP_HOST)" || { printf "\033[1;31m✗  DEPLOY_FTP_HOST manquant\033[0m (ex: luziapi.fr) — voir .env.local\n"; exit 1; }
+	@test -n "$(DEPLOY_FTP_USER)" || { printf "\033[1;31m✗  DEPLOY_FTP_USER manquant\033[0m (compte FTP) — voir .env.local\n"; exit 1; }
+	@test -n "$(DEPLOY_FTP_PASS)" || { printf "\033[1;31m✗  DEPLOY_FTP_PASS manquant\033[0m — voir .env.local\n"; exit 1; }
+	@test -n "$(DEPLOY_FTP_PATH)" || { printf "\033[1;31m✗  DEPLOY_FTP_PATH manquant\033[0m (ex: public_html/wp-content/themes/luziapi) — voir .env.local\n"; exit 1; }
+	@printf "✔  Cible FTPS : \033[36m%s@%s:%s\033[0m  (port %s, verify-cert=%s)\n" "$(DEPLOY_FTP_USER)" "$(DEPLOY_FTP_HOST)" "$(DEPLOY_FTP_PATH)" "$(DEPLOY_FTP_PORT)" "$(DEPLOY_FTP_VERIFY)"
 
-deploy-dry: deploy-check ## Simulation du déploiement (rsync --dry-run, n'envoie rien)
-	@printf "🔍  Simulation (aucun fichier envoyé)…\n"
-	@rsync -rltzv --dry-run --delete -e "$(DEPLOY_SSH_OPT)" $(DEPLOY_EXCLUDES) $(THEME_SRC) "$(DEPLOY_DEST)/"
+deploy-dry: deploy-check ## Simulation du déploiement (mirror --dry-run, n'envoie rien)
+	@printf "🔍  Simulation FTPS (aucun fichier envoyé)…\n"
+	@LFTP_PASSWORD='$(DEPLOY_FTP_PASS)' lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
+		-e "$(LFTP_SETTINGS) mirror -R --delete --dry-run --verbose $(DEPLOY_EXCLUDES) $(THEME_SRC) $(DEPLOY_FTP_PATH); bye"
 
-deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (rsync/SSH) puis restaure les deps de dev
-	@printf "🚀  Déploiement vers \033[36m%s\033[0m…\n" "$(DEPLOY_DEST)"
-	@rsync -rltz --delete -e "$(DEPLOY_SSH_OPT)" $(DEPLOY_EXCLUDES) $(THEME_SRC) "$(DEPLOY_DEST)/"
+deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (FTPS) puis restaure les deps de dev
+	@printf "🚀  Déploiement FTPS vers \033[36m%s:%s\033[0m…\n" "$(DEPLOY_FTP_HOST)" "$(DEPLOY_FTP_PATH)"
+	@LFTP_PASSWORD='$(DEPLOY_FTP_PASS)' lftp -u '$(DEPLOY_FTP_USER)' --env-password -p $(DEPLOY_FTP_PORT) '$(DEPLOY_FTP_HOST)' \
+		-e "$(LFTP_SETTINGS) mirror -R --delete --verbose $(DEPLOY_EXCLUDES) $(THEME_SRC) $(DEPLOY_FTP_PATH); bye"
 	@printf "🔧  Restauration des dépendances de dev en local…\n"
 	@$(call IN_THEME,composer install --no-interaction)
 	@printf "\n\033[1;32m✔  Thème déployé\033[0m  →  https://luziapi.fr\n\n"
