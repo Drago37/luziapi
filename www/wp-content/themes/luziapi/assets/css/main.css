@@ -40,8 +40,8 @@ p{margin:0}
 .brand .bee{width:34px;height:auto;flex:none}
 .brand b{color:var(--gold);font-weight:900}
 .menu{display:flex;gap:1.5rem;align-items:center}
-.menu a{color:#f3e6cf;font-weight:600;font-size:.92rem;opacity:.85;transition:.2s}
-.menu a:hover{opacity:1;color:var(--gold)}
+.menu a:not(.btn){color:#f3e6cf;font-weight:600;font-size:.92rem;opacity:.85;transition:.2s}
+.menu a:not(.btn):hover{opacity:1;color:var(--gold)}
 .menu .btn{padding:.55em 1.15em}
 .burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
 .burger span{width:26px;height:2px;background:var(--gold);display:block;transition:.25s}
@@ -258,7 +258,7 @@ section{padding:96px 0}
 @media(max-width:900px){
   .menu{position:absolute;top:72px;left:0;right:0;flex-direction:column;gap:0;background:rgba(43,29,16,.98);padding:0;max-height:0;overflow:hidden;transition:max-height .3s}
   .menu.open{max-height:380px;padding:12px 0}
-  .menu a{padding:14px 26px;width:100%}
+  .menu a:not(.btn){padding:14px 26px;width:100%}
   .menu .btn{margin:10px 26px;width:calc(100% - 52px);justify-content:center}
   .burger{display:flex}
   .split,.split.rev,.locate .lay,.contact .lay,.foot{grid-template-columns:1fr}
