@@ -113,7 +113,7 @@ dev (`tools/`, PHPStan, CS-Fixer, `README.md`) sont exclus de l'envoi.
 
 | Variable | Rôle | Exemple |
 |---|---|---|
-| `DEPLOY_FTP_HOST` | hôte FTP | `luziapi.fr` |
+| `DEPLOY_FTP_HOST` | **nom du serveur** o2switch (pas le domaine) | `imprimante.o2switch.net` |
 | `DEPLOY_FTP_USER` | compte FTP (cPanel ou dédié) | `gran4488` |
 | `DEPLOY_FTP_PASS` | mot de passe FTP (secret) | `••••••` |
 | `DEPLOY_FTP_PATH` | dossier du thème sur le serveur | `public_html/wp-content/themes/luziapi` |
@@ -122,6 +122,12 @@ dev (`tools/`, PHPStan, CS-Fixer, `README.md`) sont exclus de l'envoi.
 
 Sécurité : privilégier un **compte FTP dédié** (cPanel → Comptes FTP) limité au dossier
 du thème, plutôt que le compte cPanel principal.
+
+> **Certificat TLS** : utiliser le **nom du serveur** o2switch comme `DEPLOY_FTP_HOST`
+> (ex. `imprimante.o2switch.net`, visible dans cPanel → Informations générales), et non
+> `luziapi.fr` : le certificat FTPS est émis pour le serveur, pas pour le domaine. Ainsi
+> `DEPLOY_FTP_VERIFY=yes` fonctionne (connexion chiffrée **et** vérifiée). Pour trouver ce
+> nom : `openssl s_client -starttls ftp -connect luziapi.fr:21 </dev/null | openssl x509 -noout -subject`.
 
 ### Méthode manuelle (repli)
 
