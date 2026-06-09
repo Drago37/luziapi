@@ -63,7 +63,7 @@ p{margin:0}
 @media(max-width:540px){.fab{right:10px;bottom:12px;gap:8px}.fab a{width:58px;padding:8px 3px}.fab a svg{width:20px;height:20px}.fab .label{font-size:.56rem}}
 
 /* ---------- HERO ---------- */
-.hero{position:relative;min-height:84vh;display:flex;align-items:center;color:#fff;overflow:hidden}
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;color:#fff;overflow:hidden}
 .hero-img{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;transform:scale(1.05);animation:zoom 18s ease-out forwards}
 @keyframes zoom{to{transform:scale(1)}}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(34,22,11,.86) 0%,rgba(43,28,14,.62) 45%,rgba(43,28,14,.18) 100%)}
@@ -79,7 +79,8 @@ p{margin:0}
 @keyframes bob{50%{transform:translate(-50%,7px)}}
 
 /* ---------- SECTIONS ---------- */
-section{padding:96px 0;scroll-snap-align:start;scroll-snap-stop:normal}
+section{padding:56px 0;scroll-snap-align:start;scroll-snap-stop:normal}
+section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:safe center;align-items:center}
 .craft{background:var(--paper)}
 .sec-head{max-width:660px;margin-bottom:48px}
 .sec-head h2{font-size:clamp(2rem,4vw,3rem);margin:.25em 0 .4em}
