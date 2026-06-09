@@ -97,6 +97,8 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .timeline .ms{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 22px;min-width:118px}
 .timeline .yr{font-family:var(--serif);font-weight:800;font-size:1.7rem;color:var(--honey-deep);line-height:1}
 .timeline .lb{font-size:.82rem;color:var(--muted);margin-top:.35em;font-weight:600}
+.about .stamp{display:inline-flex;align-items:center;gap:.6em;background:var(--paper);border:1px solid var(--line);padding:.5em 1em;border-radius:999px;font-weight:600;font-size:.85rem;color:var(--wood);margin-top:1.4rem}
+.about .stamp .hx{width:16px;height:18px;background:var(--honey);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
 
 /* ---------- PROCESS ---------- */
 .process{background:var(--bark);color:var(--cream);position:relative}
@@ -115,7 +117,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .promo b{font-weight:800}
 .promo .badge{background:var(--espresso);color:var(--gold);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;padding:.45em .85em;border-radius:999px}
 .promo .sep{opacity:.45;font-weight:700}
-.grid-honeys{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:26px}
+.grid-honeys{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
 .card{position:relative;background:var(--cream);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.3s;display:flex;flex-direction:column}
 .card:hover{transform:translateY(-6px);box-shadow:0 30px 50px -28px rgba(67,44,22,.55)}
 .card .pic{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,var(--paper),var(--cream-2));border-bottom:1px solid var(--line)}
@@ -260,8 +262,9 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
   section{padding:70px 0}
   .split.rev .ph{order:-1}
 }
+@media(max-width:980px){.grid-honeys{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){
-  .steps{grid-template-columns:1fr}
+  .steps,.grid-honeys{grid-template-columns:1fr}
   .field.row2{grid-template-columns:1fr}
   .call-btn{font-size:.82rem;padding:.5em .8em}
   .nav-right{gap:10px}
