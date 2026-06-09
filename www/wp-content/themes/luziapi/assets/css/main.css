@@ -46,8 +46,8 @@ p{margin:0}
 .burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
 .burger span{width:26px;height:2px;background:var(--gold);display:block;transition:.25s}
 .nav-right{display:flex;align-items:center;gap:16px}
-.call-btn{display:inline-flex;align-items:center;gap:.5em;background:var(--gold);color:var(--bark);font-weight:800;font-size:.95rem;padding:.55em 1.1em;border-radius:999px;border:2px solid var(--gold);transition:.25s;white-space:nowrap}
-.call-btn:hover{background:var(--honey);border-color:var(--honey);transform:translateY(-1px)}
+.call-btn{display:inline-flex;align-items:center;gap:.5em;background:transparent;color:var(--gold);font-weight:800;font-size:.95rem;padding:.55em 1.1em;border-radius:999px;border:2px solid var(--gold);transition:.25s;white-space:nowrap}
+.call-btn:hover{background:var(--gold);color:var(--bark);border-color:var(--gold);transform:translateY(-1px)}
 .call-btn svg{width:16px;height:16px;flex:none}
 .btn-outline-gold{border-color:var(--gold);color:var(--gold);background:transparent}
 .btn-outline-gold:hover{background:var(--gold);color:var(--espresso)}
