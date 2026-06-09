@@ -34,12 +34,13 @@
         </div>
     </div>
     <div class="scroll-tag">Défiler</div>
+    <span class="photo-credit">Photo © {{ credit_photo }}</span>
 </section>
 
 {# ---------- L'APICULTEUR ---------- #}
 <section class="about" id="apiculteur">
     <div class="wrap split rev">
-        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy"></div>
+        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
         <div>
             <span class="eyebrow">L'apiculteur</span>
             <h2>Anthony, passeur de saisons</h2>
@@ -64,7 +65,7 @@
             <p>Ouvrir une ruche ne s'improvise pas. Quelques bouffées d'enfumoir pour apaiser la colonie, le couvre-cadres soulevé doucement, et l'on découvre le travail des abeilles&nbsp;: couvain, réserves de pollen, et hausses qui se remplissent de miel au fil des floraisons.</p>
             <p>Tout au long de la saison, Anthony veille sur chaque ruche — santé de la colonie, présence de la reine, pose des hausses au bon moment. Un métier d'observation et de patience, qui fait toute la différence dans le pot&nbsp;: un miel récolté à pleine maturité, qui conserve l'arôme de son terroir.</p>
         </div>
-        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy"></div>
+        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
     </div>
 </section>
 
