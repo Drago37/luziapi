@@ -92,7 +92,8 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .split .ph img{width:100%;height:100%;object-fit:cover}
 /* Filigrane de crédit photo, incrusté en bas-droite de chaque photographie. */
 .photo-credit{position:absolute;right:10px;bottom:10px;z-index:3;font-size:.66rem;letter-spacing:.04em;font-weight:600;color:#fbf1da;background:rgba(43,29,16,.55);backdrop-filter:blur(2px);padding:.32em .7em;border-radius:999px;pointer-events:none;line-height:1}
-#savoir-faire .ph{height:400px;align-self:center}
+#savoir-faire .split{align-items:stretch}
+#savoir-faire .ph{min-height:420px;align-self:stretch}
 .about{background:var(--cream)}
 .about p+p,.craft p+p{margin-top:1rem}
 .timeline{display:flex;gap:16px;margin-top:1.6rem;flex-wrap:wrap}
