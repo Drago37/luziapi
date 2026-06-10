@@ -134,7 +134,7 @@
                         {% if h.coming %}
                             <span class="add disabled">À venir</span>
                         {% else %}
-                            <a class="add" href="{{ h.add_url }}">Ajouter</a>
+                            <a class="add add_to_cart_button ajax_add_to_cart" href="{{ h.add_url }}" data-product_id="{{ h.id }}" data-quantity="1" rel="nofollow">Ajouter</a>
                         {% endif %}
                     </div>
                 </div>

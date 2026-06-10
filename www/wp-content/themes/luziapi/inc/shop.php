@@ -83,6 +83,7 @@ function luziapi_get_honeys(int $limit = 8): array
             : null;
 
         $honeys[] = [
+            'id'         => $product->get_id(),
             'name'       => $product->get_name(),
             'permalink'  => get_permalink($product->get_id()),
             'price_html' => $product->get_price_html(),
