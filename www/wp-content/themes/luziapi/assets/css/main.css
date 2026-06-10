@@ -172,7 +172,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .craft-swarm:hover{background:var(--gold-soft);border-color:var(--gold);transform:translateY(-1px)}
 .craft-swarm .craft-swarm-ic{font-size:1.7rem;flex:0 0 auto;line-height:1}
 .craft-swarm em{font-style:normal;font-weight:700;color:var(--honey-deep);white-space:nowrap}
-.craft-badges{list-style:none;display:flex;flex-wrap:wrap;gap:.6em;margin:.2rem 0 1.4rem;padding:0}
+.craft-badges{list-style:none;display:flex;flex-wrap:wrap;gap:.6em;margin:1.5rem 0 0;padding:0}
 .craft-badges a{display:inline-flex;align-items:center;gap:.45em;background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:.42em .95em;font-size:.85rem;font-weight:600;color:var(--bark);text-decoration:none;transition:.2s}
 .craft-badges a:hover{background:var(--gold-soft);border-color:var(--gold);transform:translateY(-1px)}
 .craft-badges a span{font-size:1.15rem;line-height:1}
