@@ -99,6 +99,9 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .timeline .ms{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 22px;min-width:118px}
 .timeline .yr{font-family:var(--serif);font-weight:800;font-size:1.7rem;color:var(--honey-deep);line-height:1}
 .timeline .lb{font-size:.82rem;color:var(--muted);margin-top:.35em;font-weight:600}
+.timeline .ms--new{background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-color:var(--honey);position:relative;overflow:visible}
+.timeline .ms--new .yr,.timeline .ms--new .lb{color:var(--bark)}
+.timeline .ms--new::before{content:"Nouveau";position:absolute;top:-10px;right:10px;background:var(--espresso);color:var(--gold);font-size:.62rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:.2em .6em;border-radius:999px}
 .about .stamp{display:inline-flex;align-items:center;gap:.6em;background:var(--paper);border:1px solid var(--line);padding:.5em 1em;border-radius:999px;font-weight:600;font-size:.85rem;color:var(--wood);margin-top:1.4rem}
 .about .stamp .hx{width:16px;height:18px;background:var(--honey);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
 
