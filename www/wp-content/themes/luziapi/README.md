@@ -87,6 +87,8 @@ Activer le **Retrait sur place** : **Réglages → Expédition → Retrait local
 
 L'encart « Newsletter » de la page d'accueil affiche le **formulaire Brevo** (e-mail + SMS). Tant qu'aucun shortcode n'est défini, un formulaire d'exemple s'affiche.
 
+> **Implémentation réelle en prod (luziapi.fr)** : le formulaire **natif** de l'extension Brevo (`[sibwp_form]`) **ne fonctionne pas** sur o2switch (il poste sur la page courante, servie par le cache PowerBoost → réponse HTML au lieu de JSON → spinner infini ; les POST `admin-ajax` sont aussi filtrés par le WAF). Il a été remplacé par un **formulaire maison** : le mu-plugin `luziapi-newsletter.php` rend le formulaire (classes `.nl-form`/`.nl-consent` du thème) et expose une route REST publique `POST /wp-json/luziapi/v1/subscribe` qui appelle l'API Brevo (`POST /contacts`, liste cible). Canal REST = même que Contact Form 7 (ni caché, ni bloqué). Saisie du téléphone en clair (`06 12 34 56 78`) normalisée en `+33…`. **Single opt-in** (la case de consentement explicite fait foi). La connexion du compte, la liste et les campagnes (ci-dessous) restent valables.
+
 **Pourquoi Brevo** : société française, données en UE (RGPD), e-mail gratuit (~300/jour), SMS en option (crédits), et il peut aussi servir de **SMTP** pour les e-mails du site (contact, commandes) → meilleure délivrabilité, un seul outil. (Alternative e-mail seul : MailPoet, `[mailpoet_form id="1"]`.)
 
 ### a) Connexion
@@ -129,8 +131,23 @@ Publier des articles fait vivre le site : chaque actualité (récolte, info dive
 ### Écrire un article
 **Articles → Ajouter** : un titre, le contenu, et une **image mise en avant** (elle sert de vignette sur l'accueil/la liste, et de couverture en haut de l'article).
 
-### Lien avec la newsletter (pratique)
-Brevo peut envoyer automatiquement vos nouveaux articles par e-mail via une **campagne RSS** : on lui fournit le flux du blog (`https://luziapi.fr/feed/`) et chaque article publié part en newsletter, sans double saisie. À configurer dans Brevo → Campagnes → RSS.
+### Lien avec la newsletter : campagne RSS automatique
+
+Brevo peut envoyer **automatiquement** vos nouveaux articles par e-mail, sans double saisie : on lui fournit le flux du blog et il génère l'e-mail à partir des derniers articles publiés.
+
+**Flux RSS du site** : `https://www.luziapi.fr/feed/` (les 10 derniers articles ; intégré nativement par WordPress).
+
+**Mise en place dans Brevo :**
+
+1. **Campagnes → E-mails → Créer** une campagne, puis choisir le type **« RSS »** (e-mail RSS / campagne automatisée RSS).
+2. **Flux RSS** : coller `https://www.luziapi.fr/feed/`. Brevo lit le flux et propose ses balises.
+3. **Fréquence d'envoi** : définir quand Brevo vérifie le flux et envoie (ex. **chaque lundi à 9 h**, ou quotidien). Cocher l'option **« n'envoyer que s'il y a un nouvel article »** pour ne rien envoyer les semaines sans publication.
+4. **Destinataires** : choisir la liste **« LuziApi Newsletter »**.
+5. **Expéditeur** : `LuziApi <no-reply@luziapi.fr>` (domaine authentifié).
+6. **Contenu** : dans l'éditeur, utiliser le **bloc RSS** (ou les balises RSS) pour insérer, pour chaque article, le **titre**, l'**image mise en avant**, l'**extrait** et un bouton **« Lire la suite »** (lien vers l'article). L'**objet** de l'e-mail peut reprendre une balise RSS, ex. le titre du dernier article.
+7. **Activer** la campagne : elle tourne ensuite toute seule.
+
+> ⚠️ L'envoi suit la **fréquence choisie** (ce n'est pas instantané à la publication) : si vous réglez « chaque lundi », un article publié le mardi partira le lundi suivant. Pour un envoi immédiat ponctuel, faire une campagne e-mail classique à la place.
 
 ## 8. Anti-spam (à faire plus tard)
 
