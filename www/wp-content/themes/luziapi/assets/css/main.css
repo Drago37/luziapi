@@ -168,6 +168,10 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .swarm .swarm-cta{margin:1.6rem 0 .6rem}
 .swarm .swarm-cta .btn{font-size:1.05rem}
 .swarm .swarm-note{font-size:.82rem;color:#c9a86a;margin-top:1.1rem}
+.craft-swarm{display:flex;gap:.75em;align-items:center;margin-top:1.5rem;padding:.85em 1.1em;background:var(--cream-2);border:1px solid var(--line);border-radius:14px;color:var(--ink);text-decoration:none;font-size:.95rem;line-height:1.45;transition:.2s}
+.craft-swarm:hover{background:var(--gold-soft);border-color:var(--gold);transform:translateY(-1px)}
+.craft-swarm .craft-swarm-ic{font-size:1.7rem;flex:0 0 auto;line-height:1}
+.craft-swarm em{font-style:normal;font-weight:700;color:var(--honey-deep);white-space:nowrap}
 .news{background:var(--cream)}
 .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .post-card{background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.3s;display:flex;flex-direction:column}
