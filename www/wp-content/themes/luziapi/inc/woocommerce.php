@@ -196,7 +196,8 @@ add_action('woocommerce_single_product_summary', static function (): void {
     $texture = luziapi_product_attr($product, 'Texture');
 
     if (luziapi_is_coming_soon($product)) {
-        $stock = ['soon', 'À venir'];
+        $recolte = luziapi_product_attr($product, 'Récolte');
+        $stock   = ['soon', '' !== $recolte ? 'À venir · récolte ' . $recolte : 'À venir'];
     } elseif ($product->is_in_stock()) {
         $stock = ['in', 'Disponible'];
     } else {
