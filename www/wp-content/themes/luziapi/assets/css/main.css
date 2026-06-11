@@ -34,6 +34,8 @@ p{margin:0}
 
 /* ---------- HEADER ---------- */
 .site-header{position:sticky;top:0;z-index:1000;background:rgba(43,29,16,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(224,161,36,.25)}
+body.admin-bar .site-header{top:32px}
+@media screen and (max-width:782px){body.admin-bar .site-header{top:46px}}
 .site-header .nav{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:72px;padding:10px 0}
 .brand{display:flex;align-items:center;gap:.5em;font-family:var(--serif);font-weight:900;font-size:clamp(1.35rem,3vw,1.7rem);color:#fff;line-height:1;letter-spacing:-.01em}
 .brand .wm{white-space:nowrap}
@@ -391,8 +393,9 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce-cart .wc-proceed-to-checkout{margin-top:18px}
 .woocommerce-cart .wc-proceed-to-checkout .checkout-button{display:block;text-align:center;font-size:1.05rem}
 /* Page de confirmation de commande (« commande reçue ») */
-.woocommerce-order .woocommerce-thankyou-order-received{margin:0 0 18px!important}
-.woocommerce-order ul.woocommerce-order-overview{margin:0 0 26px}
+.woocommerce-order .woocommerce-thankyou-order-received{margin:0 0 14px!important;padding-bottom:0!important}
+.woocommerce-order ul.order_details,.woocommerce-order ul.woocommerce-order-overview{margin:0 0 24px!important}
+.woocommerce-order ul.order_details{padding-top:0!important}
 .woocommerce .cart-collaterals,.woocommerce-cart .cart-collaterals{margin-top:30px}
 .woocommerce-cart .actions{padding-top:8px}
 .woocommerce .cart_totals,.woocommerce-checkout #order_review,.woocommerce-checkout #payment{margin-top:14px}
