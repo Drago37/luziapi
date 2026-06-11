@@ -126,6 +126,8 @@ body.admin-bar .site-header{top:32px}
 #apiculteur .ph{align-self:stretch;min-height:420px}
 .about{background:var(--cream)}
 .about p+p,.craft p+p{margin-top:1rem}
+.about .eyebrow,.craft .eyebrow{display:inline-block;margin-bottom:.5em}
+.about h2,.craft h2{margin-bottom:.6em}
 .timeline{display:flex;gap:10px;margin-top:1.6rem;flex-wrap:wrap}
 .timeline .ms{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:88px}
 .timeline .yr{font-family:var(--serif);font-weight:800;font-size:1.7rem;color:var(--honey-deep);line-height:1}
