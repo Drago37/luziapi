@@ -247,8 +247,7 @@ body.admin-bar .site-header{top:32px}
 .form-wrap .wpcf7-form .wpcf7-submit{background:var(--honey);color:var(--espresso);border:0;font-weight:700;padding:.85em 1.6em;border-radius:999px;cursor:pointer;width:100%}
 
 /* ---------- PAGES / LEGAL ---------- */
-.page{padding:28px 0 56px}
-.woocommerce-page .page{padding:0}
+article.page{padding:28px 0 56px}
 .page-narrow{max-width:780px}
 .page h1{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:1rem}
 .prose{color:var(--ink)}
@@ -271,7 +270,7 @@ body.admin-bar .site-header{top:32px}
 
 /* ---------- WOOCOMMERCE (habillage) ---------- */
 .wc-wrap{padding:60px 0}
-.wc-page{max-width:var(--maxw);margin:0 auto;padding:0 30px}
+.wc-page{max-width:var(--maxw);margin:0 auto;padding:28px 30px}
 
 /* Bouton panier (header) */
 .cart-wrap{position:relative}
