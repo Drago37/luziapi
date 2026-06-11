@@ -74,9 +74,16 @@ body.admin-bar .site-header{top:32px}
 .fab-cart-wrap .cart-dropdown{top:0;right:calc(100% + 14px);left:auto;margin:0;text-align:left}
 .fab-cart-wrap .cart-dropdown::before{top:0;bottom:0;left:auto;right:-14px;width:14px;height:auto}
 .fab-cart-wrap:hover .cart-dropdown,.fab-cart-wrap:focus-within .cart-dropdown{opacity:1;visibility:visible;transform:none}
-/* Mini-panier : fond clair + texte lisible (le nom de produit ressortait mal) */
+/* Le déroulant est dans .fab : annuler le style « bouton flottant » hérité par ses liens */
 .fab-cart-wrap .cart-dropdown{background:#fff!important}
-.fab-cart-wrap .cart-dropdown a:not(.remove),.fab-cart-wrap .cart-dropdown .quantity,.fab-cart-wrap .cart-dropdown .woocommerce-mini-cart__total,.fab-cart-wrap .cart-dropdown .amount,.fab-cart-wrap .cart-dropdown p{color:var(--espresso)!important}
+.fab .cart-dropdown a{width:auto;padding:0;border:0;border-radius:0;background:none;box-shadow:none;flex-direction:row;text-transform:none;letter-spacing:normal;color:var(--ink)}
+.fab .cart-dropdown a:hover{background:none;transform:none}
+.fab .cart-dropdown .quantity,.fab .cart-dropdown p{color:var(--ink)}
+.fab .cart-dropdown .woocommerce-mini-cart__total,.fab .cart-dropdown .amount{color:var(--bark)}
+/* Boutons du mini-panier re-stylés (hors contexte .woocommerce) */
+.fab .cart-dropdown .woocommerce-mini-cart__buttons .button{display:block;width:100%;padding:.7em 1em;border-radius:999px;font-weight:800;text-align:center;background:var(--honey);color:var(--espresso)}
+.fab .cart-dropdown .woocommerce-mini-cart__buttons .button.checkout{background:var(--espresso);color:var(--gold)}
+.fab .cart-dropdown .woocommerce-mini-cart__buttons .button:hover{background:var(--gold);color:var(--espresso)}
 /* Description courte sur les vignettes boutique */
 .woocommerce ul.products li.product .loop-desc{padding:0 16px;margin:0 0 12px;font-size:.85rem;line-height:1.45;color:var(--muted)}
 @media(max-width:540px){.fab{right:10px;bottom:12px;gap:8px}.fab a{width:58px;padding:8px 3px}.fab a svg{width:20px;height:20px}.fab .label{font-size:.56rem}}
