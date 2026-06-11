@@ -347,6 +347,12 @@ article.page{padding:28px 0 56px}
 .product-badge--in{background:#eaf7e6;border-color:#bfe3b3;color:#1f5e12;font-weight:700}
 .product-badge--out{background:#fdecea;border-color:#f3c0ba;color:#7a1c12;font-weight:700}
 .product-badge--soon{background:#fce4c4;border-color:#e8a33d;color:#8a4e06;font-weight:700}
+/* Version compacte sur les cartes (accueil + boutique) */
+.card .product-badges{gap:6px;margin:.45em 0 .1em}
+.woocommerce ul.products li.product .product-badges{gap:6px;margin:.2em 0 .6em;justify-content:center}
+.card .product-badge,.woocommerce ul.products li.product .product-badge{font-size:.72rem;padding:.32em .7em;gap:.4em}
+.card .product-badge b,.woocommerce ul.products li.product .product-badge b{font-size:.6rem}
+.card .product-badge .dot,.woocommerce ul.products li.product .product-badge .dot{width:6px;height:6px}
 /* Rappel d'offre sur la fiche produit */
 .product-offer{display:flex;align-items:center;gap:.7em;background:var(--cream-2);border:1px solid var(--gold);border-radius:14px;padding:.8em 1em;font-size:.92rem;line-height:1.45;color:var(--bark);margin:.2em 0 1.2em}
 .product-offer__badge{flex:0 0 auto;background:var(--honey);color:var(--espresso);font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.38em .7em;border-radius:999px}

@@ -94,6 +94,7 @@ function luziapi_get_honeys(int $limit = 8): array
             'jar_fill'   => $colors[0],
             'jar_light'  => $colors[1],
             'add_url'    => $product->add_to_cart_url(),
+            'badges'     => function_exists('luziapi_product_badges_html') ? luziapi_product_badges_html($product, true) : '',
         ];
     }
 

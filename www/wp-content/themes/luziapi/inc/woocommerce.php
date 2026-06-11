@@ -186,14 +186,14 @@ function luziapi_product_attr(\WC_Product $product, string $label): string
     return '';
 }
 
-// Badges « Goût » et « Texture » sur la fiche produit (sous le titre) — infos clés pour choisir.
-add_action('woocommerce_single_product_summary', static function (): void {
-    global $product;
-    if (! $product instanceof \WC_Product) {
-        return;
-    }
+// Badges (disponibilité + goût + texture) — réutilisés sur fiche, boutique et accueil.
+function luziapi_product_badges_html(\WC_Product $product, bool $compact = false): string
+{
     $gout    = luziapi_product_attr($product, 'Goût');
     $texture = luziapi_product_attr($product, 'Texture');
+    if ($compact && '' !== $gout) {
+        $gout = trim((string) preg_replace('/\s*\(.*$/u', '', $gout)); // raccourci pour les vignettes
+    }
 
     if (luziapi_is_coming_soon($product)) {
         $recolte = luziapi_product_attr($product, 'Récolte');
@@ -204,13 +204,30 @@ add_action('woocommerce_single_product_summary', static function (): void {
         $stock = ['out', 'Rupture de stock'];
     }
 
-    echo '<div class="product-badges">';
-    echo '<span class="product-badge product-badge--' . $stock[0] . '"><span class="dot"></span>' . esc_html($stock[1]) . '</span>';
+    $html  = '<div class="product-badges">';
+    $html .= '<span class="product-badge product-badge--' . $stock[0] . '"><span class="dot"></span>' . esc_html($stock[1]) . '</span>';
     if ('' !== $gout) {
-        echo '<span class="product-badge"><b>Goût</b> ' . esc_html($gout) . '</span>';
+        $html .= '<span class="product-badge"><b>Goût</b> ' . esc_html($gout) . '</span>';
     }
     if ('' !== $texture) {
-        echo '<span class="product-badge"><b>Texture</b> ' . esc_html($texture) . '</span>';
+        $html .= '<span class="product-badge"><b>Texture</b> ' . esc_html($texture) . '</span>';
     }
-    echo '</div>';
+
+    return $html . '</div>';
+}
+
+// Fiche produit : badges complets sous le titre.
+add_action('woocommerce_single_product_summary', static function (): void {
+    global $product;
+    if ($product instanceof \WC_Product) {
+        echo luziapi_product_badges_html($product);
+    }
+}, 6);
+
+// Boutique : badges (compacts) sous le titre de chaque vignette.
+add_action('woocommerce_after_shop_loop_item_title', static function (): void {
+    global $product;
+    if ($product instanceof \WC_Product) {
+        echo luziapi_product_badges_html($product, true);
+    }
 }, 6);
