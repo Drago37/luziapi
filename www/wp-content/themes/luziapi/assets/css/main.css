@@ -378,6 +378,15 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .single-product div.product .upsells{margin-top:48px}
 /* Panier & commande */
 .woocommerce-cart table.cart{margin-bottom:26px}
+.woocommerce-cart table.cart .product-thumbnail{width:90px}
+.wc-jar--cart{display:block;width:64px;background:transparent;margin:0 auto}
+.wc-jar--cart svg{width:64px;height:auto}
+.woocommerce-cart table.cart td.actions{padding:16px}
+.woocommerce-cart table.cart td.actions .coupon{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;float:none}
+.woocommerce-cart table.cart td.actions .coupon .input-text{width:190px;max-width:46vw;margin:0;border:1px solid var(--line);border-radius:999px;padding:.7em 1.1em}
+.woocommerce-cart table.cart td.actions button[name="update_cart"]{float:right}
+.woocommerce-cart .wc-proceed-to-checkout{margin-top:18px}
+.woocommerce-cart .wc-proceed-to-checkout .checkout-button{display:block;text-align:center;font-size:1.05rem}
 .woocommerce .cart-collaterals,.woocommerce-cart .cart-collaterals{margin-top:30px}
 .woocommerce-cart .actions{padding-top:8px}
 .woocommerce .cart_totals,.woocommerce-checkout #order_review,.woocommerce-checkout #payment{margin-top:14px}

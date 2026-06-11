@@ -162,3 +162,13 @@ add_filter('woocommerce_product_tabs', static function (array $tabs): array {
     return $tabs;
 }, 98);
 remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10);
+
+// Pot dessiné dans le panier quand le produit n'a pas de photo.
+add_filter('woocommerce_cart_item_thumbnail', static function ($thumbnail, $cart_item) {
+    $product = $cart_item['data'] ?? null;
+    if ($product instanceof \WC_Product && ! $product->get_image_id()) {
+        return '<span class="wc-jar wc-jar--cart">' . luziapi_product_jar($product) . '</span>';
+    }
+
+    return $thumbnail;
+}, 10, 2);
