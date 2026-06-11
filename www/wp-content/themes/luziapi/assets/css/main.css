@@ -319,11 +319,11 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce .wc-ribbon{position:absolute;top:10px;left:10px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:.4em .7em;border-radius:999px}
 
 /* Fiche produit */
-.single-product div.product{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 270px;grid-template-areas:"gallery summary related" "tabs tabs related";gap:26px 30px;align-items:start}
+.single-product div.product{display:grid;grid-template-columns:300px minmax(0,1fr) 260px;grid-template-areas:"gallery summary related" "tabs tabs related";gap:24px 28px;align-items:start}
 .single-product div.product>.woocommerce-product-gallery{grid-area:gallery;margin:0}
 .single-product div.product>.summary{grid-area:summary;margin:0!important}
 .single-product div.product>.woocommerce-tabs{grid-area:tabs}
-.single-product div.product>.related{grid-area:related;align-self:start;margin:0!important;padding-top:0;border-left:1px solid var(--line);padding-left:28px}
+.single-product div.product>.related{grid-area:related;align-self:start;margin:0!important;padding-top:0;border-left:1px solid var(--line);padding-left:24px;position:sticky;top:88px;max-height:calc(100vh - 110px);overflow-y:auto}
 .single-product .related>h2{font-family:var(--serif);color:var(--bark);font-size:1.2rem;margin:0 0 1em}
 .single-product .related ul.products{grid-template-columns:1fr!important;gap:16px!important}
 .single-product .related ul.products li.product{padding-bottom:14px!important}
@@ -375,7 +375,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 @media(max-width:980px){.woocommerce ul.products{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:980px){
   .single-product div.product{grid-template-columns:1fr;grid-template-areas:"gallery" "summary" "tabs" "related";gap:28px}
-  .single-product div.product>.related{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:26px;margin-top:8px}
+  .single-product div.product>.related{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:26px;margin-top:8px;position:static;max-height:none;overflow:visible}
   .single-product .related ul.products{grid-template-columns:repeat(2,1fr)!important}
   .single-product .related ul.products li.product .wc-jar{width:38%!important}
 }
