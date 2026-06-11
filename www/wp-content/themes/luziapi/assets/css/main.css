@@ -82,6 +82,7 @@ body.admin-bar .site-header{top:32px}
 
 /* ---------- SECTIONS ---------- */
 section{padding:56px 0}
+.woocommerce-page section,.woocommerce section{padding:0}
 /* Scroll-snap (aimantage vers les sections) : accueil + desktop uniquement */
 .home section{scroll-snap-align:start;scroll-snap-stop:normal}
 @media(max-width:1024px){html{scroll-snap-type:none}.home section{scroll-snap-align:none}}
@@ -247,7 +248,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .form-wrap .wpcf7-form .wpcf7-submit{background:var(--honey);color:var(--espresso);border:0;font-weight:700;padding:.85em 1.6em;border-radius:999px;cursor:pointer;width:100%}
 
 /* ---------- PAGES / LEGAL ---------- */
-.page{padding:36px 0}
+.page{padding:16px 0 56px}
 .page-narrow{max-width:780px}
 .page h1{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:1rem}
 .prose{color:var(--ink)}
