@@ -338,6 +338,28 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce-message,.woocommerce-info,.woocommerce-error{border-top-color:var(--honey)!important;border-radius:0 0 12px 12px}
 .woocommerce-message{background:var(--cream)}
 
+/* Espacements : le thème remet margin:0 sur h1/h2/h3 et p — on les restaure dans WooCommerce */
+.woocommerce h1,.woocommerce h2,.woocommerce h3,.wc-section h1,.wc-section h2,.wc-section h3{margin:0 0 .55em}
+.woocommerce p,.wc-section p{margin:0 0 1em}
+.woocommerce .woocommerce-products-header{margin:0 0 28px}
+.woocommerce .woocommerce-products-header__title{margin:0 0 .25em}
+.woocommerce .term-description,.woocommerce-products-header .woocommerce-breadcrumb{margin-bottom:1em}
+.woocommerce .woocommerce-result-count{margin:0 0 1.2em}
+.woocommerce .woocommerce-ordering{margin:0 0 1.4em}
+.woocommerce nav.woocommerce-pagination{margin-top:34px;padding-top:8px}
+/* Fiche produit */
+.single-product div.product .summary>*{margin-bottom:1.1em}
+.single-product div.product .summary>*:last-child{margin-bottom:0}
+.single-product div.product .woocommerce-tabs{margin-top:42px}
+.single-product div.product .related,.single-product div.product .upsells{margin-top:48px}
+/* Panier & commande */
+.woocommerce-cart table.cart{margin-bottom:26px}
+.woocommerce .cart-collaterals,.woocommerce-cart .cart-collaterals{margin-top:30px}
+.woocommerce-cart .actions{padding-top:8px}
+.woocommerce .cart_totals,.woocommerce-checkout #order_review,.woocommerce-checkout #payment{margin-top:14px}
+.woocommerce form .form-row{margin-bottom:14px}
+.woocommerce-checkout #customer_details{margin-bottom:26px}
+
 /* Responsive boutique/fiche/panier */
 @media(max-width:980px){.woocommerce ul.products{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.single-product div.product{grid-template-columns:1fr;gap:28px}}
