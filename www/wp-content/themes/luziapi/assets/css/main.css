@@ -271,7 +271,7 @@ body.admin-bar .site-header{top:32px}
 
 /* ---------- WOOCOMMERCE (habillage) ---------- */
 .wc-wrap{padding:60px 0}
-.wc-page{max-width:var(--maxw);margin:0 auto;padding:28px 30px}
+.wc-page{max-width:var(--maxw);margin:0 auto;padding:0 30px}
 
 /* Bouton panier (header) */
 .cart-wrap{position:relative}
