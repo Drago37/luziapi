@@ -139,3 +139,11 @@ add_filter('woocommerce_get_stock_html', '__return_empty_string');
 
 // Retire le bloc « méta » de la fiche (catégorie / SKU / étiquettes) : inutile ici.
 remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40);
+
+// Rappel de l'offre sur chaque fiche produit (entre la description et le bouton).
+add_action('woocommerce_single_product_summary', static function (): void {
+    echo '<div class="product-offer">'
+        . '<span class="product-offer__badge">Offre</span>'
+        . '<span><b>À partir de 2 pots&nbsp;: −1&nbsp;€ sur chaque pot.</b> Livraison à domicile gratuite sur Luzillé et Bléré.</span>'
+        . '</div>';
+}, 25);

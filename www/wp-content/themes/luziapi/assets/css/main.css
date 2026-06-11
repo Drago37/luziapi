@@ -334,6 +334,9 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .single-product div.product .woocommerce-product-details__short-description{color:var(--ink);line-height:1.6}
 .single-product .quantity input.qty{width:66px;padding:.55em;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:1rem}
 .single-product form.cart{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:1.4rem 0}
+/* Rappel d'offre sur la fiche produit */
+.product-offer{display:flex;align-items:center;gap:.7em;background:var(--cream-2);border:1px solid var(--gold);border-radius:14px;padding:.8em 1em;font-size:.92rem;line-height:1.45;color:var(--bark);margin:.2em 0 1.2em}
+.product-offer__badge{flex:0 0 auto;background:var(--honey);color:var(--espresso);font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.38em .7em;border-radius:999px}
 /* Tableau « Informations complémentaires » */
 .woocommerce-product-attributes{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:.95rem;margin:0}
 .woocommerce-product-attributes th,.woocommerce-product-attributes td{padding:.72em 1.1em;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
