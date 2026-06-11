@@ -108,12 +108,3 @@ add_filter('woocommerce_add_to_cart_fragments', static function (array $fragment
 
     return $fragments;
 });
-
-// Après un ajout au panier, le lien « Voir le panier » devient « Commander ».
-add_filter('woocommerce_get_script_data', static function ($params, string $handle) {
-    if ('wc-add-to-cart' === $handle && is_array($params) && isset($params['i18n_view_cart'])) {
-        $params['i18n_view_cart'] = 'Commander';
-    }
-
-    return $params;
-}, 10, 2);
