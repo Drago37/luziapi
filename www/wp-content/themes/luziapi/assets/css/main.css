@@ -122,7 +122,7 @@ body.admin-bar .site-header{top:32px}
 /* Filigrane de crédit photo, incrusté en bas-droite de chaque photographie. */
 .photo-credit{position:absolute;right:10px;bottom:10px;z-index:3;font-size:.66rem;letter-spacing:.04em;font-weight:600;color:#fbf1da;background:rgba(43,29,16,.55);backdrop-filter:blur(2px);padding:.32em .7em;border-radius:999px;pointer-events:none;line-height:1}
 #savoir-faire .split{align-items:stretch}
-#savoir-faire .ph{align-self:center;height:85%;min-height:360px}
+#savoir-faire .ph{align-self:start;height:85%;min-height:360px}
 #apiculteur .split{align-items:stretch}
 #apiculteur .ph{align-self:stretch;min-height:420px}
 .about{background:var(--cream)}
