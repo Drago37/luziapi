@@ -396,7 +396,7 @@ body.admin-bar .site-header{top:32px}
 .woocommerce-order .woocommerce-thankyou-order-received{margin:0 0 14px!important;padding-bottom:0!important}
 .woocommerce-order ul.order_details,.woocommerce-order ul.woocommerce-order-overview{margin:0 0 24px!important}
 .woocommerce-order ul.order_details{padding-top:0!important}
-.woocommerce-order .woocommerce-order-details{margin-top:20px}
+.woocommerce-order .woocommerce-order-details{margin-top:50px}
 .woocommerce .cart-collaterals,.woocommerce-cart .cart-collaterals{margin-top:30px}
 .woocommerce-cart .actions{padding-top:8px}
 .woocommerce .cart_totals,.woocommerce-checkout #order_review,.woocommerce-checkout #payment{margin-top:14px}
