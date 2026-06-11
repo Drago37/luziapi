@@ -17,6 +17,19 @@ add_filter('timber/context', static function (array $context): array {
         ? get_permalink((int) get_option('page_for_posts'))
         : home_url('/');
 
+    // Panier (bouton + mini-panier du header), si WooCommerce est actif.
+    if (function_exists('WC') && WC()->cart) {
+        $context['cart_count'] = WC()->cart->get_cart_contents_count();
+        $context['cart_url']   = wc_get_cart_url();
+        ob_start();
+        woocommerce_mini_cart();
+        $context['mini_cart'] = ob_get_clean();
+    } else {
+        $context['cart_count'] = 0;
+        $context['cart_url']   = function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/');
+        $context['mini_cart']  = '';
+    }
+
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
     $context['contact'] = [
         'nom'       => 'Anthony Graule',

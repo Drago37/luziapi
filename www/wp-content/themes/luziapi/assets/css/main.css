@@ -265,13 +265,82 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 
 /* ---------- WOOCOMMERCE (habillage) ---------- */
 .wc-wrap{padding:60px 0}
-.woocommerce ul.products li.product{position:relative}
-.woocommerce .wc-ribbon{position:absolute;top:8px;left:8px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:.4em .7em;border-radius:999px}
-.woocommerce span.price,.woocommerce div.product p.price{color:var(--bark);font-family:var(--serif);font-weight:700}
-.woocommerce a.button,.woocommerce button.button,.woocommerce .button,.woocommerce #respond input#submit{background:var(--honey)!important;color:var(--espresso)!important;border-radius:999px!important;font-weight:700!important;border:0!important}
-.woocommerce a.button:hover,.woocommerce button.button:hover,.woocommerce .button:hover{background:var(--gold)!important}
-.woocommerce .woocommerce-message,.woocommerce .woocommerce-info{border-top-color:var(--honey)}
 .wc-page{padding:50px 0}
+
+/* Bouton panier (header) */
+.cart-wrap{position:relative}
+.cart-btn{display:inline-flex;align-items:center;justify-content:center;position:relative;color:var(--espresso);width:42px;height:42px;border-radius:999px;border:2px solid var(--line);background:var(--paper);transition:.2s}
+.cart-btn:hover{border-color:var(--honey);background:var(--cream)}
+.cart-ic{width:21px;height:21px}
+.cart-count{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--honey);color:var(--espresso);font-size:.72rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 6px -2px rgba(0,0,0,.45)}
+.cart-count.is-empty{display:none}
+/* Mini-panier déroulant */
+.cart-dropdown{position:absolute;top:100%;right:0;margin-top:12px;width:330px;max-width:90vw;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 50px -20px rgba(43,29,16,.55);padding:16px;opacity:0;visibility:hidden;transform:translateY(-8px);transition:.18s;z-index:60}
+.cart-dropdown::before{content:"";position:absolute;top:-14px;left:0;right:0;height:14px}
+.cart-wrap:hover .cart-dropdown,.cart-wrap:focus-within .cart-dropdown{opacity:1;visibility:visible;transform:translateY(0)}
+.cart-dropdown .woocommerce-mini-cart__empty-message{margin:0;color:var(--muted);text-align:center;padding:.6em 0}
+.cart-dropdown ul.cart_list{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+.cart-dropdown ul.cart_list li{position:relative;padding:10px 24px 10px 58px;border-bottom:1px solid var(--line);min-height:58px;font-size:.9rem}
+.cart-dropdown ul.cart_list li a:not(.remove){color:var(--ink);text-decoration:none;font-weight:600}
+.cart-dropdown ul.cart_list li img{position:absolute!important;left:0;top:10px;width:46px;height:auto;border-radius:8px;margin:0}
+.cart-dropdown ul.cart_list li .quantity{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
+.cart-dropdown ul.cart_list li a.remove{position:absolute;right:0;top:8px;color:var(--wood)!important}
+.cart-dropdown .woocommerce-mini-cart__total{display:flex;justify-content:space-between;align-items:center;margin:12px 0;font-family:var(--serif);font-weight:700;color:var(--bark)}
+.cart-dropdown .woocommerce-mini-cart__buttons{display:flex;flex-direction:column;gap:8px;margin:0;padding:0}
+.cart-dropdown .woocommerce-mini-cart__buttons .button{width:100%;text-align:center;margin:0!important}
+
+/* Pot de miel dessiné (boutique + fiche) */
+.wc-jar{display:block;background:var(--cream-2)}
+.wc-jar svg{display:block;width:100%;height:auto}
+.wc-jar--single{border-radius:18px;overflow:hidden;padding:18px}
+.wc-jar--single svg{max-width:340px;margin:0 auto}
+
+/* Boutique : grille de cartes cohérentes avec l'accueil */
+.woocommerce ul.products{display:grid!important;grid-template-columns:repeat(3,1fr);gap:28px;margin:0!important;padding:0!important;list-style:none}
+.woocommerce ul.products::before,.woocommerce ul.products::after{content:none!important;display:none!important}
+.woocommerce ul.products li.product{position:relative;float:none!important;width:auto!important;margin:0!important;padding:0 0 18px!important;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 40px -28px rgba(67,44,22,.5);transition:.2s;text-align:center}
+.woocommerce ul.products li.product:hover{transform:translateY(-3px);box-shadow:0 26px 50px -26px rgba(67,44,22,.6)}
+.woocommerce ul.products li.product>a img,.woocommerce ul.products li.product .wc-jar{margin:0 0 14px!important;width:100%}
+.woocommerce ul.products li.product .woocommerce-loop-product__title{font-family:var(--serif);font-size:1.2rem;color:var(--bark);padding:0 16px;margin:.2em 0}
+.woocommerce ul.products li.product .price{display:block;padding:0 16px;margin-bottom:12px;font-size:1.15rem}
+.woocommerce ul.products li.product .button{margin:0 16px!important}
+
+/* Boutons WooCommerce (doré, arrondi) */
+.woocommerce a.button,.woocommerce button.button,.woocommerce .button,.woocommerce #respond input#submit,.woocommerce .added_to_cart,.woocommerce-cart .wc-proceed-to-checkout a.checkout-button{background:var(--honey)!important;color:var(--espresso)!important;border-radius:999px!important;font-weight:800!important;border:0!important;padding:.72em 1.5em!important;text-decoration:none!important;transition:.2s!important;display:inline-block}
+.woocommerce a.button:hover,.woocommerce button.button:hover,.woocommerce .button:hover,.woocommerce .added_to_cart:hover{background:var(--gold)!important}
+.woocommerce .added_to_cart{margin-left:.6em;font-size:.9rem}
+.woocommerce a.button.alt,.woocommerce button.button.alt,.woocommerce-cart .wc-proceed-to-checkout a.checkout-button{background:var(--espresso)!important;color:var(--gold)!important}
+.woocommerce a.button.alt:hover,.woocommerce button.button.alt:hover,.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:hover{background:var(--bark)!important}
+
+/* Prix + ruban « À venir » */
+.woocommerce span.price,.woocommerce div.product p.price{color:var(--bark);font-family:var(--serif);font-weight:700}
+.woocommerce span.price del{color:var(--muted);font-weight:400}
+.woocommerce .wc-ribbon{position:absolute;top:10px;left:10px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:.4em .7em;border-radius:999px}
+
+/* Fiche produit */
+.single-product div.product{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.single-product div.product .woocommerce-product-gallery,.single-product div.product .summary{margin:0!important}
+.single-product div.product .product_title{font-family:var(--serif);color:var(--bark);font-size:clamp(1.7rem,3vw,2.4rem);margin-top:0}
+.single-product div.product .woocommerce-product-details__short-description{color:var(--ink);line-height:1.6}
+.single-product .quantity input.qty{width:66px;padding:.55em;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:1rem}
+.single-product form.cart{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:1.4rem 0}
+
+/* Panier & commande */
+.woocommerce table.shop_table{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.woocommerce table.shop_table th{background:var(--cream-2);color:var(--bark);font-family:var(--serif)}
+.woocommerce .cart_item img{border-radius:8px;max-width:64px}
+.woocommerce .cart_totals h2,.woocommerce-checkout h3{font-family:var(--serif);color:var(--bark)}
+.woocommerce .cart_totals,.woocommerce-checkout #order_review,.woocommerce-checkout #payment{background:var(--paper)!important;border:1px solid var(--line);border-radius:14px;padding:18px}
+.woocommerce form .form-row input.input-text,.woocommerce form .form-row textarea,.woocommerce form .form-row select{border:1px solid var(--line)!important;border-radius:10px!important;padding:.7em!important}
+
+/* Notices WooCommerce */
+.woocommerce-message,.woocommerce-info,.woocommerce-error{border-top-color:var(--honey)!important;border-radius:0 0 12px 12px}
+.woocommerce-message{background:var(--cream)}
+
+/* Responsive boutique/fiche/panier */
+@media(max-width:980px){.woocommerce ul.products{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.single-product div.product{grid-template-columns:1fr;gap:28px}}
+@media(max-width:540px){.woocommerce ul.products{grid-template-columns:1fr}.cart-dropdown{width:290px}}
 
 /* ---------- RESPONSIVE ---------- */
 @media(max-width:900px){
