@@ -97,3 +97,14 @@ add_action('wp_enqueue_scripts', static function (): void {
         'label' => 'LuziApi — 1 rue des Trois Cheminées, 37150 Luzillé',
     ]);
 });
+
+/**
+ * Favicon : utilise le logo du thème (assets/img/logo.png).
+ */
+add_action('wp_head', static function (): void {
+    $url = LUZIAPI_URI . '/assets/img/logo.png';
+    $ver = (string) (@filemtime(LUZIAPI_DIR . '/assets/img/logo.png') ?: LUZIAPI_VERSION);
+    $src = esc_url($url . '?v=' . $ver);
+    echo '<link rel="icon" type="image/png" href="' . $src . '" sizes="any">' . "\n";
+    echo '<link rel="apple-touch-icon" href="' . $src . '">' . "\n";
+}, 2);
