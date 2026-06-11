@@ -70,7 +70,7 @@ body.admin-bar .site-header{top:32px}
 /* Le panier flottant n'apparaît que s'il contient au moins un article */
 .fab-cart-wrap:has(.cart-count.is-empty){display:none}
 /* Mini-panier déroulant du bouton flottant (s'ouvre vers la gauche, au survol) */
-.fab-cart-wrap{position:relative;margin-bottom:20px}
+.fab-cart-wrap{position:relative;margin-bottom:100px}
 .fab-cart-wrap .cart-dropdown{top:0;right:calc(100% + 14px);left:auto;margin:0;text-align:left}
 .fab-cart-wrap .cart-dropdown::before{top:0;bottom:0;left:auto;right:-14px;width:14px;height:auto}
 .fab-cart-wrap:hover .cart-dropdown,.fab-cart-wrap:focus-within .cart-dropdown{opacity:1;visibility:visible;transform:none}
