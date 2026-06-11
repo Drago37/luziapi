@@ -133,3 +133,9 @@ add_filter('woocommerce_output_related_products_args', static function (array $a
 
     return $args;
 });
+
+// Le client n'a pas à voir le stock disponible : on masque l'affichage du stock.
+add_filter('woocommerce_get_stock_html', '__return_empty_string');
+
+// Retire le bloc « méta » de la fiche (catégorie / SKU / étiquettes) : inutile ici.
+remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40);

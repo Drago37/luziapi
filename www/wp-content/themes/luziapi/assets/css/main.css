@@ -319,11 +319,11 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce .wc-ribbon{position:absolute;top:10px;left:10px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:.4em .7em;border-radius:999px}
 
 /* Fiche produit */
-.single-product div.product{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 270px;grid-template-areas:"gallery summary related" "tabs tabs related";gap:36px 44px;align-items:start}
-.single-product div.product>.woocommerce-product-gallery{grid-area:gallery}
-.single-product div.product>.summary{grid-area:summary}
+.single-product div.product{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 270px;grid-template-areas:"gallery summary related" "tabs tabs related";gap:26px 30px;align-items:start}
+.single-product div.product>.woocommerce-product-gallery{grid-area:gallery;margin:0}
+.single-product div.product>.summary{grid-area:summary;margin:0!important}
 .single-product div.product>.woocommerce-tabs{grid-area:tabs}
-.single-product div.product>.related{grid-area:related;margin:0;border-left:1px solid var(--line);padding-left:28px}
+.single-product div.product>.related{grid-area:related;align-self:start;margin:0!important;padding-top:0;border-left:1px solid var(--line);padding-left:28px}
 .single-product .related>h2{font-family:var(--serif);color:var(--bark);font-size:1.2rem;margin:0 0 1em}
 .single-product .related ul.products{grid-template-columns:1fr!important;gap:16px!important}
 .single-product .related ul.products li.product{padding-bottom:14px!important}
@@ -357,7 +357,9 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce .woocommerce-ordering{margin:0 0 1.4em}
 .woocommerce nav.woocommerce-pagination{margin-top:34px;padding-top:8px}
 /* Fiche produit */
-.single-product div.product .summary>*{margin-bottom:1.1em}
+.single-product div.product .summary>*{margin-bottom:.7em}
+.single-product div.product .summary>*:first-child{margin-top:0}
+.single-product div.product .product_title{margin-top:0}
 .single-product div.product .summary>*:last-child{margin-bottom:0}
 .single-product div.product .woocommerce-tabs{margin-top:42px}
 .single-product div.product .upsells{margin-top:48px}
