@@ -79,7 +79,10 @@ p{margin:0}
 @keyframes bob{50%{transform:translate(-50%,7px)}}
 
 /* ---------- SECTIONS ---------- */
-section{padding:56px 0;scroll-snap-align:start;scroll-snap-stop:normal}
+section{padding:56px 0}
+/* Scroll-snap (aimantage vers les sections) : accueil + desktop uniquement */
+.home section{scroll-snap-align:start;scroll-snap-stop:normal}
+@media(max-width:1024px){html{scroll-snap-type:none}.home section{scroll-snap-align:none}}
 section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:safe center;align-items:center}
 .craft{background:var(--paper)}
 .sec-head{max-width:660px;margin-bottom:48px}
