@@ -339,6 +339,14 @@ article.page{padding:28px 0 56px}
 .single-product div.product .woocommerce-product-details__short-description{color:var(--ink);line-height:1.6}
 .single-product .quantity input.qty{width:66px;padding:.55em;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:1rem}
 .single-product form.cart{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:1.4rem 0}
+/* Badges Goût / Texture sur la fiche produit */
+.product-badges{display:flex;flex-wrap:wrap;gap:10px;margin:.1em 0 1.2em}
+.product-badge{display:inline-flex;align-items:center;gap:.5em;background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:.5em 1em;font-size:.92rem;color:var(--ink)}
+.product-badge b{color:var(--honey-deep);font-weight:800;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+.product-badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.product-badge--in{background:#eaf7e6;border-color:#bfe3b3;color:#1f5e12;font-weight:700}
+.product-badge--out{background:#fdecea;border-color:#f3c0ba;color:#7a1c12;font-weight:700}
+.product-badge--soon{background:var(--gold-soft);border-color:var(--gold);color:var(--bark);font-weight:700}
 /* Rappel d'offre sur la fiche produit */
 .product-offer{display:flex;align-items:center;gap:.7em;background:var(--cream-2);border:1px solid var(--gold);border-radius:14px;padding:.8em 1em;font-size:.92rem;line-height:1.45;color:var(--bark);margin:.2em 0 1.2em}
 .product-offer__badge{flex:0 0 auto;background:var(--honey);color:var(--espresso);font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.38em .7em;border-radius:999px}

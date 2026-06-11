@@ -172,3 +172,44 @@ add_filter('woocommerce_cart_item_thumbnail', static function ($thumbnail, $cart
 
     return $thumbnail;
 }, 10, 2);
+
+// Récupère la valeur d'un attribut produit (personnalisé) par son libellé.
+function luziapi_product_attr(\WC_Product $product, string $label): string
+{
+    foreach ($product->get_attributes() as $attr) {
+        if ($attr instanceof \WC_Product_Attribute && ! $attr->is_taxonomy()
+            && mb_strtolower($attr->get_name()) === mb_strtolower($label)) {
+            return implode(', ', $attr->get_options());
+        }
+    }
+
+    return '';
+}
+
+// Badges « Goût » et « Texture » sur la fiche produit (sous le titre) — infos clés pour choisir.
+add_action('woocommerce_single_product_summary', static function (): void {
+    global $product;
+    if (! $product instanceof \WC_Product) {
+        return;
+    }
+    $gout    = luziapi_product_attr($product, 'Goût');
+    $texture = luziapi_product_attr($product, 'Texture');
+
+    if (luziapi_is_coming_soon($product)) {
+        $stock = ['soon', 'À venir'];
+    } elseif ($product->is_in_stock()) {
+        $stock = ['in', 'Disponible'];
+    } else {
+        $stock = ['out', 'Rupture de stock'];
+    }
+
+    echo '<div class="product-badges">';
+    echo '<span class="product-badge product-badge--' . $stock[0] . '"><span class="dot"></span>' . esc_html($stock[1]) . '</span>';
+    if ('' !== $gout) {
+        echo '<span class="product-badge"><b>Goût</b> ' . esc_html($gout) . '</span>';
+    }
+    if ('' !== $texture) {
+        echo '<span class="product-badge"><b>Texture</b> ' . esc_html($texture) . '</span>';
+    }
+    echo '</div>';
+}, 6);
