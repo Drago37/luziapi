@@ -108,3 +108,28 @@ add_filter('woocommerce_add_to_cart_fragments', static function (array $fragment
 
     return $fragments;
 });
+
+// Produits similaires : afficher les autres miels même sans catégorie commune.
+add_filter('woocommerce_related_products', static function (array $related, int $product_id): array {
+    if (empty($related)) {
+        $related = wc_get_products([
+            'status'  => 'publish',
+            'limit'   => 4,
+            'exclude' => [$product_id],
+            'return'  => 'ids',
+            'orderby' => 'menu_order',
+            'order'   => 'ASC',
+        ]);
+    }
+
+    return $related;
+}, 10, 2);
+
+// Titre + format de la section « produits similaires ».
+add_filter('woocommerce_product_related_products_heading', static fn (): string => 'Nos autres miels');
+add_filter('woocommerce_output_related_products_args', static function (array $args): array {
+    $args['posts_per_page'] = 4;
+    $args['columns']        = 4;
+
+    return $args;
+});

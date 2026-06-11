@@ -66,12 +66,19 @@ add_action('wp_enqueue_scripts', static function (): void {
         $main_deps[] = 'leaflet';
     }
 
+    // Version basée sur la date de modification du fichier : casse le cache
+    // (navigateur + o2switch) automatiquement à chaque mise à jour.
+    $css_file = LUZIAPI_DIR . '/assets/css/main.css';
+    $js_file  = LUZIAPI_DIR . '/assets/js/main.js';
+    $css_ver  = (string) (@filemtime($css_file) ?: LUZIAPI_VERSION);
+    $js_ver   = (string) (@filemtime($js_file) ?: LUZIAPI_VERSION);
+
     // Feuille de style du thème.
     wp_enqueue_style(
         'luziapi-main',
         LUZIAPI_URI . '/assets/css/main.css',
         ['luziapi-fonts'],
-        LUZIAPI_VERSION
+        $css_ver
     );
 
     // Scripts du thème (menu mobile partout ; init carte seulement si Leaflet présent).
@@ -79,7 +86,7 @@ add_action('wp_enqueue_scripts', static function (): void {
         'luziapi-main',
         LUZIAPI_URI . '/assets/js/main.js',
         $main_deps,
-        LUZIAPI_VERSION,
+        $js_ver,
         true
     );
 
