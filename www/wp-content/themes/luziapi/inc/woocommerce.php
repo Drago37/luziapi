@@ -154,3 +154,11 @@ add_action('woocommerce_single_product_summary', static function (): void { echo
 add_action('woocommerce_before_shop_loop', static function (): void { echo luziapi_offer_html(); }, 5);
 // En haut du panier.
 add_action('woocommerce_before_cart', static function (): void { echo luziapi_offer_html(); }, 5);
+
+// Supprime la partie « Avis » : onglet de la fiche + note en étoiles sous le titre.
+add_filter('woocommerce_product_tabs', static function (array $tabs): array {
+    unset($tabs['reviews']);
+
+    return $tabs;
+}, 98);
+remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10);
