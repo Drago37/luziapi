@@ -137,6 +137,15 @@ add_filter('woocommerce_output_related_products_args', static function (array $a
 // Le client n'a pas à voir le stock disponible : on masque l'affichage du stock.
 add_filter('woocommerce_get_stock_html', '__return_empty_string');
 
+// E-mails : afficher le contact luziapi37150@gmail.com (et non l'expéditeur no-reply)
+// dans le corps du message ET en Reply-To. L'expéditeur reste no-reply (délivrabilité).
+add_filter('woocommerce_mail_content', static function (string $content): string {
+    return str_replace('no-reply@luziapi.fr', 'luziapi37150@gmail.com', $content);
+});
+add_filter('woocommerce_email_headers', static function ($headers) {
+    return str_replace('no-reply@luziapi.fr', 'luziapi37150@gmail.com', (string) $headers);
+}, 10, 1);
+
 // Retire le bloc « méta » de la fiche (catégorie / SKU / étiquettes) : inutile ici.
 remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40);
 
