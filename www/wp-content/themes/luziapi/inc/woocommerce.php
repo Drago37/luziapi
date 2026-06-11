@@ -231,3 +231,15 @@ add_action('woocommerce_after_shop_loop_item_title', static function (): void {
         echo luziapi_product_badges_html($product, true);
     }
 }, 6);
+
+// Boutique : description courte sous les badges de chaque vignette.
+add_action('woocommerce_after_shop_loop_item_title', static function (): void {
+    global $product;
+    if (! $product instanceof \WC_Product) {
+        return;
+    }
+    $short = wp_strip_all_tags($product->get_short_description());
+    if ('' !== $short) {
+        echo '<p class="loop-desc">' . esc_html($short) . '</p>';
+    }
+}, 7);

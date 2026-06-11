@@ -1,6 +1,13 @@
 {% set home = function('home_url', '/') %}
 {% set shop = function('wc_get_page_permalink', 'shop') %}
 <div class="fab" aria-label="Accès rapide">
+    <a class="fab-cart" href="{{ cart_url }}" aria-label="Voir le panier">
+        <span class="fab-cart-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+            <span class="cart-count{{ cart_count > 0 ? '' : ' is-empty' }}">{{ cart_count }}</span>
+        </span>
+        <span class="label">Panier</span>
+    </a>
     <a href="{{ home }}#newsletter" aria-label="S'abonner à la newsletter">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         <span class="label">S'abonner</span>
