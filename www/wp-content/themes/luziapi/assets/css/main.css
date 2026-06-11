@@ -300,7 +300,8 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .woocommerce ul.products::before,.woocommerce ul.products::after{content:none!important;display:none!important}
 .woocommerce ul.products li.product{position:relative;float:none!important;width:auto!important;margin:0!important;padding:0 0 18px!important;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 40px -28px rgba(67,44,22,.5);transition:.2s;text-align:center}
 .woocommerce ul.products li.product:hover{transform:translateY(-3px);box-shadow:0 26px 50px -26px rgba(67,44,22,.6)}
-.woocommerce ul.products li.product>a img,.woocommerce ul.products li.product .wc-jar{margin:0 0 14px!important;width:100%}
+.woocommerce ul.products li.product>a img{margin:0 0 14px!important;width:100%}
+.woocommerce ul.products li.product .wc-jar{width:50%;margin:18px auto 14px!important;background:transparent}
 .woocommerce ul.products li.product .woocommerce-loop-product__title{font-family:var(--serif);font-size:1.2rem;color:var(--bark);padding:0 16px;margin:.2em 0}
 .woocommerce ul.products li.product .price{display:block;padding:0 16px;margin-bottom:12px;font-size:1.15rem}
 .woocommerce ul.products li.product .button{margin:0 16px!important}
