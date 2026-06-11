@@ -148,8 +148,8 @@ function luziapi_offer_html(): string
         . '<span><b>À partir de 2 pots&nbsp;: −1&nbsp;€ sur chaque pot.</b> Livraison à domicile gratuite sur Luzillé et Bléré.</span>'
         . '</div>';
 }
-// Fiche produit (entre la description et le bouton).
-add_action('woocommerce_single_product_summary', static function (): void { echo luziapi_offer_html(); }, 25);
+// Fiche produit : bandeau d'offre en pleine largeur, au-dessus du produit.
+add_action('woocommerce_before_single_product', static function (): void { echo luziapi_offer_html(); }, 15);
 // En haut de la boutique (au-dessus de la grille).
 add_action('woocommerce_before_shop_loop', static function (): void { echo luziapi_offer_html(); }, 5);
 // En haut du panier.
