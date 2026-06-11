@@ -81,12 +81,11 @@ body.admin-bar .site-header{top:32px}
 @keyframes bob{50%{transform:translate(-50%,7px)}}
 
 /* ---------- SECTIONS ---------- */
-section{padding:56px 0}
-.woocommerce-page section,.woocommerce section{padding:0}
+.home section{padding:56px 0}
 /* Scroll-snap (aimantage vers les sections) : accueil + desktop uniquement */
 .home section{scroll-snap-align:start;scroll-snap-stop:normal}
 @media(max-width:1024px){html{scroll-snap-type:none}.home section{scroll-snap-align:none}}
-section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:safe center;align-items:center}
+.home section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:safe center;align-items:center}
 .craft{background:var(--paper)}
 .sec-head{max-width:660px;margin-bottom:48px}
 .sec-head h2{font-size:clamp(2rem,4vw,3rem);margin:.25em 0 .4em}
@@ -248,7 +247,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
 .form-wrap .wpcf7-form .wpcf7-submit{background:var(--honey);color:var(--espresso);border:0;font-weight:700;padding:.85em 1.6em;border-radius:999px;cursor:pointer;width:100%}
 
 /* ---------- PAGES / LEGAL ---------- */
-.page{padding:16px 0 56px}
+.page{padding:0 0 56px}
 .page-narrow{max-width:780px}
 .page h1{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:1rem}
 .prose{color:var(--ink)}
@@ -423,7 +422,7 @@ section:not(.hero){min-height:100vh;min-height:100svh;display:flex;flex-directio
   .burger{display:flex}
   .split,.split.rev,.locate .lay,.contact .lay,.foot{grid-template-columns:1fr}
   .steps{grid-template-columns:repeat(2,1fr)}
-  section{padding:70px 0}
+  .home section{padding:70px 0}
   .split.rev .ph{order:-1}
 }
 @media(max-width:980px){.grid-honeys{grid-template-columns:repeat(2,1fr)}}
