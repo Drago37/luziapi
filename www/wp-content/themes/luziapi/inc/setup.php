@@ -110,6 +110,14 @@ add_action('wp_head', static function (): void {
 }, 1);
 
 /**
+ * Vérification de propriété Google Search Console (balise meta).
+ * Toujours émise (non conditionnée par un plugin SEO) pour rester valide.
+ */
+add_action('wp_head', static function (): void {
+    echo '<meta name="google-site-verification" content="OxX3r7YikCjfkxAA636CKkhGPFX89Th1yxFJ6wMJCSc">' . "\n";
+}, 1);
+
+/**
  * Favicon : utilise le logo du thème (assets/img/logo.png).
  */
 add_action('wp_head', static function (): void {
