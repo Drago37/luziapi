@@ -108,7 +108,7 @@ add_action('wp_head', static function (): void {
             '@context'    => 'https://schema.org',
             '@type'       => 'LocalBusiness',
             'name'        => 'LuziApi',
-            'description' => 'Apiculteur — miel artisanal à Luzillé (Indre-et-Loire).',
+            'description' => 'Apiculteur à Luzillé (Indre-et-Loire) : miel artisanal (printemps, acacia, châtaignier, tournesol) en vente directe, et récupération gratuite d\'essaims d\'abeilles dans un rayon de 15 km.',
             'url'         => home_url('/'),
             'telephone'   => '+33632853493',
             'email'       => 'luziapi37150@gmail.com',
@@ -126,7 +126,22 @@ add_action('wp_head', static function (): void {
                 'latitude'  => 47.2861,
                 'longitude' => 1.1206,
             ],
-            'areaServed' => ['Luzillé', 'Bléré'],
+            'areaServed' => [
+                '@type'       => 'GeoCircle',
+                'geoMidpoint' => ['@type' => 'GeoCoordinates', 'latitude' => 47.2861, 'longitude' => 1.1206],
+                'geoRadius'   => 15000,
+            ],
+            'priceRange' => '€',
+            'makesOffer' => [
+                '@type'         => 'Offer',
+                'price'         => '0',
+                'priceCurrency' => 'EUR',
+                'itemOffered'   => [
+                    '@type'      => 'Service',
+                    'name'       => 'Récupération gratuite d\'essaims d\'abeilles',
+                    'areaServed' => 'Luzillé et 15 km alentour (Indre-et-Loire)',
+                ],
+            ],
             'sameAs'     => ['https://www.facebook.com/luziapi'],
         ];
     }
@@ -147,6 +162,33 @@ add_action('wp_head', static function (): void {
                 'mainEntityOfPage' => (string) get_permalink($post),
             ];
         }
+    }
+
+    // Note : sur les fiches produit, WooCommerce génère déjà nativement le JSON-LD
+    // Product/Offer (prix, devise, disponibilité). On ne le duplique donc pas ici.
+    // La disponibilité « à venir » (PreOrder) de nos miels saisonniers est ajustée
+    // via le filtre woocommerce_structured_data_product dans inc/woocommerce.php.
+
+    if (is_page('recuperation-essaims')) {
+        $faq = [
+            ['Que faire si un essaim d\'abeilles se pose chez moi ?', 'Ne vous approchez pas et n\'y touchez pas. N\'utilisez aucun produit (insecticide, eau, fumée) et tenez enfants et animaux à distance. Appelez un apiculteur : Anthony se déplace gratuitement dans un rayon d\'environ 15 km autour de Luzillé.'],
+            ['La récupération d\'un essaim est-elle payante ?', 'Non, c\'est gratuit. Anthony récupère les essaims d\'abeilles dans un rayon d\'environ 15 km autour de Luzillé (Indre-et-Loire).'],
+            ['Faut-il détruire un essaim d\'abeilles ?', 'Non. Un essaim de passage est rarement agressif et les abeilles sont essentielles à la biodiversité. Plutôt que de le détruire, faites appel à un apiculteur : chaque essaim sauvé repart en ruche.'],
+            ['Intervenez-vous pour les guêpes ou les frelons ?', 'Non, le service concerne uniquement les essaims d\'abeilles. Pour les guêpes ou les frelons, adressez-vous à un professionnel de la désinsectisation.'],
+        ];
+        $entities = [];
+        foreach ($faq as $qa) {
+            $entities[] = [
+                '@type'          => 'Question',
+                'name'           => $qa[0],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $qa[1]],
+            ];
+        }
+        $blocks[] = [
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $entities,
+        ];
     }
 
     foreach ($blocks as $block) {

@@ -5,6 +5,7 @@
 *.log
 .DS_Store
 Thumbs.db
+tmp/
 
 # --- IDE ---
 .idea/

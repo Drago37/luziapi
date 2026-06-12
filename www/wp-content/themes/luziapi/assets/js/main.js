@@ -32,4 +32,26 @@
       mapEl.innerHTML = '<div style="height:440px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
     }
   }
+
+  // ----- Carte « zone d'intervention essaims » : cercle de 15 km -----
+  var swarmEl = document.getElementById('essaim-map');
+  if (swarmEl && window.L && window.LUZIAPI_MAP) {
+    try {
+      var s = window.LUZIAPI_MAP;
+      var smap = L.map('essaim-map', { scrollWheelZoom: false }).setView([s.lat, s.lng], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(smap);
+      var ring = L.circle([s.lat, s.lng], {
+        radius: s.radius || 15000,
+        color: '#d33a2c', weight: 2, opacity: .9,
+        fillColor: '#d33a2c', fillOpacity: .10
+      }).addTo(smap);
+      L.marker([s.lat, s.lng]).addTo(smap).bindPopup(s.label);
+      smap.fitBounds(ring.getBounds(), { padding: [24, 24] });
+    } catch (e) {
+      swarmEl.innerHTML = '<div style="height:420px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
+    }
+  }
 })();

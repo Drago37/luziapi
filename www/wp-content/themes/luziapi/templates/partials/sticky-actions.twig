@@ -1,6 +1,10 @@
 {% set home = function('home_url', '/') %}
 {% set shop = function('wc_get_page_permalink', 'shop') %}
 <div class="fab" aria-label="Accès rapide">
+    <a class="fab-sos" href="{{ home }}recuperation-essaims/" aria-label="SOS essaim : récupération gratuite d'un essaim d'abeilles">
+        <span class="fab-sos-ic" aria-hidden="true">🐝</span>
+        <span class="label">SOS&nbsp;Essaim</span>
+    </a>
     <div class="fab-cart-wrap">
         <a class="fab-cart" href="{{ cart_url }}" aria-label="Voir le panier">
             <span class="fab-cart-ic">

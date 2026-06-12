@@ -55,6 +55,8 @@ body.admin-bar .site-header{top:32px}
 .btn-soft:hover{background:var(--gold);border-color:var(--gold);color:var(--bark)}
 .btn-gold{background:var(--honey);color:var(--bark);border-color:var(--honey);font-weight:800;box-shadow:0 8px 20px -12px rgba(43,29,16,.85)}
 .btn-gold:hover{background:var(--gold);border-color:var(--gold);color:var(--bark)}
+.btn-sos{background:#d33a2c;border-color:#d33a2c;color:#fff;font-weight:800;box-shadow:0 8px 20px -12px rgba(176,47,36,.85)}
+.btn-sos:hover{background:#b02f24;border-color:#b02f24;color:#fff}
 .fab{position:fixed;right:16px;bottom:18px;z-index:1100;display:flex;flex-direction:column;gap:10px}
 .fab a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:64px;padding:9px 4px;border-radius:16px;background:var(--espresso);color:var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);border:2px solid rgba(224,161,36,.45);transition:.25s;text-align:center}
 .fab a:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
@@ -65,6 +67,12 @@ body.admin-bar .site-header{top:32px}
 /* Panier dans les boutons flottants (couleur distincte, en tête) */
 .fab a.fab-cart{background:#cf3a2e;color:#fff;border-color:#a92e23;box-shadow:0 12px 26px -8px rgba(176,47,36,.6)}
 .fab a.fab-cart:hover{background:#b02f24;color:#fff;border-color:#a92e23}
+/* SOS Essaim : raccourci rouge vers la page de récupération d'essaims */
+.fab a.fab-sos{background:#d33a2c;color:#fff;border-color:#b02f24;box-shadow:0 12px 26px -8px rgba(176,47,36,.6);animation:lz-sos-pulse 2.6s ease-in-out infinite}
+.fab a.fab-sos:hover{background:#b02f24;color:#fff;border-color:#b02f24}
+.fab .fab-sos-ic{font-size:22px;line-height:1}
+@keyframes lz-sos-pulse{0%,100%{box-shadow:0 12px 26px -8px rgba(176,47,36,.6)}50%{box-shadow:0 12px 26px -8px rgba(176,47,36,.6),0 0 0 6px rgba(211,58,44,.20)}}
+@media(prefers-reduced-motion:reduce){.fab a.fab-sos{animation:none}}
 .fab .fab-cart-ic{position:relative;display:inline-flex;align-items:center;justify-content:center}
 .fab .fab-cart .cart-count{position:absolute;top:-9px;right:-12px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#fff;color:#b02f24;font-size:.64rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 /* Le panier flottant n'apparaît que s'il contient au moins un article */
@@ -87,6 +95,14 @@ body.admin-bar .site-header{top:32px}
 /* Description courte sur les vignettes boutique */
 .woocommerce ul.products li.product .loop-desc{padding:0 16px;margin:0 0 12px;font-size:.85rem;line-height:1.45;color:var(--muted)}
 @media(max-width:540px){.fab{right:10px;bottom:12px;gap:8px}.fab a{width:58px;padding:8px 3px}.fab a svg{width:20px;height:20px}.fab .label{font-size:.56rem}}
+/* Page « Récupération d'essaims » : encadré d'avertissement + carte zone d'intervention */
+.prose .swarm-warn{background:#fdecea;border:1px solid #f3c6c0;border-left:5px solid #d33a2c;border-radius:14px;padding:1em 1.3em;margin:1.5em 0;color:#7a1c12}
+.prose .swarm-warn p{margin:0 0 .4em}
+.prose .swarm-warn strong{color:#a3221a}
+.prose .swarm-warn ul{margin:.3em 0 0;padding-left:1.2em}
+.prose .swarm-warn li{margin:.25em 0}
+.essaim-map{height:420px;border-radius:16px;margin:1.2em 0 .4em;border:1px solid #e6dccb;box-shadow:0 14px 30px -18px rgba(43,29,16,.5);z-index:0}
+@media(max-width:540px){.essaim-map{height:320px}}
 
 /* ---------- HERO ---------- */
 .hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;color:#fff;overflow:hidden}
@@ -202,7 +218,7 @@ body.admin-bar .site-header{top:32px}
 .swarm .eyebrow{color:var(--gold)}
 .swarm h2{color:#fff;font-size:clamp(1.8rem,3.6vw,2.6rem);margin:.25em 0 .45em}
 .swarm p{color:var(--gold-soft);max-width:62ch;margin:0 auto;line-height:1.65}
-.swarm .swarm-cta{margin:1.6rem 0 .6rem}
+.swarm .swarm-cta{margin:1.6rem 0 .6rem;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .swarm .swarm-cta .btn{font-size:1.05rem}
 .swarm .swarm-note{font-size:.82rem;color:#c9a86a;margin-top:1.1rem}
 .craft-swarm{display:flex;gap:.75em;align-items:center;margin-top:1.5rem;padding:.85em 1.1em;background:var(--cream-2);border:1px solid var(--line);border-radius:14px;color:var(--ink);text-decoration:none;font-size:.95rem;line-height:1.45;transition:.2s}
@@ -281,6 +297,11 @@ article.page{padding:28px 0 56px}
 .prose h2{font-size:1.5rem;margin:2rem 0 .6rem;color:var(--bark)}
 .prose p{margin-bottom:1rem}
 .prose a{color:var(--honey-deep);text-decoration:underline}
+/* Boutons dans le contenu (.prose) : pas de soulignement, texte blanc + effet au survol */
+.prose a.btn{text-decoration:none}
+.prose a.btn-sos{color:#fff}
+.prose a.btn-sos:hover{color:#fff;transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(176,47,36,.7)}
+.btn .btn-ic{width:1.05em;height:1.05em;flex:none}
 
 /* ---------- FOOTER ---------- */
 .site-footer{background:var(--espresso);color:#e8d9bf;padding:64px 0 34px}

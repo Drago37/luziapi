@@ -252,3 +252,24 @@ add_action('woocommerce_after_shop_loop_item_title', static function (): void {
         echo '<p class="loop-desc">' . esc_html($short) . '</p>';
     }
 }, 7);
+
+/**
+ * Données structurées : marque les miels « à venir » (récolte à venir / hors saison)
+ * comme PreOrder dans le JSON-LD Product généré nativement par WooCommerce,
+ * plutôt que InStock/OutOfStock — c'est plus juste pour Google (le produit revient).
+ */
+add_filter('woocommerce_structured_data_product', static function ($markup, $product) {
+    if (
+        is_array($markup)
+        && ! empty($markup['offers'])
+        && $product instanceof \WC_Product
+        && function_exists('luziapi_is_coming_soon')
+        && luziapi_is_coming_soon($product)
+    ) {
+        foreach ($markup['offers'] as $i => $offer) {
+            $markup['offers'][$i]['availability'] = 'https://schema.org/PreOrder';
+        }
+    }
+
+    return $markup;
+}, 20, 2);

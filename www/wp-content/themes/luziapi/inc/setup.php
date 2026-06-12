@@ -60,7 +60,7 @@ add_action('wp_enqueue_scripts', static function (): void {
     );
 
     $main_deps = [];
-    if (is_front_page()) {
+    if (is_front_page() || is_page('recuperation-essaims')) {
         wp_enqueue_style('leaflet');
         wp_enqueue_script('leaflet');
         $main_deps[] = 'leaflet';
@@ -92,11 +92,22 @@ add_action('wp_enqueue_scripts', static function (): void {
 
     // Coordonnées du point de retrait transmises au JS (carte).
     wp_localize_script('luziapi-main', 'LUZIAPI_MAP', [
-        'lat'   => 47.2861,
-        'lng'   => 1.1206,
-        'label' => 'LuziApi — 1 rue des Trois Cheminées, 37150 Luzillé',
+        'lat'    => 47.2861,
+        'lng'    => 1.1206,
+        'label'  => 'LuziApi — 1 rue des Trois Cheminées, 37150 Luzillé',
+        'radius' => 15000,
     ]);
 });
+
+/**
+ * Optimisation du chargement : connexion anticipée aux serveurs de polices Google
+ * (gagne le DNS + TLS avant le téléchargement des polices).
+ * Le préchargement de l'image hero est géré dans inc/seo.php.
+ */
+add_action('wp_head', static function (): void {
+    echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+}, 1);
 
 /**
  * Favicon : utilise le logo du thème (assets/img/logo.png).
@@ -126,3 +137,17 @@ add_filter('wpcf7_spam', static function ($spam, $submission = null) {
 
     return ! empty($_POST['luziapi_hp']);
 }, 9, 2);
+
+/**
+ * Bouton d'appel « SOS essaim » avec icône SVG monochrome (suit la couleur du texte = blanc).
+ * Rendu via shortcode pour éviter que WordPress filtre le SVG inline dans le contenu.
+ */
+add_shortcode('sos_call', static function (): string {
+    $svg = '<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+        . 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        . '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 '
+        . '19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11'
+        . 'L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+
+    return '<a class="btn btn-sos" href="tel:+33632853493">' . $svg . ' Signaler un essaim — 06 32 85 34 93</a>';
+});

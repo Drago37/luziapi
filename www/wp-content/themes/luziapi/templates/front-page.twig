@@ -40,7 +40,7 @@
 {# ---------- L'APICULTEUR ---------- #}
 <section class="about" id="apiculteur">
     <div class="wrap split rev">
-        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
+        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy" decoding="async"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
         <div>
             <span class="eyebrow">L'apiculteur</span>
             <h2>Ingénieur de métier, apiculteur de cœur</h2>
@@ -77,7 +77,7 @@
                 <span><b>Un essaim d'abeilles chez vous&nbsp;?</b> Anthony se déplace gratuitement (15&nbsp;km autour de Luzillé) pour le récupérer. <em>En savoir plus&nbsp;→</em></span>
             </a>
         </div>
-        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
+        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy" decoding="async"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
     </div>
 </section>
 
@@ -121,7 +121,7 @@
                 {% if h.coming %}<span class="ribbon">À venir</span>{% endif %}
                 <a class="pic" href="{{ h.permalink }}">
                     {% if h.image %}
-                        <img src="{{ h.image }}" alt="{{ h.name }}" loading="lazy">
+                        <img src="{{ h.image }}" alt="{{ h.name }}" loading="lazy" decoding="async">
                     {% else %}
                         {{ ui.jar(h.jar_fill, h.jar_light) }}
                     {% endif %}
@@ -166,7 +166,7 @@
             {% for p in latest_posts %}
             <article class="post-card">
                 <a href="{{ p.link }}">
-                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}" loading="lazy"></div>{% endif %}
+                    {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}" loading="lazy" decoding="async"></div>{% endif %}
                     <div class="pc-body">
                         <span class="pc-date">{{ p.date('j F Y') }}</span>
                         <h3>{{ p.title }}</h3>
@@ -215,6 +215,7 @@
             <p>Un essaim s'est posé dans votre jardin, sur un arbre, un volet ou un mur&nbsp;? Anthony se déplace <b>gratuitement dans un rayon de 15&nbsp;km autour de Luzillé</b> pour récupérer les essaims d'abeilles et leur offrir une nouvelle ruche. Surtout, n'utilisez aucun insecticide&nbsp;: un simple appel suffit, et chaque essaim sauvé compte.</p>
             <div class="swarm-cta">
                 <a class="btn btn-gold" href="tel:{{ contact.tel_lien }}">📞&nbsp;Appeler le {{ contact.tel }}</a>
+                <a class="btn btn-ghost" href="{{ function('home_url', '/recuperation-essaims/') }}">En savoir plus</a>
             </div>
             <p class="swarm-note">Essaims d'<b>abeilles</b> uniquement. Pour les guêpes ou frelons, adressez-vous à un professionnel de la désinsectisation.</p>
         </div>
