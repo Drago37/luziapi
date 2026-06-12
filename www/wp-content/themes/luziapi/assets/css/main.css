@@ -117,7 +117,8 @@ body.admin-bar .site-header{top:32px}
 .hero p.lead{font-size:1.18rem;color:#f1e4cf;max-width:32em;opacity:0;animation:rise .8s .45s forwards}
 .hero .cta{margin-top:2rem;display:flex;gap:.9rem;flex-wrap:wrap;opacity:0;animation:rise .8s .6s forwards}
 @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-.scroll-tag{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;color:#f1e4cf;font-size:.74rem;letter-spacing:.25em;text-transform:uppercase;opacity:.8;animation:bob 2.2s infinite}
+.scroll-tag{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;color:#f1e4cf;opacity:.8;animation:bob 2.2s infinite}
+.scroll-tag svg{display:block;width:30px;height:30px}
 @keyframes bob{50%{transform:translate(-50%,7px)}}
 
 /* ---------- SECTIONS ---------- */
