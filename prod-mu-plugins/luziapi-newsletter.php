@@ -115,7 +115,9 @@ function luziapi_newsletter_subscribe(WP_REST_Request $req) {
     $email      = sanitize_email((string) $req->get_param('email'));
     $consent    = (bool) $req->get_param('consent');
     $smsConsent = (bool) $req->get_param('sms_consent');
-    $hp         = (string) $req->get_param('website');
+    // Honeypot : vérifié via la clé JS (website) ET le nom réel du champ (lz_extra_ref),
+    // pour attraper aussi les bots qui appellent l'API directement, sans passer par le JS.
+    $hp         = trim((string) $req->get_param('website')) . trim((string) $req->get_param('lz_extra_ref'));
     // Numero : on tolere les saisies habituelles (06 12 34 56 78, 06.12..., 0033...) et
     // on normalise vers le format international attendu par Brevo (+33...).
     $sms = luziapi_normalize_phone((string) $req->get_param('sms'));
