@@ -20,14 +20,14 @@ add_shortcode('luziapi_newsletter', function () {
     <form class="nl-form" id="luziapi-nl-form" novalidate>
         <div class="nl-msg" id="luziapi-nl-msg" role="status" hidden></div>
         <input type="email" name="email" id="luziapi-nl-email" placeholder="votre@email.fr" aria-label="Votre adresse e-mail" required>
-        <input type="tel" name="sms" id="luziapi-nl-sms" placeholder="06 12 34 56 78 (facultatif, pour les SMS)" aria-label="Votre numero de mobile">
+        <input type="tel" name="sms" id="luziapi-nl-sms" placeholder="06 12 34 56 78 (facultatif, pour les SMS)" aria-label="Votre numéro de mobile">
         <label class="nl-consent">
             <input type="checkbox" name="consent" id="luziapi-nl-consent" required>
-            <span>J'accepte de recevoir les actualites de LuziApi par <b>e-mail</b> (RGPD).</span>
+            <span>J'accepte de recevoir les actualités de LuziApi par <b>e-mail</b> (RGPD).</span>
         </label>
         <label class="nl-consent">
             <input type="checkbox" name="sms_consent" id="luziapi-nl-sms-consent">
-            <span>J'accepte aussi d'etre prevenu par <b>SMS</b> (facultatif). «&nbsp;STOP&nbsp;» pour me desinscrire.</span>
+            <span>J'accepte aussi d'être prévenu par <b>SMS</b> (facultatif). «&nbsp;STOP&nbsp;» pour me désinscrire.</span>
         </label>
         <input type="text" name="lz_extra_ref" id="luziapi-nl-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         <button type="submit" id="luziapi-nl-btn">Je m'inscris</button>
@@ -53,7 +53,7 @@ add_shortcode('luziapi_newsletter', function () {
             var hp=document.getElementById('luziapi-nl-hp').value;
             if(!email){ show("Merci d'indiquer votre adresse e-mail.",false); return; }
             if(!consent){ show("Merci de cocher la case de consentement e-mail.",false); return; }
-            if(sms && !smsConsent){ show("Pour recevoir les SMS, cochez la case de consentement SMS (ou laissez le telephone vide).",false); return; }
+            if(sms && !smsConsent){ show("Pour recevoir les SMS, cochez la case de consentement SMS (ou laissez le téléphone vide).",false); return; }
             var old=btn.textContent; btn.disabled=true; btn.textContent='Envoi…';
             fetch(<?php echo wp_json_encode($endpoint); ?>,{
                 method:'POST',
@@ -62,9 +62,9 @@ add_shortcode('luziapi_newsletter', function () {
             }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok,d:d}; }); })
               .then(function(res){
                   btn.disabled=false; btn.textContent=old;
-                  if(res.ok){ show((res.d&&res.d.message)||'Merci ! Vous etes bien inscrit.',true); f.reset(); }
-                  else { show((res.d&&res.d.message)||'Une erreur est survenue, reessayez.',false); }
-              }).catch(function(){ show('Une erreur reseau est survenue, reessayez.',false); btn.disabled=false; btn.textContent=old; });
+                  if(res.ok){ show((res.d&&res.d.message)||'Merci ! Vous êtes bien inscrit.',true); f.reset(); }
+                  else { show((res.d&&res.d.message)||'Une erreur est survenue, réessayez.',false); }
+              }).catch(function(){ show('Une erreur réseau est survenue, réessayez.',false); btn.disabled=false; btn.textContent=old; });
         });
     })();
     </script>
@@ -135,10 +135,10 @@ function luziapi_newsletter_subscribe(WP_REST_Request $req) {
     $attributes = [];
     if ($sms !== '') {
         if (!$smsConsent) {
-            return new WP_REST_Response(['status' => 'sms_consent', 'message' => 'Pour les SMS, cochez la case de consentement SMS (ou laissez le telephone vide).'], 400);
+            return new WP_REST_Response(['status' => 'sms_consent', 'message' => 'Pour les SMS, cochez la case de consentement SMS (ou laissez le téléphone vide).'], 400);
         }
         if (!preg_match('/^\+[1-9][0-9]{7,14}$/', $sms)) {
-            return new WP_REST_Response(['status' => 'sms_invalid', 'message' => 'Numero de mobile invalide. Indiquez un mobile, ex. 06 12 34 56 78.'], 400);
+            return new WP_REST_Response(['status' => 'sms_invalid', 'message' => 'Numéro de mobile invalide. Indiquez un mobile, ex. 06 12 34 56 78.'], 400);
         }
         $attributes['SMS'] = $sms;
     }
@@ -167,11 +167,11 @@ function luziapi_newsletter_subscribe(WP_REST_Request $req) {
         'body' => wp_json_encode($payload),
     ]);
     if (is_wp_error($resp)) {
-        return new WP_REST_Response(['status' => 'error', 'message' => 'Une erreur est survenue, reessayez.'], 502);
+        return new WP_REST_Response(['status' => 'error', 'message' => 'Une erreur est survenue, réessayez.'], 502);
     }
     $code = (int) wp_remote_retrieve_response_code($resp);
     if ($code === 201 || $code === 204) {
-        return new WP_REST_Response(['status' => 'success', 'message' => 'Merci ! Vous etes bien inscrit a la newsletter LuziApi.'], 200);
+        return new WP_REST_Response(['status' => 'success', 'message' => 'Merci ! Vous êtes bien inscrit à la newsletter LuziApi.'], 200);
     }
 
     $body   = json_decode(wp_remote_retrieve_body($resp), true);
@@ -180,7 +180,7 @@ function luziapi_newsletter_subscribe(WP_REST_Request $req) {
     if ($code === 400 && isset($body['code']) && $body['code'] === 'duplicate_parameter') {
         // L'e-mail existe deja (avec updateEnabled c'est rare, mais on couvre le cas).
         if (in_array('EMAIL', $dupIds, true)) {
-            return new WP_REST_Response(['status' => 'success', 'message' => 'Vous etes deja inscrit — merci !'], 200);
+            return new WP_REST_Response(['status' => 'success', 'message' => 'Vous êtes déjà inscrit — merci !'], 200);
         }
         // Le numero est deja rattache a un autre contact : on inscrit l'e-mail sans reassigner le SMS.
         if (in_array('SMS', $dupIds, true)) {
@@ -192,9 +192,9 @@ function luziapi_newsletter_subscribe(WP_REST_Request $req) {
             ]);
             $code2 = is_wp_error($resp2) ? 0 : (int) wp_remote_retrieve_response_code($resp2);
             if ($code2 === 201 || $code2 === 204) {
-                return new WP_REST_Response(['status' => 'success', 'message' => 'Merci ! Vous etes bien inscrit a la newsletter LuziApi.'], 200);
+                return new WP_REST_Response(['status' => 'success', 'message' => 'Merci ! Vous êtes bien inscrit à la newsletter LuziApi.'], 200);
             }
         }
     }
-    return new WP_REST_Response(['status' => 'error', 'message' => 'Une erreur est survenue, reessayez.'], 502);
+    return new WP_REST_Response(['status' => 'error', 'message' => 'Une erreur est survenue, réessayez.'], 502);
 }
