@@ -198,3 +198,31 @@ add_action('wp_head', static function (): void {
         }
     }
 }, 6);
+
+/**
+ * Sitemap natif WordPress : exclut les pages fonctionnelles WooCommerce
+ * (panier, commande, mon compte) — elles n'ont aucun intérêt pour le référencement.
+ */
+add_filter('wp_sitemaps_posts_query_args', static function (array $args, string $post_type): array {
+    if ('page' === $post_type && function_exists('wc_get_page_id')) {
+        $exclude = array_filter([
+            wc_get_page_id('cart'),
+            wc_get_page_id('checkout'),
+            wc_get_page_id('myaccount'),
+        ], static fn ($id) => (int) $id > 0);
+
+        if ($exclude) {
+            $args['post__not_in'] = array_merge($args['post__not_in'] ?? [], $exclude);
+        }
+    }
+
+    return $args;
+}, 10, 2);
+
+/**
+ * Sitemap natif WordPress : désactive le sitemap des utilisateurs/auteurs
+ * (inutile pour le SEO et évite d'exposer les comptes).
+ */
+add_filter('wp_sitemaps_add_provider', static function ($provider, string $name) {
+    return 'users' === $name ? false : $provider;
+}, 10, 2);
