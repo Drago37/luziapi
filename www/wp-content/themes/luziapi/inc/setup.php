@@ -108,3 +108,21 @@ add_action('wp_head', static function (): void {
     echo '<link rel="icon" type="image/png" href="' . $src . '" sizes="any">' . "\n";
     echo '<link rel="apple-touch-icon" href="' . $src . '">' . "\n";
 }, 2);
+
+/**
+ * Anti-spam du formulaire de contact (Contact Form 7) : honeypot, sans service tiers.
+ * Un champ piège invisible — rempli par les bots, jamais par un humain — marque l'envoi comme spam.
+ */
+add_filter('wpcf7_form_elements', static function (string $html): string {
+    $hp = '<span class="lz-hp" aria-hidden="true" style="position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;overflow:hidden">'
+        . '<label>Laissez ce champ vide&nbsp;: <input type="text" name="luziapi_hp" value="" tabindex="-1" autocomplete="off"></label></span>';
+
+    return $hp . $html;
+});
+add_filter('wpcf7_spam', static function ($spam, $submission = null) {
+    if ($spam) {
+        return $spam;
+    }
+
+    return ! empty($_POST['luziapi_hp']);
+}, 9, 2);
