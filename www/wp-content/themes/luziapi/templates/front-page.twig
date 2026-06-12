@@ -20,7 +20,7 @@
 {% block content %}
 
 {# ---------- HERO ---------- #}
-<section class="hero" id="top">
+<section class="hero" id="top" data-nav="Accueil">
     <div class="hero-img" style="background-image:url('{{ asset('img/hero.jpg') }}')"></div>
     <div class="wrap">
         <div class="hero-card">
@@ -40,7 +40,7 @@
 </section>
 
 {# ---------- L'APICULTEUR ---------- #}
-<section class="about" id="apiculteur">
+<section class="about" id="apiculteur" data-nav="L'apiculteur">
     <div class="wrap split rev">
         <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy" decoding="async"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
         <div>
@@ -60,7 +60,7 @@
 </section>
 
 {# ---------- SAVOIR-FAIRE ---------- #}
-<section id="savoir-faire" class="craft">
+<section id="savoir-faire" class="craft" data-nav="Savoir-faire">
     <div class="wrap split">
         <div>
             <span class="eyebrow">Au cœur des ruches</span>
@@ -84,7 +84,7 @@
 </section>
 
 {# ---------- DU RUCHER AU POT ---------- #}
-<section class="process hexbg">
+<section class="process hexbg" id="process" data-nav="Du rucher au pot">
     <div class="wrap">
         <div class="sec-head">
             <span class="eyebrow gold">Du rucher au pot</span>
@@ -101,7 +101,7 @@
 </section>
 
 {# ---------- NOS MIELS ---------- #}
-<section class="products" id="produits">
+<section class="products" id="produits" data-nav="Nos miels">
     <div class="wrap">
         <div class="sec-head">
             <span class="eyebrow">La boutique</span>
@@ -157,7 +157,7 @@
 
 {# ---------- ACTUALITÉS ---------- #}
 {% if latest_posts is not empty %}
-<section class="news" id="actualites">
+<section class="news" id="actualites" data-nav="Actualités">
     <div class="wrap">
         <div class="sec-head">
             <span class="eyebrow">Le journal du rucher</span>
@@ -185,7 +185,7 @@
 {% endif %}
 
 {# ---------- NEWSLETTER ---------- #}
-<section class="newsletter" id="newsletter">
+<section class="newsletter" id="newsletter" data-nav="Newsletter">
     <div class="wrap">
         <div class="nl-card">
             <span class="eyebrow">Newsletter</span>
@@ -209,7 +209,7 @@
 </section>
 
 {# ---------- RÉCUPÉRATION D'ESSAIMS ---------- #}
-<section class="swarm" id="essaims">
+<section class="swarm" id="essaims" data-nav="Essaims">
     <div class="wrap">
         <div class="swarm-card">
             <span class="eyebrow">Service gratuit</span>
@@ -225,7 +225,7 @@
 </section>
 
 {# ---------- OU NOUS TROUVER ---------- #}
-<section class="locate" id="localisation">
+<section class="locate" id="localisation" data-nav="Nous trouver">
     <div class="wrap lay">
         <div class="info-card">
             <span class="eyebrow">Où nous trouver</span>
@@ -243,7 +243,7 @@
 </section>
 
 {# ---------- CONTACT ---------- #}
-<section class="contact" id="contact">
+<section class="contact" id="contact" data-nav="Contact">
     <div class="wrap lay">
         <div>
             <span class="eyebrow gold">Contact</span>
