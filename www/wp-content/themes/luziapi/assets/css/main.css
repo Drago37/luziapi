@@ -328,13 +328,16 @@ article.page{padding:28px 0 56px}
 
 /* ---------- FOOTER ---------- */
 .site-footer{background:var(--espresso);color:#e8d9bf;padding:64px 0 34px}
-.foot{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+.foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.1fr;gap:40px}
 .site-footer .brand{margin-bottom:1rem;font-size:1.5rem}
 .site-footer .brand .bee{width:28px}
 .foot p{font-size:.9rem;color:#c9b594;max-width:26em;margin-top:.6rem}
 .foot h3{font-family:var(--sans);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;color:var(--gold);margin-bottom:1.1rem;font-weight:700}
 .foot a.lnk{display:block;color:#d8c6a6;font-size:.92rem;padding:.25em 0;transition:.2s}
 .foot a.lnk:hover{color:var(--gold)}
+.foot a.doc-lnk{display:flex;align-items:flex-start;gap:.5em}
+.foot .doc-ic{width:16px;height:16px;flex:none;margin-top:.15em;opacity:.85}
+.foot .doc-size{display:block;font-size:.72rem;color:#a8946f}
 .foot-social{margin-top:1.5rem}
 .foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#1877f2;color:#fff;transition:background .2s,color .2s,transform .2s}
 .foot-social .social-ic:hover{background:#0f5cd6;color:#fff;transform:translateY(-2px)}
