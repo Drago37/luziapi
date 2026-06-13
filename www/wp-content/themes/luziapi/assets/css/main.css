@@ -63,8 +63,8 @@ body.admin-bar .site-header{top:32px}
 .fab a:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
 .fab a.is-shop{background:var(--honey);color:var(--bark);border-color:var(--honey)}
 .fab a.is-shop:hover{background:var(--gold);border-color:var(--gold)}
-.fab a.fab-fb{background:#1877f2;color:#fff;border-color:#1877f2}
-.fab a.fab-fb:hover{background:#0f5cd6;color:#fff;border-color:#0f5cd6}
+.fab a.fab-fb{background:#0866ff;color:#fff;border-color:#0866ff}
+.fab a.fab-fb:hover{background:#0653cc;color:#fff;border-color:#0653cc}
 .fab a svg{width:22px;height:22px}
 .fab .label{font-size:.6rem;font-weight:800;letter-spacing:.02em;line-height:1;text-transform:uppercase}
 /* Panier dans les boutons flottants (couleur distincte, en tête) */
@@ -213,7 +213,6 @@ body.admin-bar .site-header{top:32px}
 .card .add{font-weight:700;font-size:.85rem;padding:.5em 1em;border-radius:999px;border:2px solid var(--wood);color:var(--bark);transition:.2s;white-space:nowrap}
 .card .add:hover{background:var(--bark);color:var(--cream)}
 .card .add.disabled{border-color:var(--line);color:var(--muted);background:transparent;cursor:default;pointer-events:none}
-.card.coming{opacity:.94}
 .card .ribbon{position:absolute;top:14px;left:14px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800;padding:.45em .8em;border-radius:999px;box-shadow:0 6px 14px -6px rgba(0,0,0,.45)}
 .card.coming .pic .jar{filter:grayscale(.6) opacity(.72)}
 .card.coming:hover .pic .jar{transform:none}
@@ -339,8 +338,8 @@ article.page{padding:28px 0 56px}
 .foot .doc-ic{width:16px;height:16px;flex:none;margin-top:.15em;opacity:.85}
 .foot .doc-size{display:block;font-size:.72rem;color:#a8946f}
 .foot-social{margin-top:1.5rem}
-.foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#1877f2;color:#fff;transition:background .2s,color .2s,transform .2s}
-.foot-social .social-ic:hover{background:#0f5cd6;color:#fff;transform:translateY(-2px)}
+.foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0866ff;color:#fff;transition:background .2s,color .2s,transform .2s}
+.foot-social .social-ic:hover{background:#0653cc;color:#fff;transform:translateY(-2px)}
 .foot-social .social-ic svg{width:20px;height:20px}
 .foot-bottom{border-top:1px solid rgba(224,161,36,.18);margin-top:46px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.8rem;color:#a8946f}
 .credit{color:var(--gold)}
