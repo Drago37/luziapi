@@ -43,6 +43,42 @@
   setTimeout(ckTranslate, 600);
   setTimeout(ckTranslate, 1800);
 
+  // ----- Page Actualités : filtre par catégorie + tri -----
+  (function () {
+    var grid = document.getElementById('news-grid');
+    if (!grid) { return; }
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.post-card'));
+    var filterBtns = Array.prototype.slice.call(document.querySelectorAll('.nf-btn'));
+    var sortSel = document.getElementById('news-sort');
+    var emptyMsg = document.getElementById('news-empty');
+    var current = 'all';
+    function apply() {
+      var visible = 0;
+      cards.forEach(function (c) {
+        var ok = (current === 'all' || c.getAttribute('data-cat') === current);
+        c.style.display = ok ? '' : 'none';
+        if (ok) { visible++; }
+      });
+      if (emptyMsg) { emptyMsg.hidden = (visible > 0); }
+      var mode = sortSel ? sortSel.value : 'date-desc';
+      cards.slice().sort(function (a, b) {
+        if (mode === 'title-asc') { return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title')); }
+        var da = +a.getAttribute('data-date'), db = +b.getAttribute('data-date');
+        return mode === 'date-asc' ? da - db : db - da;
+      }).forEach(function (c) { grid.appendChild(c); });
+    }
+    filterBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        filterBtns.forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        current = btn.getAttribute('data-filter');
+        apply();
+      });
+    });
+    if (sortSel) { sortSel.addEventListener('change', apply); }
+    apply();
+  })();
+
   // ----- Cartes Leaflet (chargement paresseux : Leaflet n'est téléchargé qu'à l'approche d'une carte) -----
   function loadLeaflet(cb) {
     if (window.L) { cb(); return; }

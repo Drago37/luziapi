@@ -27,4 +27,21 @@ if ($post && $post->post_name === 'en') {
     $context['honeys_en'] = function_exists('luziapi_get_honeys_en') ? luziapi_get_honeys_en() : [];
 }
 
+// Gabarit dédié pour la page « Actualités » : liste complète + tri + filtre par catégorie.
+if ($post && $post->post_name === 'actualites') {
+    array_unshift($templates, 'page-actualites.twig');
+    $context['posts']     = Timber\Timber::get_posts([
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ]);
+    $context['news_cats'] = Timber\Timber::get_terms([
+        'taxonomy'   => 'category',
+        'hide_empty' => true,
+        'exclude'    => [(int) get_option('default_category')],
+    ]);
+}
+
 Timber\Timber::render($templates, $context);

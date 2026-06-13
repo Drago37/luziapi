@@ -350,6 +350,21 @@ article.page{padding:28px 0 56px}
 /* Bouton de langue dans l'en-tête */
 .lang-switch{display:inline-flex;align-items:center;gap:.25em;font-weight:800;font-size:.82rem;color:var(--gold);border:1.5px solid rgba(224,161,36,.5);border-radius:999px;padding:.32em .72em;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
 .lang-switch:hover{background:var(--honey);color:var(--espresso);border-color:var(--honey)}
+/* Page Actualités : filtres + tri */
+.news-tools{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin:0 0 28px}
+.news-filters{display:flex;flex-wrap:wrap;gap:8px}
+.nf-btn{font:inherit;font-size:.85rem;font-weight:700;padding:.45em .95em;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--bark);cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.nf-btn:hover{border-color:var(--honey)}
+.nf-btn.is-active{background:var(--honey);border-color:var(--honey);color:var(--espresso)}
+.news-sort{font-size:.85rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:.5em}
+.news-sort select{font:inherit;padding:.4em .6em;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.news-empty{text-align:center;color:var(--muted);padding:2rem 0}
+/* Badge de catégorie d'article */
+.cat-badge{display:inline-flex;align-items:center;gap:.35em;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:.32em .7em;border-radius:999px;background:var(--cream-2);color:var(--bark);margin-bottom:.5em}
+.cat-badge-ic{font-size:1em;line-height:1}
+.cat-badge--recolte{background:#fbe3b8;color:#7a4f12}
+.cat-badge--information{background:#dce8f5;color:#1c4a7a}
+.cat-badge--essaim{background:#dff0dc;color:#2f6b2a}
 .foot-social{margin-top:1.5rem}
 .foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0866ff;color:#fff;transition:background .2s,color .2s,transform .2s}
 .foot-social .social-ic:hover{background:#0653cc;color:#fff;transform:translateY(-2px)}

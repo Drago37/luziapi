@@ -4,6 +4,7 @@
 <article class="single-post">
     <div class="wrap page-narrow">
         <a class="back-link" href="{{ blog_url }}">← Toutes les actualités</a>
+        {{ function('luziapi_post_category_badge', post.id)|raw }}
         <span class="pc-date">{{ post.date('j F Y') }}</span>
         <h1>{{ post.title }}</h1>
         {% if post.thumbnail %}

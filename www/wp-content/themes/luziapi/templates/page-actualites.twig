@@ -1,0 +1,53 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<section class="news blog-page" id="actus">
+    <div class="wrap">
+        <div class="sec-head">
+            <span class="eyebrow">Le journal du rucher</span>
+            <h1>Actualités</h1>
+            <p>La vie des ruches, les récoltes et les nouveautés de LuziApi.</p>
+        </div>
+
+        {% if posts is not empty %}
+        <div class="news-tools">
+            <div class="news-filters" role="group" aria-label="Filtrer par catégorie">
+                <button type="button" class="nf-btn is-active" data-filter="all">Toutes</button>
+                {% for c in news_cats %}
+                    <button type="button" class="nf-btn" data-filter="{{ c.slug }}">{{ function('luziapi_category_icon', c.slug) }} {{ c.name }}</button>
+                {% endfor %}
+            </div>
+            <label class="news-sort">Trier&nbsp;:
+                <select id="news-sort">
+                    <option value="date-desc">Plus récent</option>
+                    <option value="date-asc">Plus ancien</option>
+                    <option value="title-asc">Titre (A → Z)</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="news-grid" id="news-grid">
+            {% for p in posts %}
+                {% set cat = p.terms('category')|first %}
+                <article class="post-card" data-cat="{{ cat ? cat.slug : '' }}" data-date="{{ p.date('U') }}" data-title="{{ p.title|lower }}">
+                    <a href="{{ p.link }}">
+                        {% if p.thumbnail %}<div class="pc-img"><img src="{{ p.thumbnail.src('medium_large') }}" alt="{{ p.title }}" loading="lazy" decoding="async"></div>{% endif %}
+                        <div class="pc-body">
+                            {{ function('luziapi_post_category_badge', p.id)|raw }}
+                            <span class="pc-date">{{ p.date('j F Y') }}</span>
+                            <h3>{{ p.title }}</h3>
+                            <p>{{ p.excerpt.length(28) }}</p>
+                            <span class="pc-more">Lire la suite →</span>
+                        </div>
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+        <p class="news-empty" id="news-empty" hidden>Aucune actualité dans cette catégorie pour le moment.</p>
+
+        {% else %}
+        <p class="empty-note">Aucune actualité pour le moment. Revenez bientôt&nbsp;!</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
