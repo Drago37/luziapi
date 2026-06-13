@@ -27,42 +27,57 @@
     });
   }
 
-  // ----- Carte Leaflet / OpenStreetMap -----
-  var mapEl = document.getElementById('map');
-  if (mapEl && window.L && window.LUZIAPI_MAP) {
+  // ----- Cartes Leaflet (chargement paresseux : Leaflet n'est téléchargé qu'à l'approche d'une carte) -----
+  function loadLeaflet(cb) {
+    if (window.L) { cb(); return; }
+    if (window.__lzLeaflet) { window.__lzLeaflet.push(cb); return; }
+    window.__lzLeaflet = [cb];
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    var sc = document.createElement('script');
+    sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    sc.onload = function () { (window.__lzLeaflet || []).forEach(function (f) { f(); }); window.__lzLeaflet = null; };
+    sc.onerror = function () { window.__lzLeaflet = null; };
+    document.head.appendChild(sc);
+  }
+  function whenNear(el, cb) {
+    if (!('IntersectionObserver' in window)) { cb(); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { io.disconnect(); cb(); } });
+    }, { rootMargin: '300px' });
+    io.observe(el);
+  }
+  function initLocateMap(el) {
     try {
       var cfg = window.LUZIAPI_MAP;
       var map = L.map('map', { scrollWheelZoom: false }).setView([cfg.lat, cfg.lng], 14);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
       L.marker([cfg.lat, cfg.lng]).addTo(map).bindPopup(cfg.label).openPopup();
     } catch (e) {
-      mapEl.innerHTML = '<div style="height:440px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
+      el.innerHTML = '<div style="height:440px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
     }
   }
-
-  // ----- Carte « zone d'intervention essaims » : cercle de 15 km -----
-  var swarmEl = document.getElementById('essaim-map');
-  if (swarmEl && window.L && window.LUZIAPI_MAP) {
+  function initSwarmMap(el) {
     try {
       var s = window.LUZIAPI_MAP;
       var smap = L.map('essaim-map', { scrollWheelZoom: false }).setView([s.lat, s.lng], 10);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-      }).addTo(smap);
-      var ring = L.circle([s.lat, s.lng], {
-        radius: s.radius || 15000,
-        color: '#d33a2c', weight: 2, opacity: .9,
-        fillColor: '#d33a2c', fillOpacity: .10
-      }).addTo(smap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(smap);
+      var ring = L.circle([s.lat, s.lng], { radius: s.radius || 15000, color: '#d33a2c', weight: 2, opacity: .9, fillColor: '#d33a2c', fillOpacity: .10 }).addTo(smap);
       L.marker([s.lat, s.lng]).addTo(smap).bindPopup(s.label);
       smap.fitBounds(ring.getBounds(), { padding: [24, 24] });
     } catch (e) {
-      swarmEl.innerHTML = '<div style="height:420px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
+      el.innerHTML = '<div style="height:420px;display:flex;align-items:center;justify-content:center;color:#866a48">Carte indisponible</div>';
     }
+  }
+  var mapEl = document.getElementById('map');
+  if (mapEl && window.LUZIAPI_MAP) {
+    whenNear(mapEl, function () { loadLeaflet(function () { initLocateMap(mapEl); }); });
+  }
+  var swarmEl = document.getElementById('essaim-map');
+  if (swarmEl && window.LUZIAPI_MAP) {
+    whenNear(swarmEl, function () { loadLeaflet(function () { initSwarmMap(swarmEl); }); });
   }
 
   // ----- Navigation one-page : points à droite + chevrons entre sections -----

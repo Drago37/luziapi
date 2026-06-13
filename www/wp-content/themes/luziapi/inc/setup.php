@@ -44,27 +44,8 @@ add_action('wp_enqueue_scripts', static function (): void {
         null
     );
 
-    // Leaflet (carte OpenStreetMap) — enregistré, chargé uniquement sur l'accueil.
-    wp_register_style(
-        'leaflet',
-        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-        [],
-        '1.9.4'
-    );
-    wp_register_script(
-        'leaflet',
-        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-        [],
-        '1.9.4',
-        true
-    );
-
-    $main_deps = [];
-    if (is_front_page() || is_page('recuperation-essaims')) {
-        wp_enqueue_style('leaflet');
-        wp_enqueue_script('leaflet');
-        $main_deps[] = 'leaflet';
-    }
+    // Leaflet (carte OpenStreetMap) est chargé paresseusement par main.js,
+    // uniquement quand une carte approche du viewport (voir assets/js/main.js).
 
     // Version basée sur la date de modification du fichier : casse le cache
     // (navigateur + o2switch) automatiquement à chaque mise à jour.
@@ -85,7 +66,7 @@ add_action('wp_enqueue_scripts', static function (): void {
     wp_enqueue_script(
         'luziapi-main',
         LUZIAPI_URI . '/assets/js/main.js',
-        $main_deps,
+        [],
         $js_ver,
         true
     );
