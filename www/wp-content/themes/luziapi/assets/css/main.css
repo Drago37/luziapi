@@ -9,6 +9,7 @@
   --cream:#fbf1da; --cream-2:#f5e6c4; --paper:#fffaf0; --line:#e6d2a8;
   --ink:#3a2917; --muted:#866a48;
   --maxw:1180px;
+  --header-h:73px;
   --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
@@ -105,7 +106,7 @@ body.admin-bar .site-header{top:32px}
 @media(max-width:540px){.essaim-map{height:320px}}
 
 /* ---------- HERO ---------- */
-.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;color:#fff;overflow:hidden}
+.hero{position:relative;min-height:calc(100vh - var(--header-h));min-height:calc(100svh - var(--header-h));display:flex;align-items:center;color:#fff;overflow:hidden}
 .hero-img{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;transform:scale(1.05);animation:zoom 18s ease-out forwards}
 @keyframes zoom{to{transform:scale(1)}}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(34,22,11,.86) 0%,rgba(43,28,14,.62) 45%,rgba(43,28,14,.18) 100%)}

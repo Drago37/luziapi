@@ -1,6 +1,16 @@
 (function () {
   'use strict';
 
+  // ----- Hauteur réelle du header -> variable CSS (le hero remplit l'écran sous le header) -----
+  var header = document.querySelector('.site-header');
+  if (header) {
+    var setHeaderH = function () {
+      document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+    };
+    setHeaderH();
+    window.addEventListener('resize', setHeaderH);
+  }
+
   // ----- Menu mobile -----
   var burger = document.querySelector('.burger');
   var menu = document.querySelector('.menu');
