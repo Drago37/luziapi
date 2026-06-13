@@ -1,0 +1,118 @@
+{% extends "base.twig" %}
+
+{% macro jar(fill, light) %}
+    {% set gid = 'en' ~ fill|replace({'#': ''}) %}
+    <svg viewBox="0 0 200 250" class="jar" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="{{ gid }}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="{{ light }}"/><stop offset="1" stop-color="{{ fill }}"/>
+        </linearGradient></defs>
+        <rect x="56" y="32" width="88" height="26" rx="7" fill="#4a3018"/>
+        <rect x="52" y="52" width="96" height="13" rx="5" fill="#5e3c1d"/>
+        <path d="M50 70 h100 a14 14 0 0 1 14 14 v116 a18 18 0 0 1 -18 18 H54 a18 18 0 0 1 -18 -18 V84 a14 14 0 0 1 14 -14 z" fill="url(#{{ gid }})" stroke="#e6d2a8" stroke-width="1"/>
+        <rect x="54" y="80" width="15" height="116" rx="7" fill="#ffffff" opacity="0.22"/>
+        <rect x="58" y="118" width="84" height="64" rx="7" fill="#fbf1da" stroke="#e6d2a8"/>
+        <polygon points="100,127 110,132 110,142 100,147 90,142 90,132" fill="#e0a124"/>
+        <text x="100" y="168" text-anchor="middle" font-family="Fraunces,serif" font-weight="800" font-size="16" fill="#4a3018">LuziApi</text>
+    </svg>
+{% endmacro %}
+{% import _self as ui %}
+
+{% set home = function('home_url', '/') %}
+{% set shop = function('wc_get_page_permalink', 'shop') %}
+
+{% block content %}
+<article class="page en-page">
+
+    {# ---------- HERO ---------- #}
+    <section class="hero" id="top">
+        <div class="hero-img"></div>
+        <div class="wrap">
+            <div class="hero-card">
+                <span class="eyebrow">Artisanal honey · Loire Valley, France</span>
+                <h1>Pure local <em>honey</em> from Luzillé</h1>
+                <p class="lead">Anthony, a passionate beekeeper in Luzillé (Loire Valley), harvests, extracts and jars a pure honey — no industrial processing, straight from the hive.</p>
+                <div class="cta">
+                    <a class="btn btn-primary" href="#honeys">Discover our honeys</a>
+                    <a class="btn btn-ghost" href="{{ home }}">🇫🇷 Site en français</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- THE BEEKEEPER ---------- #}
+    <section class="about">
+        <div class="wrap split rev">
+            <div class="ph">
+                <picture>
+                    <source srcset="{{ asset('img/apiculteur.webp') }}" type="image/webp">
+                    <img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule at the hive" loading="lazy" decoding="async">
+                </picture>
+            </div>
+            <div>
+                <span class="eyebrow">The beekeeper</span>
+                <h2>Engineer by trade, beekeeper at heart</h2>
+                <p>By day, Anthony is a software engineer. But for over ten years, his bees have filled his free time. Self-taught, season after season, he tends his hives by hand — out of pure love for nature.</p>
+                <p>His idea is simple: offer a <strong>local, honest honey at a fair price</strong> — not a luxury product, but an everyday pleasure. And behind every jar, one conviction: caring for bees means caring for our ecosystem.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- OUR HONEYS ---------- #}
+    <section class="products" id="honeys">
+        <div class="wrap">
+            <div class="sec-head">
+                <span class="eyebrow">The honeys</span>
+                <h2>Our honeys</h2>
+                <p>Harvested this year, in 1&nbsp;kg jars — limited quantities depending on the blooms.</p>
+            </div>
+
+            <div class="promo">
+                <span class="badge">Offer</span>
+                <span>From 2&nbsp;jars: <b>−€1 per jar</b></span>
+                <span class="sep">•</span>
+                <span><b>Free local delivery</b> around Luzillé &amp; Bléré</span>
+            </div>
+
+            {% if honeys_en is not empty %}
+            <div class="grid-honeys">
+                {% for h in honeys_en %}
+                <article class="card {{ h.coming ? 'coming' : '' }}">
+                    <a class="pic" href="{{ h.permalink }}" aria-label="{{ h.name }}">{{ ui.jar(h.jar_fill, h.jar_light) }}</a>
+                    <div class="body">
+                        <h3><a href="{{ h.permalink }}">{{ h.name }}</a></h3>
+                        {% if h.desc %}<p class="desc">{{ h.desc }}</p>{% endif %}
+                        <div class="row">
+                            <span class="price">{{ h.price }} <small>/ 1&nbsp;kg jar</small></span>
+                            <span class="en-avail {{ h.coming ? 'en-avail--soon' : 'en-avail--now' }}">{{ h.availability }}</span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <p class="keep">🍯 Keeps for <b>2&nbsp;years</b> — store away from light and heat.</p>
+            <p class="en-shop-note">Online ordering is available <strong>in French</strong>{% if shop %} (<a href="{{ shop }}">visit the shop</a>){% endif %}. English-speaking visitors are welcome to <a href="#contact">contact Anthony directly</a>.</p>
+        </div>
+    </section>
+
+    {# ---------- VISIT / CONTACT ---------- #}
+    <section class="locate" id="contact">
+        <div class="wrap">
+            <div class="info-card" style="max-width:680px;margin:0 auto">
+                <span class="eyebrow">Visit us &amp; contact</span>
+                <h2>Find us in Luzillé</h2>
+                <p class="muted">Direct sales at the apiary, by appointment. Free local delivery around Luzillé and Bléré. Just get in touch — Anthony will be happy to help.</p>
+                <ul class="info-list">
+                    <li><span class="ic">📍</span><span><b>{{ contact.adresse }}</b><br>{{ contact.cp_ville }}, Loire Valley, France</span></li>
+                    <li><span class="ic">📞</span><span><b><a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a></b></span></li>
+                    <li><span class="ic">✉️</span><span><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></span></li>
+                </ul>
+                <div class="rdv">🚚 <b>Free local delivery around Luzillé &amp; Bléré.</b> By appointment, by phone or email.</div>
+                <p style="margin-top:1.6rem"><a class="btn btn-primary" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
+            </div>
+        </div>
+    </section>
+
+</article>
+{% endblock %}

@@ -102,6 +102,70 @@ function luziapi_get_honeys(int $limit = 8): array
 }
 
 /**
+ * Miels présentés sur la page anglaise (/en/) : nom + description en anglais,
+ * prix et disponibilité tirés de WooCommerce, couleurs du pot réutilisées.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function luziapi_get_honeys_en(int $limit = 8): array
+{
+    if (! function_exists('wc_get_products')) {
+        return [];
+    }
+
+    $map = [
+        'miel-de-printemps'   => ['Spring Honey', 'The first harvest of the year — mild and light, with a creamy texture, mostly from rapeseed blossom.'],
+        'miel-d-acacia'       => ['Acacia Honey', 'Our mildest honey: clear and runny, it stays liquid for a long time, with delicate floral notes.'],
+        'miel-de-chataignier' => ['Chestnut Honey', 'A bold, amber honey with powerful woodland notes — for those who love character.'],
+        'miel-de-tournesol'   => ['Sunflower Honey', 'Sunshine-yellow and naturally creamy: a tender, smooth honey with a gentle taste.'],
+    ];
+
+    $months = [
+        'Janvier' => 'January', 'Février' => 'February', 'Mars' => 'March', 'Avril' => 'April',
+        'Mai' => 'May', 'Juin' => 'June', 'Juillet' => 'July', 'Août' => 'August',
+        'Septembre' => 'September', 'Octobre' => 'October', 'Novembre' => 'November', 'Décembre' => 'December',
+    ];
+
+    $products = wc_get_products([
+        'status'  => 'publish',
+        'limit'   => $limit,
+        'orderby' => 'menu_order',
+        'order'   => 'ASC',
+    ]);
+
+    $out = [];
+    foreach ($products as $product) {
+        $slug    = $product->get_slug();
+        $colors  = luziapi_jar_colors($slug);
+        $en      = $map[$slug] ?? [$product->get_name(), ''];
+        $price   = $product->get_price();
+        $coming  = luziapi_is_coming_soon($product);
+        $recolte = function_exists('luziapi_product_attr') ? trim((string) luziapi_product_attr($product, 'Récolte')) : '';
+        $harvest = $months[$recolte] ?? $recolte;
+
+        if ($coming) {
+            $availability = ('' !== $harvest) ? 'Available from ' . $harvest : 'Coming soon';
+        } else {
+            $availability = 'Available now';
+        }
+
+        $out[] = [
+            'name'         => $en[0],
+            'desc'         => $en[1],
+            'price'        => ('' !== $price) ? '€' . rtrim(rtrim(number_format((float) $price, 2, '.', ''), '0'), '.') : '',
+            'coming'       => $coming,
+            'availability' => $availability,
+            'harvest'      => $harvest,
+            'jar_fill'     => $colors[0],
+            'jar_light'    => $colors[1],
+            'permalink'    => get_permalink($product->get_id()),
+        ];
+    }
+
+    return $out;
+}
+
+/**
  * Remise : −1 € par pot dès que le panier contient au moins 2 pots.
  */
 add_action('woocommerce_cart_calculate_fees', static function (\WC_Cart $cart): void {

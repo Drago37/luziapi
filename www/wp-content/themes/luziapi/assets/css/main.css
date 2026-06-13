@@ -339,6 +339,17 @@ article.page{padding:28px 0 56px}
 .foot .doc-size{display:block;font-size:.72rem;color:#a8946f}
 /* Bandeau cookies (plugin CookieAdmin) : masque le crédit promotionnel « Propulsé par » */
 .cookieadmin-poweredby{display:none!important}
+/* Page anglaise (/en/) */
+.en-page section:not(.hero){padding:64px 0}
+.en-page .grid-honeys{margin-top:1.6rem}
+.en-avail{font-size:.76rem;font-weight:700;white-space:nowrap}
+.en-avail--now{color:#2f7d32}
+.en-avail--soon{color:#9a5a10}
+.en-shop-note{text-align:center;color:var(--muted);font-size:.92rem;margin-top:1rem}
+.en-shop-note a{color:var(--honey-deep)}
+/* Bouton de langue dans l'en-tête */
+.lang-switch{display:inline-flex;align-items:center;gap:.25em;font-weight:800;font-size:.82rem;color:var(--gold);border:1.5px solid rgba(224,161,36,.5);border-radius:999px;padding:.32em .72em;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+.lang-switch:hover{background:var(--honey);color:var(--espresso);border-color:var(--honey)}
 .foot-social{margin-top:1.5rem}
 .foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0866ff;color:#fff;transition:background .2s,color .2s,transform .2s}
 .foot-social .social-ic:hover{background:#0653cc;color:#fff;transform:translateY(-2px)}
