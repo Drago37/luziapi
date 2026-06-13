@@ -5,9 +5,9 @@
 
 :root{
   --espresso:#2b1d10; --bark:#432c16; --wood:#7a4f26;
-  --honey:#e0a124; --honey-deep:#c07c14; --gold:#f2c75a; --gold-soft:#f7dd9b;
+  --honey:#e0a124; --honey-deep:#8a5410; --gold:#f2c75a; --gold-soft:#f7dd9b;
   --cream:#fbf1da; --cream-2:#f5e6c4; --paper:#fffaf0; --line:#e6d2a8;
-  --ink:#3a2917; --muted:#866a48;
+  --ink:#3a2917; --muted:#7d6038;
   --maxw:1180px;
   --header-h:73px;
   --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
@@ -20,7 +20,7 @@ a{color:inherit;text-decoration:none}
 h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.05;letter-spacing:-.01em;color:var(--espresso);margin:0}
 p{margin:0}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
-.eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.28em;font-size:.72rem;font-weight:700;color:#905a0c}
+.eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.28em;font-size:.72rem;font-weight:700;color:var(--honey-deep)}
 .eyebrow.gold{color:var(--gold)}
 .muted{color:var(--muted)}
 
