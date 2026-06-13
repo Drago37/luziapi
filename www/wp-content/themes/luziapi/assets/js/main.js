@@ -60,11 +60,19 @@
   if (navSecs.length > 1) {
     // Le fond de la section est-il sombre ? (sert à adapter la couleur des repères)
     function sectionIsDark(el) {
-      var c = getComputedStyle(el).backgroundColor || '';
-      var m = c.match(/[\d.]+/g);
-      if (!m || (m.length >= 4 && parseFloat(m[3]) === 0)) { return false; }
-      var lum = 0.2126 * +m[0] + 0.7152 * +m[1] + 0.0722 * +m[2];
-      return lum < 130;
+      var st = getComputedStyle(el);
+      var m = (st.backgroundColor || '').match(/[\d.]+/g);
+      if (m && !(m.length >= 4 && parseFloat(m[3]) === 0)) {
+        var lum = 0.2126 * +m[0] + 0.7152 * +m[1] + 0.0722 * +m[2];
+        return lum < 130;
+      }
+      // Fond transparent (image / dégradé) : on déduit du texte — texte clair => fond foncé.
+      var tc = (st.color || '').match(/[\d.]+/g);
+      if (tc) {
+        var tlum = 0.2126 * +tc[0] + 0.7152 * +tc[1] + 0.0722 * +tc[2];
+        return tlum > 150;
+      }
+      return false;
     }
 
     var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';

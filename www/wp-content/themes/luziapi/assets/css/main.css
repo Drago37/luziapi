@@ -117,8 +117,6 @@ body.admin-bar .site-header{top:32px}
 .hero p.lead{font-size:1.18rem;color:#f1e4cf;max-width:32em;opacity:0;animation:rise .8s .45s forwards}
 .hero .cta{margin-top:2rem;display:flex;gap:.9rem;flex-wrap:wrap;opacity:0;animation:rise .8s .6s forwards}
 @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-.scroll-tag{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;color:#f1e4cf;opacity:.8;animation:bob 2.2s infinite}
-.scroll-tag svg{display:block;width:30px;height:30px}
 @keyframes bob{50%{transform:translate(-50%,7px)}}
 /* Navigation one-page : points cliquables à droite (desktop uniquement) */
 .dotnav{position:fixed;left:18px;top:50%;transform:translateY(-50%);z-index:900;display:flex;flex-direction:column;gap:8px;align-items:center}
@@ -134,13 +132,13 @@ body.admin-bar .site-header{top:32px}
 /* Chevron « section suivante » (couleur adaptée au fond via JS) */
 .home section{position:relative}
 /* Dégage le bas des sections portant un chevron pour ne pas chevaucher leur contenu */
-.home section:has(.sec-next){padding-bottom:104px}
+.home section:has(.sec-next):not(.hero){padding-bottom:104px}
 .sec-next{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;animation:bob 2.2s infinite;transition:background .25s,color .25s}
 .sec-next svg{width:24px;height:24px}
 .sec-next.on-dark{color:#fff;background:rgba(255,255,255,.12)}
 .sec-next.on-light{color:var(--espresso);background:rgba(43,29,16,.08)}
 .sec-next:hover{background:var(--honey);color:var(--espresso)}
-@media(prefers-reduced-motion:reduce){.sec-next,.scroll-tag{animation:none}}
+@media(prefers-reduced-motion:reduce){.sec-next{animation:none}}
 
 /* ---------- SECTIONS ---------- */
 .home section{padding:56px 0}
