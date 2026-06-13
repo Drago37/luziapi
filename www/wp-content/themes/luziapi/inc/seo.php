@@ -31,8 +31,8 @@ function luziapi_seo_plugin_active(): bool
 add_action('wp_head', static function (): void {
     if (is_front_page()) {
         printf(
-            '<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n",
-            esc_url(LUZIAPI_URI . '/assets/img/hero.jpg')
+            '<link rel="preload" as="image" href="%s" type="image/webp" fetchpriority="high">' . "\n",
+            esc_url(LUZIAPI_URI . '/assets/img/hero.webp')
         );
     }
 }, 1);

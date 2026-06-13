@@ -20,7 +20,7 @@ a{color:inherit;text-decoration:none}
 h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.05;letter-spacing:-.01em;color:var(--espresso);margin:0}
 p{margin:0}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
-.eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.28em;font-size:.72rem;font-weight:700;color:var(--honey-deep)}
+.eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.28em;font-size:.72rem;font-weight:700;color:#905a0c}
 .eyebrow.gold{color:var(--gold)}
 .muted{color:var(--muted)}
 
@@ -109,7 +109,7 @@ body.admin-bar .site-header{top:32px}
 
 /* ---------- HERO ---------- */
 .hero{position:relative;min-height:calc(100vh - var(--header-h));min-height:calc(100svh - var(--header-h));display:flex;align-items:center;color:#fff;overflow:hidden}
-.hero-img{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;transform:scale(1.05);animation:zoom 18s ease-out forwards}
+.hero-img{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;transform:scale(1.05);animation:zoom 18s ease-out forwards;background-image:url('../img/hero.jpg');background-image:-webkit-image-set(url('../img/hero.webp') type('image/webp'), url('../img/hero.jpg') type('image/jpeg'));background-image:image-set(url('../img/hero.webp') type('image/webp'), url('../img/hero.jpg') type('image/jpeg'))}
 @keyframes zoom{to{transform:scale(1)}}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(34,22,11,.86) 0%,rgba(43,28,14,.62) 45%,rgba(43,28,14,.18) 100%)}
 .hero .wrap{position:relative;z-index:2;width:100%}
@@ -332,7 +332,7 @@ article.page{padding:28px 0 56px}
 .site-footer .brand{margin-bottom:1rem;font-size:1.5rem}
 .site-footer .brand .bee{width:28px}
 .foot p{font-size:.9rem;color:#c9b594;max-width:26em;margin-top:.6rem}
-.foot h4{font-family:var(--sans);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;color:var(--gold);margin-bottom:1.1rem}
+.foot h3{font-family:var(--sans);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;color:var(--gold);margin-bottom:1.1rem;font-weight:700}
 .foot a.lnk{display:block;color:#d8c6a6;font-size:.92rem;padding:.25em 0;transition:.2s}
 .foot a.lnk:hover{color:var(--gold)}
 .foot-social{margin-top:1.5rem}

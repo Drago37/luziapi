@@ -21,7 +21,7 @@
 
 {# ---------- HERO ---------- #}
 <section class="hero" id="top" data-nav="Accueil">
-    <div class="hero-img" style="background-image:url('{{ asset('img/hero.jpg') }}')"></div>
+    <div class="hero-img"></div>
     <div class="wrap">
         <div class="hero-card">
             <span class="eyebrow">Apiculture artisanale · Luzillé (37)</span>
@@ -42,7 +42,7 @@
 {# ---------- L'APICULTEUR ---------- #}
 <section class="about" id="apiculteur" data-nav="L'apiculteur">
     <div class="wrap split rev">
-        <div class="ph"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy" decoding="async"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
+        <div class="ph"><picture><source srcset="{{ asset('img/apiculteur.webp') }}" type="image/webp"><img src="{{ asset('img/apiculteur.jpg') }}" alt="Anthony Graule en action à la ruche" loading="lazy" decoding="async"></picture><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
         <div>
             <span class="eyebrow">L'apiculteur</span>
             <h2>Ingénieur de métier, apiculteur de cœur</h2>
@@ -79,7 +79,7 @@
                 <span><b>Un essaim d'abeilles chez vous&nbsp;?</b> Anthony se déplace gratuitement (15&nbsp;km autour de Luzillé) pour le récupérer. <em>En savoir plus&nbsp;→</em></span>
             </a>
         </div>
-        <div class="ph"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy" decoding="async"><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
+        <div class="ph"><picture><source srcset="{{ asset('img/savoir-faire.webp') }}" type="image/webp"><img src="{{ asset('img/savoir-faire.jpg') }}" alt="Cadres couverts d'abeilles" loading="lazy" decoding="async"></picture><span class="photo-credit">Photo © {{ credit_photo }}</span></div>
     </div>
 </section>
 
@@ -121,7 +121,7 @@
             {% for h in honeys %}
             <article class="card {{ h.coming ? 'coming' : '' }}">
                 {% if h.coming %}<span class="ribbon">À venir</span>{% endif %}
-                <a class="pic" href="{{ h.permalink }}">
+                <a class="pic" href="{{ h.permalink }}" aria-label="{{ h.name }}">
                     {% if h.image %}
                         <img src="{{ h.image }}" alt="{{ h.name }}" loading="lazy" decoding="async">
                     {% else %}
