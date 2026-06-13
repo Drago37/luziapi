@@ -1,5 +1,17 @@
 {% set home = function('home_url', '/') %}
 {% set shop = function('wc_get_page_permalink', 'shop') %}
+
+{# Bouton de langue, rond, en haut à gauche (FR sur la page anglaise, EN ailleurs) #}
+{% if function('is_page', 'en') %}
+<a class="lang-fab" href="{{ home }}" aria-label="Voir le site en français" title="Français">
+    <span aria-hidden="true">🇫🇷</span><span class="ll">FR</span>
+</a>
+{% else %}
+<a class="lang-fab" href="{{ home }}en/" aria-label="English version" title="English">
+    <span aria-hidden="true">🇬🇧</span><span class="ll">EN</span>
+</a>
+{% endif %}
+
 <div class="fab" aria-label="Accès rapide">
     <a class="fab-sos" href="{{ home }}recuperation-essaims/" aria-label="SOS essaim : récupération gratuite d'un essaim d'abeilles">
         <span class="fab-sos-ic" aria-hidden="true">🐝</span>

@@ -21,7 +21,7 @@
 {% set shop = function('wc_get_page_permalink', 'shop') %}
 
 {% block content %}
-<article class="page en-page">
+<article class="en-page">
 
     {# ---------- HERO ---------- #}
     <section class="hero" id="top">
@@ -96,21 +96,39 @@
         </div>
     </section>
 
-    {# ---------- VISIT / CONTACT ---------- #}
-    <section class="locate" id="contact">
-        <div class="wrap">
-            <div class="info-card" style="max-width:680px;margin:0 auto">
-                <span class="eyebrow">Visit us &amp; contact</span>
+    {# ---------- VISIT US (infos + carte) ---------- #}
+    <section class="locate" id="visit">
+        <div class="wrap lay">
+            <div class="info-card">
+                <span class="eyebrow">Visit us</span>
                 <h2>Find us in Luzillé</h2>
-                <p class="muted">Direct sales at the apiary, by appointment. Free local delivery around Luzillé and Bléré. Just get in touch — Anthony will be happy to help.</p>
+                <p class="muted">Direct sales at the apiary, by appointment. Free local delivery around Luzillé and Bléré.</p>
                 <ul class="info-list">
                     <li><span class="ic">📍</span><span><b>{{ contact.adresse }}</b><br>{{ contact.cp_ville }}, Loire Valley, France</span></li>
                     <li><span class="ic">📞</span><span><b><a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a></b></span></li>
                     <li><span class="ic">✉️</span><span><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></span></li>
                 </ul>
-                <div class="rdv">🚚 <b>Free local delivery around Luzillé &amp; Bléré.</b> By appointment, by phone or email.</div>
-                <p style="margin-top:1.6rem"><a class="btn btn-primary" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
+                <div class="rdv">🚚 <b>Free local delivery around Luzillé &amp; Bléré.</b> By appointment.</div>
+                {% if shop %}<p style="margin-top:1.4rem"><a class="btn btn-gold" href="{{ shop }}">🛒&nbsp;Visit the online shop</a></p>{% endif %}
             </div>
+            <div id="map"></div>
+        </div>
+    </section>
+
+    {# ---------- CONTACT FORM ---------- #}
+    <section class="contact" id="contact">
+        <div class="wrap">
+            <div class="sec-head">
+                <span class="eyebrow gold">Contact</span>
+                <h2>Send a message</h2>
+                <p class="sub">Anthony answers personally. The form below is in French — but feel free to write your message in English.</p>
+            </div>
+            {% if contact_form_shortcode %}
+            <div class="form-wrap" style="max-width:640px;margin:0 auto;width:100%">
+                {{ function('do_shortcode', contact_form_shortcode)|raw }}
+            </div>
+            {% endif %}
+            <p style="text-align:center;margin-top:2rem"><a class="btn btn-outline-wood" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
         </div>
     </section>
 

@@ -347,9 +347,11 @@ article.page{padding:28px 0 56px}
 .en-avail--soon{color:#9a5a10}
 .en-shop-note{text-align:center;color:var(--muted);font-size:.92rem;margin-top:1rem}
 .en-shop-note a{color:var(--honey-deep)}
-/* Bouton de langue dans l'en-tête */
-.lang-switch{display:inline-flex;align-items:center;gap:.25em;font-weight:800;font-size:.82rem;color:var(--gold);border:1.5px solid rgba(224,161,36,.5);border-radius:999px;padding:.32em .72em;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
-.lang-switch:hover{background:var(--honey);color:var(--espresso);border-color:var(--honey)}
+/* Bouton de langue : rond, flottant en haut à gauche (sous l'en-tête) */
+.lang-fab{position:fixed;top:90px;left:16px;z-index:1090;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:54px;height:54px;border-radius:50%;background:var(--espresso);color:var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);border:2px solid rgba(224,161,36,.45);text-decoration:none;font-size:1.05rem;transition:background .25s,color .25s,transform .25s}
+.lang-fab:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
+.lang-fab .ll{font-size:.56rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;line-height:1}
+@media(max-width:540px){.lang-fab{top:74px;width:46px;height:46px;font-size:.95rem}}
 /* Page Actualités : filtres + tri */
 .news-tools{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin:0 0 28px}
 .news-filters{display:flex;flex-wrap:wrap;gap:8px}
