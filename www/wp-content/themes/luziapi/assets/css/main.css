@@ -333,6 +333,10 @@ article.page{padding:28px 0 56px}
 .foot h4{font-family:var(--sans);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;color:var(--gold);margin-bottom:1.1rem}
 .foot a.lnk{display:block;color:#d8c6a6;font-size:.92rem;padding:.25em 0;transition:.2s}
 .foot a.lnk:hover{color:var(--gold)}
+.foot-social{margin-top:1.5rem}
+.foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:rgba(224,161,36,.14);color:var(--gold);transition:background .2s,color .2s,transform .2s}
+.foot-social .social-ic:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
+.foot-social .social-ic svg{width:20px;height:20px}
 .foot-bottom{border-top:1px solid rgba(224,161,36,.18);margin-top:46px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.8rem;color:#a8946f}
 .credit{color:var(--gold)}
 .credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}

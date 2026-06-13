@@ -22,6 +22,14 @@
                 <span class="wm">Luzi<b>Api</b></span>
             </a>
             <p>Miel artisanal récolté, extrait et mis en pot à Luzillé, au cœur de l'Indre-et-Loire. Le goût d'une apiculture patiente et locale.</p>
+            {% if contact.facebook %}
+            <div class="foot-social">
+                <h4>Suivez-nous</h4>
+                <a class="social-ic" href="{{ contact.facebook }}" target="_blank" rel="noopener" aria-label="Page Facebook de LuziApi">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7h2.3l.35-2.7H13.5V9.6c0-.78.22-1.3 1.33-1.3h1.42V5.9c-.25-.03-1.1-.1-2.08-.1-2.06 0-3.47 1.26-3.47 3.57v1.98H8.4V14h2.3v7h2.8z"/></svg>
+                </a>
+            </div>
+            {% endif %}
         </div>
         <div>
             <h4>Navigation</h4>
@@ -30,12 +38,13 @@
             <a class="lnk" href="{{ home }}#produits">Nos miels</a>
             <a class="lnk" href="{{ home }}#actualites">Actualités</a>
             <a class="lnk" href="{{ home }}#localisation">Nous trouver</a>
+            {% if shop %}<a class="lnk" href="{{ shop }}">Boutique</a>{% endif %}
+            <a class="lnk" href="{{ home }}recuperation-essaims/">SOS Essaim</a>
         </div>
         <div>
             <h4>Informations</h4>
             <a class="lnk" href="{{ home }}#newsletter">S'abonner à la newsletter</a>
             <a class="lnk" href="{{ home }}#contact">Contact</a>
-            {% if shop %}<a class="lnk" href="{{ shop }}">Boutique</a>{% endif %}
             <a class="lnk" href="{{ home }}mentions-legales/">Mentions légales</a>
             <a class="lnk" href="{{ home }}politique-de-confidentialite/">Politique de confidentialité</a>
         </div>
