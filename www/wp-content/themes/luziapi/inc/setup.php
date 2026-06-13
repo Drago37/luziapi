@@ -81,6 +81,20 @@ add_action('wp_enqueue_scripts', static function (): void {
 });
 
 /**
+ * Polices Google chargées en NON bloquant : la feuille de style est servie en
+ * media="print" (donc ignorée pour le rendu initial) puis rebasculée en "all"
+ * une fois téléchargée. Supprime ~2 s de « blocage du rendu » sur mobile.
+ * Les piles de polices ont des polices système en repli (cf. --serif/--sans).
+ */
+add_filter('style_loader_tag', static function (string $tag, string $handle): string {
+    if ('luziapi-fonts' === $handle) {
+        $tag = str_replace(" media='all'", " media='print' onload=\"this.media='all'\"", $tag);
+    }
+
+    return $tag;
+}, 10, 2);
+
+/**
  * Optimisation du chargement : connexion anticipée aux serveurs de polices Google
  * (gagne le DNS + TLS avant le téléchargement des polices).
  * Le préchargement de l'image hero est géré dans inc/seo.php.
