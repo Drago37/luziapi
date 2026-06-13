@@ -63,6 +63,8 @@ body.admin-bar .site-header{top:32px}
 .fab a:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
 .fab a.is-shop{background:var(--honey);color:var(--bark);border-color:var(--honey)}
 .fab a.is-shop:hover{background:var(--gold);border-color:var(--gold)}
+.fab a.fab-fb{background:#1877f2;color:#fff;border-color:#1877f2}
+.fab a.fab-fb:hover{background:#0f5cd6;color:#fff;border-color:#0f5cd6}
 .fab a svg{width:22px;height:22px}
 .fab .label{font-size:.6rem;font-weight:800;letter-spacing:.02em;line-height:1;text-transform:uppercase}
 /* Panier dans les boutons flottants (couleur distincte, en tête) */
@@ -334,8 +336,8 @@ article.page{padding:28px 0 56px}
 .foot a.lnk{display:block;color:#d8c6a6;font-size:.92rem;padding:.25em 0;transition:.2s}
 .foot a.lnk:hover{color:var(--gold)}
 .foot-social{margin-top:1.5rem}
-.foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:rgba(224,161,36,.14);color:var(--gold);transition:background .2s,color .2s,transform .2s}
-.foot-social .social-ic:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
+.foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#1877f2;color:#fff;transition:background .2s,color .2s,transform .2s}
+.foot-social .social-ic:hover{background:#0f5cd6;color:#fff;transform:translateY(-2px)}
 .foot-social .social-ic svg{width:20px;height:20px}
 .foot-bottom{border-top:1px solid rgba(224,161,36,.18);margin-top:46px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.8rem;color:#a8946f}
 .credit{color:var(--gold)}
