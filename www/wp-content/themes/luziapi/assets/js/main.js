@@ -27,6 +27,22 @@
     });
   }
 
+  // ----- Bandeau cookies : libellés des boutons en français -----
+  var ckLabels = {
+    cookieadmin_accept_button: 'Tout accepter',
+    cookieadmin_reject_button: 'Tout refuser',
+    cookieadmin_customize_button: 'Personnaliser'
+  };
+  function ckTranslate() {
+    Object.keys(ckLabels).forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b && b.textContent.trim() !== ckLabels[id]) { b.textContent = ckLabels[id]; }
+    });
+  }
+  ckTranslate();
+  setTimeout(ckTranslate, 600);
+  setTimeout(ckTranslate, 1800);
+
   // ----- Cartes Leaflet (chargement paresseux : Leaflet n'est téléchargé qu'à l'approche d'une carte) -----
   function loadLeaflet(cb) {
     if (window.L) { cb(); return; }

@@ -337,8 +337,8 @@ article.page{padding:28px 0 56px}
 .foot a.doc-lnk{display:flex;align-items:flex-start;gap:.5em}
 .foot .doc-ic{width:16px;height:16px;flex:none;margin-top:.15em;opacity:.85}
 .foot .doc-size{display:block;font-size:.72rem;color:#a8946f}
-/* Bandeau cookies (plugin CookieAdmin) : crédit « Propulsé par » lisible (contraste AA) */
-.cookieadmin-poweredby a,.cookieadmin-poweredby span{color:#6b5230!important}
+/* Bandeau cookies (plugin CookieAdmin) : masque le crédit promotionnel « Propulsé par » */
+.cookieadmin-poweredby{display:none!important}
 .foot-social{margin-top:1.5rem}
 .foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0866ff;color:#fff;transition:background .2s,color .2s,transform .2s}
 .foot-social .social-ic:hover{background:#0653cc;color:#fff;transform:translateY(-2px)}
