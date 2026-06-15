@@ -17,14 +17,6 @@ add_filter('timber/context', static function (array $context): array {
     $context['blog_url'] = $actus
         ? get_permalink($actus->ID)
         : (get_option('page_for_posts') ? get_permalink((int) get_option('page_for_posts')) : home_url('/'));
-
-    // Bandeau d'annonce (récolte du moment), réglable dans Apparence → Personnaliser.
-    $context['banner'] = [
-        'enable' => (bool) get_theme_mod('luziapi_banner_enable', false),
-        'text'   => (string) get_theme_mod('luziapi_banner_text', ''),
-        'link'   => (string) get_theme_mod('luziapi_banner_link', ''),
-    ];
-
     // Panier (bouton + mini-panier du header), si WooCommerce est actif.
     if (function_exists('WC') && WC()->cart) {
         $context['cart_count'] = WC()->cart->get_cart_contents_count();
