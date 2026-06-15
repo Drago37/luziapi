@@ -327,6 +327,7 @@ article.page{padding:28px 0 56px}
 .prose a.btn-sos{color:#fff}
 .prose a.btn-sos:hover{color:#fff;transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(176,47,36,.7)}
 .btn .btn-ic{width:1.05em;height:1.05em;flex:none}
+.btn .btn-emoji{font-size:1.05em;line-height:1;flex:none}
 
 /* ---------- FOOTER ---------- */
 .site-footer{background:var(--espresso);color:#e8d9bf;padding:64px 0 34px}
