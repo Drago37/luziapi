@@ -121,14 +121,14 @@
             <div class="sec-head">
                 <span class="eyebrow gold">Contact</span>
                 <h2>Send a message</h2>
-                <p class="sub">I answer personally. The form below is in French — but feel free to write your message in English.</p>
+                <p class="sub">Write me a message and I'll reply personally. For an order, please mention the honey and quantity you'd like.</p>
             </div>
             {% if contact_form_shortcode %}
             <div class="form-wrap" style="max-width:640px;margin:0 auto;width:100%">
                 {{ function('do_shortcode', contact_form_shortcode)|raw }}
             </div>
             {% endif %}
-            <p style="text-align:center;margin-top:2rem"><a class="btn btn-outline-wood" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
+            <p style="text-align:center;margin-top:2rem"><a class="btn btn-ghost" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
         </div>
     </section>
 

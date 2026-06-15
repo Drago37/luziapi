@@ -24,8 +24,11 @@ if ($post && $post->post_name === 'mentions-legales') {
 // Gabarit dédié pour la page anglaise (présentation pour les touristes).
 if ($post && $post->post_name === 'en') {
     array_unshift($templates, 'page-en.twig');
-    $context['honeys_en']             = function_exists('luziapi_get_honeys_en') ? luziapi_get_honeys_en() : [];
-    $context['contact_form_shortcode'] = defined('LUZIAPI_CF7') ? LUZIAPI_CF7 : '';
+    $context['honeys_en'] = function_exists('luziapi_get_honeys_en') ? luziapi_get_honeys_en() : [];
+    $en_cf7 = (int) get_option('luziapi_cf7_en_id');
+    $context['contact_form_shortcode'] = $en_cf7
+        ? '[contact-form-7 id="' . $en_cf7 . '" title="Contact (English)"]'
+        : (defined('LUZIAPI_CF7') ? LUZIAPI_CF7 : '');
 }
 
 // Gabarit dédié pour la page « Actualités » : liste complète + tri + filtre par catégorie.
