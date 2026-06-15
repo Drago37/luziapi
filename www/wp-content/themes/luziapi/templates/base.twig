@@ -8,6 +8,12 @@
 <body class="{{ function('get_body_class')|join(' ') }}">
 {{ function('wp_body_open') }}
 
+{% if banner.enable and banner.text %}
+<div class="site-banner">
+    {% if banner.link %}<a href="{{ banner.link }}">{{ banner.text }}</a>{% else %}<span>{{ banner.text }}</span>{% endif %}
+</div>
+{% endif %}
+
 {% include 'partials/header.twig' %}
 
 <main id="content">

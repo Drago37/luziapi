@@ -46,7 +46,7 @@ add_action('wp_head', static function (): void {
     }
 
     $site  = get_bloginfo('name');
-    $image = LUZIAPI_URI . '/assets/img/hero.jpg';
+    $image = LUZIAPI_URI . '/assets/img/og-image.jpg';
     $type  = 'website';
     $url   = home_url('/');
 
@@ -83,6 +83,11 @@ add_action('wp_head', static function (): void {
     printf('<meta property="og:description" content="%s">' . "\n", esc_attr($desc));
     printf('<meta property="og:url" content="%s">' . "\n", esc_url($url));
     printf('<meta property="og:image" content="%s">' . "\n", esc_url($image));
+    if (strpos($image, 'og-image.jpg') !== false) {
+        echo '<meta property="og:image:width" content="1200">' . "\n";
+        echo '<meta property="og:image:height" content="630">' . "\n";
+    }
+    printf('<meta name="twitter:image" content="%s">' . "\n", esc_url($image));
     echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
 }, 5);
 

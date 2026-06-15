@@ -154,3 +154,42 @@ add_shortcode('sos_call', static function (): string {
 
     return '<a class="btn btn-sos" href="tel:+33632853493">' . $svg . ' Signaler un essaim — 06 32 85 34 93</a>';
 });
+
+/**
+ * Bandeau d'annonce (récolte du moment) — réglable dans Apparence → Personnaliser.
+ */
+add_action('customize_register', static function ($wp_customize): void {
+    $wp_customize->add_section('luziapi_banner', [
+        'title'    => 'Bandeau d\'annonce',
+        'priority' => 30,
+    ]);
+    $wp_customize->add_setting('luziapi_banner_enable', [
+        'default'           => false,
+        'sanitize_callback' => 'wp_validate_boolean',
+    ]);
+    $wp_customize->add_control('luziapi_banner_enable', [
+        'label'   => 'Afficher le bandeau',
+        'section' => 'luziapi_banner',
+        'type'    => 'checkbox',
+    ]);
+    $wp_customize->add_setting('luziapi_banner_text', [
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+    $wp_customize->add_control('luziapi_banner_text', [
+        'label'       => 'Texte du bandeau',
+        'description' => 'Ex. : 🍯 Le miel d\'acacia est arrivé !',
+        'section'     => 'luziapi_banner',
+        'type'        => 'text',
+    ]);
+    $wp_customize->add_setting('luziapi_banner_link', [
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ]);
+    $wp_customize->add_control('luziapi_banner_link', [
+        'label'       => 'Lien (optionnel)',
+        'description' => 'Ex. : page boutique. Laisser vide pour aucun lien.',
+        'section'     => 'luziapi_banner',
+        'type'        => 'url',
+    ]);
+});
