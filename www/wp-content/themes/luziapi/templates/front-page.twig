@@ -255,9 +255,6 @@
                 <span>✉️ <b><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></b></span>
                 <span class="soft">Prise de rendez-vous possible par téléphone ou e-mail.</span>
             </div>
-            <a class="btn btn-review" href="https://g.page/r/CaBl568csp6SECE/review" target="_blank" rel="noopener">
-                <span class="btn-stars" aria-hidden="true">★★★★★</span> Laissez-nous un avis sur Google
-            </a>
         </div>
         <div class="form-wrap">
             {% if contact_form_shortcode %}
@@ -279,5 +276,7 @@
         </div>
     </div>
 </section>
+
+{{ function('luziapi_reviews_section_html')|raw }}
 
 {% endblock %}

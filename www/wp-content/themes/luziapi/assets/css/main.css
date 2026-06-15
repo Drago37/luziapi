@@ -61,9 +61,12 @@ body.admin-bar .site-header{top:32px}
 .btn-sos:hover{background:#b02f24;border-color:#b02f24;color:#fff}
 .btn-fb{background:#0866ff;border-color:#0866ff;color:#fff;font-weight:800}
 .btn-fb:hover{background:#0653cc;border-color:#0653cc;color:#fff}
-.btn-review{background:#fff;color:#3a2917;border-color:#fff;font-weight:700;margin-top:1.4rem}
-.btn-review:hover{background:var(--gold-soft);border-color:var(--gold-soft);color:var(--bark)}
-.btn-review .btn-stars{color:#f5b400;letter-spacing:1px}
+/* Section Avis (Google) — accueil + boutique */
+.reviews{background:var(--cream);padding:64px 0}
+.home section.reviews{min-height:auto}
+.reviews .reviews-card{max-width:640px;margin:0 auto;text-align:center}
+.reviews h2{margin:.2em 0 .45em}
+.reviews .reviews-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:1.6rem}
 .fab{position:fixed;right:16px;bottom:18px;z-index:1100;display:flex;flex-direction:column;gap:10px}
 .fab a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:64px;padding:9px 4px;border-radius:16px;background:var(--espresso);color:var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);border:2px solid rgba(224,161,36,.45);transition:.25s;text-align:center}
 .fab a:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}

@@ -273,3 +273,39 @@ add_filter('woocommerce_structured_data_product', static function ($markup, $pro
 
     return $markup;
 }, 20, 2);
+
+/**
+ * Section « Avis » (Google) — réutilisée sur l'accueil et sous les produits de la boutique.
+ * Boutons : laisser un avis + voir les avis sur Google. L'affichage des avis (widget)
+ * pourra être branché ici plus tard.
+ */
+function luziapi_reviews_section_html(): string
+{
+    $review = 'https://g.page/r/CaBl568csp6SECE/review';
+    $page   = 'https://g.page/r/CaBl568csp6SECE';
+
+    ob_start();
+    ?>
+    <section class="reviews" id="avis">
+        <div class="wrap">
+            <div class="reviews-card">
+                <span class="eyebrow">Vos avis</span>
+                <h2>Ils ont goûté nos miels 🍯</h2>
+                <p>Votre avis compte&nbsp;! Partagez votre expérience sur Google — et découvrez celle des autres gourmands.</p>
+                <div class="reviews-cta">
+                    <a class="btn btn-gold" href="<?php echo esc_url($review); ?>" target="_blank" rel="noopener"><span class="rev-star" aria-hidden="true">★</span> Laisser un avis</a>
+                    <a class="btn btn-outline-wood" href="<?php echo esc_url($page); ?>" target="_blank" rel="noopener">Voir nos avis sur Google</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php
+    return (string) ob_get_clean();
+}
+
+// Affiche la section avis sous la grille de produits, sur la page Boutique.
+add_action('woocommerce_after_shop_loop', static function (): void {
+    if (function_exists('is_shop') && is_shop()) {
+        echo luziapi_reviews_section_html();
+    }
+}, 50);
