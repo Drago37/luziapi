@@ -540,6 +540,7 @@ article.page{padding:28px 0 56px}
 @media(max-width:900px){
   .menu{position:absolute;top:72px;left:0;right:0;flex-direction:column;gap:0;background:rgba(43,29,16,.98);padding:0;max-height:0;overflow:hidden;transition:max-height .3s}
   .menu.open{max-height:380px;padding:12px 0}
+  .site-header:has(.menu.open){z-index:1200}
   .menu a:not(.btn){padding:14px 26px;width:100%}
   .menu .btn{margin:10px 26px;width:calc(100% - 52px);justify-content:center}
   .burger{display:flex}
