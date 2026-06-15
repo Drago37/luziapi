@@ -90,6 +90,7 @@ add_action('wp_head', static function (): void {
     printf('<meta property="og:image:alt" content="%s">' . "\n", esc_attr('LuziApi — apiculture artisanale et miel récolté à Luzillé (Indre-et-Loire)'));
     printf('<meta name="twitter:image" content="%s">' . "\n", esc_url($image));
     echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta property="fb:app_id" content="1887284285302068">' . "\n";
 }, 5);
 
 /**
