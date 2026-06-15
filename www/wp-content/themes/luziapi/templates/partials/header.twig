@@ -30,7 +30,9 @@
                 <a href="{{ home }}#localisation">Nous trouver</a>
                 <a href="{{ home }}#contact">Contact</a>
                 <a class="btn btn-soft" href="{{ home }}#newsletter">S'abonner</a>
+                <a class="btn btn-sos" href="{{ home }}recuperation-essaims/">SOS&nbsp;Essaim</a>
                 <a class="btn btn-gold" href="{{ shop ?: (home ~ '#produits') }}">Boutique</a>
+                {% if contact.facebook %}<a class="btn btn-fb" href="{{ contact.facebook }}" target="_blank" rel="noopener">Facebook</a>{% endif %}
             </nav>
 
             <a class="call-btn" href="tel:{{ contact.tel_lien }}" aria-label="Appeler le {{ contact.tel }}">

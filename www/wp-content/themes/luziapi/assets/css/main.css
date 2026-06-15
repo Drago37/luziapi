@@ -42,7 +42,7 @@ body.admin-bar .site-header{top:32px}
 .brand .wm{white-space:nowrap}
 .brand .bee{width:34px;height:auto;flex:none}
 .brand b{color:var(--gold);font-weight:900}
-.menu{display:flex;gap:1.5rem;align-items:center}
+.menu{display:flex;gap:1.1rem;align-items:center}
 .menu a:not(.btn){color:#f3e6cf;font-weight:600;font-size:.92rem;opacity:.85;transition:.2s}
 .menu a:not(.btn):hover{opacity:1;color:var(--gold)}
 .menu .btn{padding:.55em 1.15em}
@@ -58,6 +58,8 @@ body.admin-bar .site-header{top:32px}
 .btn-gold:hover{background:var(--gold);border-color:var(--gold);color:var(--bark)}
 .btn-sos{background:#d33a2c;border-color:#d33a2c;color:#fff;font-weight:800;box-shadow:0 8px 20px -12px rgba(176,47,36,.85)}
 .btn-sos:hover{background:#b02f24;border-color:#b02f24;color:#fff}
+.btn-fb{background:#0866ff;border-color:#0866ff;color:#fff;font-weight:800}
+.btn-fb:hover{background:#0653cc;border-color:#0653cc;color:#fff}
 .fab{position:fixed;right:16px;bottom:18px;z-index:1100;display:flex;flex-direction:column;gap:10px}
 .fab a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:64px;padding:9px 4px;border-radius:16px;background:var(--espresso);color:var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);border:2px solid rgba(224,161,36,.45);transition:.25s;text-align:center}
 .fab a:hover{background:var(--honey);color:var(--espresso);transform:translateY(-2px)}
