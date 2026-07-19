@@ -132,6 +132,61 @@ function luziapi_nl_send_for_post(WP_Post $post) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Construction du message SMS : texte personnalisé (ou titre par défaut)
+ * + lien court, normalisé en alphabet GSM pour tenir en 1 segment.
+ * ------------------------------------------------------------------ */
+function luziapi_nl_sms_message(WP_Post $post) {
+    // Lien court (~24 car.) : redirige vers l'article.
+    $link = wp_get_shortlink($post->ID);
+    if (!$link) {
+        $link = get_permalink($post);
+    }
+
+    // Texte personnalisé (metabox) sinon repli sur le titre.
+    $custom = trim((string) get_post_meta($post->ID, '_luziapi_nl_sms_text', true));
+    if ($custom !== '') {
+        $text = luziapi_sms_normalize($custom);
+    } else {
+        $title = luziapi_sms_normalize(wp_strip_all_tags(get_the_title($post)));
+        if (function_exists('mb_strlen') && mb_strlen($title) > 70) {
+            $title = rtrim(mb_substr($title, 0, 67)) . '...';
+        }
+        $text = 'LuziApi : ' . $title;
+    }
+
+    return $text . ' ' . $link;
+}
+
+/**
+ * Remplace les caractères typographiques usuels par leurs équivalents ASCII
+ * (tirets longs, apostrophes/guillemets courbes, points de suspension, espaces
+ * insécables…) pour éviter le passage en Unicode qui divise par ~2 la capacité
+ * d'un SMS. Les lettres accentuées de l'alphabet GSM (é è à ù ç…) sont conservées.
+ */
+function luziapi_sms_normalize($s) {
+    $map = [
+        "\xE2\x80\x99" => "'",   // ’
+        "\xE2\x80\x98" => "'",   // ‘
+        "\xE2\x80\x9C" => '"',   // “
+        "\xE2\x80\x9D" => '"',   // ”
+        "\xE2\x80\x9E" => '"',   // „
+        "\xE2\x80\x93" => '-',   // – (en dash)
+        "\xE2\x80\x94" => '-',   // — (em dash)
+        "\xE2\x80\xA6" => '...', // …
+        "\xC2\xA0"     => ' ',   // espace insécable
+        "\xE2\x80\xAF" => ' ',   // espace fine insécable
+        "\xC2\xAB"     => '"',   // «
+        "\xC2\xBB"     => '"',   // »
+        "\xC5\x93"     => 'oe',  // œ
+        "\xC5\x92"     => 'OE',  // Œ
+        "\xC3\xA6"     => 'ae',  // æ
+        "\xC3\x86"     => 'AE',  // Æ
+        "\xC2\xB7"     => '-',   // ·
+    ];
+    return trim(strtr($s, $map));
+}
+
+/* ------------------------------------------------------------------ *
  * Envoi SMS de l'article (campagne SMS Brevo à la liste).
  * ------------------------------------------------------------------ */
 function luziapi_nl_send_sms_for_post(WP_Post $post) {
@@ -140,12 +195,9 @@ function luziapi_nl_send_sms_for_post(WP_Post $post) {
         luziapi_nl_log('Pas de clé API Brevo, SMS annulé pour #' . $post->ID);
         return;
     }
-    $listId = defined('LUZIAPI_BREVO_LIST_ID') ? (int) LUZIAPI_BREVO_LIST_ID : 2;
-    $title  = wp_strip_all_tags(get_the_title($post));
-    if (function_exists('mb_strlen') && mb_strlen($title) > 70) {
-        $title = mb_substr($title, 0, 67) . '…';
-    }
-    $content = 'LuziApi : ' . $title . ' ' . get_permalink($post);
+    $listId  = defined('LUZIAPI_BREVO_LIST_ID') ? (int) LUZIAPI_BREVO_LIST_ID : 2;
+    $title   = wp_strip_all_tags(get_the_title($post));
+    $content = luziapi_nl_sms_message($post);
 
     $create = wp_remote_post('https://api.brevo.com/v3/smsCampaigns', [
         'timeout' => 30,
@@ -202,7 +254,52 @@ function luziapi_nl_metabox(WP_Post $post) {
     echo '<p style="margin:0 0 .5em;color:#444;font-size:12px;">Envoyer cet article aux abonnés (~10 min après publication) :</p>';
     echo '<label style="display:block;margin-bottom:.4em;"><input type="checkbox" name="luziapi_nl_email" value="1" ' . checked($email, true, false) . ($sentE ? ' disabled' : '') . '> Par e-mail' . ($sentE ? ' <span style="color:#1f5e12;">✓ envoyé</span>' : '') . '</label>';
     echo '<label style="display:block;"><input type="checkbox" name="luziapi_nl_sms" value="1" ' . checked($sms, true, false) . ($sentS ? ' disabled' : '') . '> Par SMS' . ($sentS ? ' <span style="color:#1f5e12;">✓ envoyé</span>' : '') . '</label>';
+
+    // Champ texte du SMS + compteur (le lien court est ajouté automatiquement).
+    $shortlink = wp_get_shortlink($post->ID);
+    if (!$shortlink) {
+        $shortlink = get_permalink($post);
+    }
+    $reserved = strlen($shortlink) + 1; // lien + espace
+    $smsText  = get_post_meta($post->ID, '_luziapi_nl_sms_text', true);
+    $smsPh    = 'LuziApi : ' . wp_strip_all_tags(get_the_title($post));
+
+    echo '<div style="margin-top:.7em;">';
+    echo '<label for="luziapi_nl_sms_text" style="display:block;color:#444;font-size:12px;margin-bottom:.2em;">Texte du SMS (optionnel)</label>';
+    echo '<textarea id="luziapi_nl_sms_text" name="luziapi_nl_sms_text" rows="3" style="width:100%;box-sizing:border-box;"' . ($sentS ? ' disabled' : '') . ' placeholder="' . esc_attr($smsPh) . '">' . esc_textarea($smsText) . '</textarea>';
+    echo '<p id="luziapi_sms_count" style="margin:.3em 0 0;font-size:11px;"></p>';
+    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Un lien court vers l\'article (~' . (int) $reserved . ' car.) est ajouté automatiquement à la fin — inutile de l\'écrire. Vide = le titre est utilisé.</p>';
+    echo '</div>';
     echo '<p style="margin:.6em 0 0;color:#888;font-size:11px;">Pour un simple envoi e-mail, laisse seulement « Par e-mail » coché.</p>';
+
+    $js = <<<'JS'
+<script>
+(function(){
+  var ta=document.getElementById('luziapi_nl_sms_text');
+  var out=document.getElementById('luziapi_sms_count');
+  if(!ta||!out){return;}
+  var reserved=__RESERVED__;
+  function norm(s){
+    return s.replace(/[’‘]/g,"'").replace(/[“”„«»]/g,'"')
+            .replace(/[–—]/g,'-').replace(/…/g,'...')
+            .replace(/[  ]/g,' ').replace(/œ/g,'oe').replace(/Œ/g,'OE')
+            .replace(/æ/g,'ae').replace(/Æ/g,'AE').replace(/·/g,'-');
+  }
+  var NONGSM=/[^\x20-\x7E£¥§¿¡éèàùçìòñüöäÄÖÑÜÉ]/;
+  function upd(){
+    var t=norm((ta.value||ta.getAttribute('placeholder')||'').trim());
+    var total=t.length+reserved;
+    var uni=NONGSM.test(t);
+    var per=uni?70:160, perMulti=uni?67:153;
+    var seg=total<=per?1:Math.ceil(total/perMulti);
+    out.textContent='≈ '+total+' caracteres · '+(uni?'Unicode':'GSM')+' · '+seg+' SMS'+(seg>1?' / personne':'');
+    out.style.color=seg>1?'#a15c00':'#1f5e12';
+  }
+  ta.addEventListener('input',upd); upd();
+})();
+</script>
+JS;
+    echo str_replace('__RESERVED__', (int) $reserved, $js);
 }
 
 add_action('save_post_post', function ($post_id) {
@@ -218,6 +315,8 @@ add_action('save_post_post', function ($post_id) {
     update_post_meta($post_id, '_luziapi_nl_choice_set', '1');
     update_post_meta($post_id, '_luziapi_nl_email', !empty($_POST['luziapi_nl_email']) ? '1' : '0');
     update_post_meta($post_id, '_luziapi_nl_sms', !empty($_POST['luziapi_nl_sms']) ? '1' : '0');
+    $sms_text = isset($_POST['luziapi_nl_sms_text']) ? sanitize_textarea_field(wp_unslash($_POST['luziapi_nl_sms_text'])) : '';
+    update_post_meta($post_id, '_luziapi_nl_sms_text', $sms_text);
 });
 
 /* ------------------------------------------------------------------ *
