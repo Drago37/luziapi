@@ -76,6 +76,17 @@ function luziapi_nl_send_for_post_id($post_id) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Objet de l'e-mail : personnalisé (metabox) sinon défaut générique.
+ * ------------------------------------------------------------------ */
+function luziapi_nl_email_subject(WP_Post $post) {
+    $custom = trim((string) get_post_meta($post->ID, '_luziapi_nl_email_subject', true));
+    if ($custom !== '') {
+        return $custom;
+    }
+    return 'Du nouveau au rucher : ' . wp_strip_all_tags(get_the_title($post));
+}
+
+/* ------------------------------------------------------------------ *
  * Envoi de la campagne pour un article.
  * ------------------------------------------------------------------ */
 function luziapi_nl_send_for_post(WP_Post $post) {
@@ -86,7 +97,7 @@ function luziapi_nl_send_for_post(WP_Post $post) {
     }
 
     $listId  = defined('LUZIAPI_BREVO_LIST_ID') ? (int) LUZIAPI_BREVO_LIST_ID : 2;
-    $subject = 'Du nouveau au rucher : ' . wp_strip_all_tags(get_the_title($post));
+    $subject = luziapi_nl_email_subject($post);
     $html    = luziapi_nl_render_email($post);
 
     // 1) Créer la campagne.
@@ -255,6 +266,15 @@ function luziapi_nl_metabox(WP_Post $post) {
     echo '<label style="display:block;margin-bottom:.4em;"><input type="checkbox" name="luziapi_nl_email" value="1" ' . checked($email, true, false) . ($sentE ? ' disabled' : '') . '> Par e-mail' . ($sentE ? ' <span style="color:#1f5e12;">✓ envoyé</span>' : '') . '</label>';
     echo '<label style="display:block;"><input type="checkbox" name="luziapi_nl_sms" value="1" ' . checked($sms, true, false) . ($sentS ? ' disabled' : '') . '> Par SMS' . ($sentS ? ' <span style="color:#1f5e12;">✓ envoyé</span>' : '') . '</label>';
 
+    // Champ objet de l'e-mail (optionnel).
+    $emailSubject = get_post_meta($post->ID, '_luziapi_nl_email_subject', true);
+    $emailSubjPh  = 'Du nouveau au rucher : ' . wp_strip_all_tags(get_the_title($post));
+    echo '<div style="margin-top:.7em;">';
+    echo '<label for="luziapi_nl_email_subject" style="display:block;color:#444;font-size:12px;margin-bottom:.2em;">Objet de l\'e-mail (optionnel)</label>';
+    echo '<input type="text" id="luziapi_nl_email_subject" name="luziapi_nl_email_subject" style="width:100%;box-sizing:border-box;"' . ($sentE ? ' disabled' : '') . ' placeholder="' . esc_attr($emailSubjPh) . '" value="' . esc_attr($emailSubject) . '">';
+    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Vide = objet par défaut. Fais court (~50 car. avant coupure dans la boîte mail).</p>';
+    echo '</div>';
+
     // Champ texte du SMS + compteur (le lien court est ajouté automatiquement).
     $shortlink = wp_get_shortlink($post->ID);
     if (!$shortlink) {
@@ -317,6 +337,8 @@ add_action('save_post_post', function ($post_id) {
     update_post_meta($post_id, '_luziapi_nl_sms', !empty($_POST['luziapi_nl_sms']) ? '1' : '0');
     $sms_text = isset($_POST['luziapi_nl_sms_text']) ? sanitize_textarea_field(wp_unslash($_POST['luziapi_nl_sms_text'])) : '';
     update_post_meta($post_id, '_luziapi_nl_sms_text', $sms_text);
+    $email_subject = isset($_POST['luziapi_nl_email_subject']) ? sanitize_text_field(wp_unslash($_POST['luziapi_nl_email_subject'])) : '';
+    update_post_meta($post_id, '_luziapi_nl_email_subject', $email_subject);
 });
 
 /* ------------------------------------------------------------------ *
