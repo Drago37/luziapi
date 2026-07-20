@@ -10,6 +10,11 @@ if (!defined('LUZIAPI_BREVO_LIST_ID')) {
 if (!defined('LUZIAPI_NL_DELAY')) {
     define('LUZIAPI_NL_DELAY', 600); // délai avant envoi (10 min) : marge de sécurité + lecture fiable de la case
 }
+if (!defined('LUZIAPI_SMS_STOP')) {
+    // Mention de désinscription obligatoire (France). Brevo remplace [STOP_CODE]
+    // par le numéro court réel à l'envoi. Ajoutée automatiquement à chaque SMS.
+    define('LUZIAPI_SMS_STOP', ' STOP au [STOP_CODE]');
+}
 
 /* ------------------------------------------------------------------ *
  * Planification à la 1re mise en ligne d'un article (jamais sur update).
@@ -165,7 +170,7 @@ function luziapi_nl_sms_message(WP_Post $post) {
         $text = 'LuziApi : ' . $title;
     }
 
-    return $text . ' ' . $link;
+    return $text . ' ' . $link . LUZIAPI_SMS_STOP;
 }
 
 /**
@@ -280,7 +285,7 @@ function luziapi_nl_metabox(WP_Post $post) {
     if (!$shortlink) {
         $shortlink = get_permalink($post);
     }
-    $reserved = strlen($shortlink) + 1; // lien + espace
+    $reserved = strlen($shortlink) + 1 + 14; // lien + espace + mention « STOP au XXXXX » (≈14)
     $smsText  = get_post_meta($post->ID, '_luziapi_nl_sms_text', true);
     $smsPh    = 'LuziApi : ' . wp_strip_all_tags(get_the_title($post));
 
@@ -288,7 +293,7 @@ function luziapi_nl_metabox(WP_Post $post) {
     echo '<label for="luziapi_nl_sms_text" style="display:block;color:#444;font-size:12px;margin-bottom:.2em;">Texte du SMS (optionnel)</label>';
     echo '<textarea id="luziapi_nl_sms_text" name="luziapi_nl_sms_text" rows="3" style="width:100%;box-sizing:border-box;"' . ($sentS ? ' disabled' : '') . ' placeholder="' . esc_attr($smsPh) . '">' . esc_textarea($smsText) . '</textarea>';
     echo '<p id="luziapi_sms_count" style="margin:.3em 0 0;font-size:11px;"></p>';
-    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Un lien court vers l\'article (~' . (int) $reserved . ' car.) est ajouté automatiquement à la fin — inutile de l\'écrire. Vide = le titre est utilisé.</p>';
+    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Le lien court (~' . strlen($shortlink) . ' car.) et la mention légale « STOP au … » sont ajoutés automatiquement à la fin — inutile de les écrire. Vide = le titre est utilisé.</p>';
     echo '</div>';
     echo '<p style="margin:.6em 0 0;color:#888;font-size:11px;">Pour un simple envoi e-mail, laisse seulement « Par e-mail » coché.</p>';
 
