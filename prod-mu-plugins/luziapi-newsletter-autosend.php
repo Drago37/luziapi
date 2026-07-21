@@ -15,6 +15,12 @@ if (!defined('LUZIAPI_SMS_STOP')) {
     // par le numéro court réel à l'envoi. Ajoutée automatiquement à chaque SMS.
     define('LUZIAPI_SMS_STOP', ' STOP au [STOP_CODE]');
 }
+if (!defined('LUZIAPI_SMS_STOP_CODE')) {
+    // Exemple de code court réel (5 car.), utilisé UNIQUEMENT pour estimer la
+    // longueur du SMS *livré* dans le compteur de la metabox. Brevo injecte son
+    // propre numéro à la place de [STOP_CODE] ; seule sa longueur compte ici.
+    define('LUZIAPI_SMS_STOP_CODE', '36180');
+}
 
 /* ------------------------------------------------------------------ *
  * Planification à la 1re mise en ligne d'un article (jamais sur update).
@@ -177,7 +183,10 @@ function luziapi_nl_sms_message(WP_Post $post) {
  * Remplace les caractères typographiques usuels par leurs équivalents ASCII
  * (tirets longs, apostrophes/guillemets courbes, points de suspension, espaces
  * insécables…) pour éviter le passage en Unicode qui divise par ~2 la capacité
- * d'un SMS. Les lettres accentuées de l'alphabet GSM (é è à ù ç…) sont conservées.
+ * d'un SMS. Les lettres accentuées de l'alphabet GSM (é è à ù ç ü ö ä ñ…) sont
+ * conservées ; celles qui n'y figurent pas (â ê î ô û ë ï) sont translittérées
+ * vers leur lettre de base pour rester en 1 SMS GSM (l'accent est perdu dans le
+ * SMS uniquement, pas dans l'article).
  */
 function luziapi_sms_normalize($s) {
     $map = [
@@ -198,8 +207,89 @@ function luziapi_sms_normalize($s) {
         "\xC3\xA6"     => 'ae',  // æ
         "\xC3\x86"     => 'AE',  // Æ
         "\xC2\xB7"     => '-',   // ·
+        // Lettres hors alphabet GSM : translittérées vers la lettre de base.
+        "\xC3\xA2"     => 'a',   // â
+        "\xC3\x82"     => 'A',   // Â
+        "\xC3\xAA"     => 'e',   // ê
+        "\xC3\x8A"     => 'E',   // Ê
+        "\xC3\xAE"     => 'i',   // î
+        "\xC3\x8E"     => 'I',   // Î
+        "\xC3\xB4"     => 'o',   // ô
+        "\xC3\x94"     => 'O',   // Ô
+        "\xC3\xBB"     => 'u',   // û
+        "\xC3\x9B"     => 'U',   // Û
+        "\xC3\xAB"     => 'e',   // ë
+        "\xC3\x8B"     => 'E',   // Ë
+        "\xC3\xAF"     => 'i',   // ï
+        "\xC3\x8F"     => 'I',   // Ï
     ];
     return trim(strtr($s, $map));
+}
+
+/**
+ * Longueur de la mention de désinscription telle qu'elle sera *livrée* : Brevo
+ * remplace [STOP_CODE] par un code court réel (~5 car.). Sert à réserver la place
+ * dans le compteur de la metabox pour que le texte saisi tienne compte du suffixe
+ * ajouté automatiquement — pas de nombre en dur à maintenir.
+ */
+function luziapi_sms_stop_len() {
+    return strlen(str_replace('[STOP_CODE]', LUZIAPI_SMS_STOP_CODE, LUZIAPI_SMS_STOP));
+}
+
+/**
+ * Vrai si le texte contient au moins un caractère hors du sous-ensemble GSM
+ * autorisé (ce qui force l'encodage Unicode et réduit ~ de moitié la capacité
+ * d'un SMS). Le sous-ensemble couvre les lettres françaises usuelles ; il est
+ * volontairement identique à la regex du compteur JS de la metabox, pour que le
+ * comptage à l'écran et le comptage serveur coïncident.
+ */
+function luziapi_sms_is_unicode($s) {
+    return (bool) preg_match('/[^\x{20}-\x{7E}£¥§¿¡éèàùçìòñüöäÄÖÑÜÉ]/u', (string) $s);
+}
+
+/**
+ * Nombre de segments SMS d'un message *déjà normalisé et livré* (code STOP réel).
+ * GSM : 160 car. sur 1 segment, puis 153 par segment ; Unicode : 70 puis 67.
+ * Comptage par caractère (comme le compteur JS) — suffisant ici, le lien et la
+ * mention STOP étant en ASCII.
+ */
+function luziapi_sms_segments($s) {
+    $s   = (string) $s;
+    $len = function_exists('mb_strlen') ? mb_strlen($s) : strlen($s);
+    $uni = luziapi_sms_is_unicode($s);
+    $single = $uni ? 70 : 160;
+    $multi  = $uni ? 67 : 153;
+    return $len <= $single ? 1 : (int) ceil($len / $multi);
+}
+
+/**
+ * Message SMS *livré* (code STOP réel substitué à [STOP_CODE]) assemblé à partir
+ * du texte de base et du lien. Fonction pure (aucun appel WordPress) : c'est elle
+ * qui sert de référence au comptage des segments côté serveur et aux tests.
+ */
+function luziapi_sms_compose_delivered($text, $link) {
+    $text = luziapi_sms_normalize((string) $text);
+    $stop = str_replace('[STOP_CODE]', LUZIAPI_SMS_STOP_CODE, LUZIAPI_SMS_STOP);
+    return $text . ' ' . (string) $link . $stop;
+}
+
+/**
+ * Critère de blocage : vrai si le SMS complet (texte + lien + mention STOP
+ * livrée) tient en 1 seul segment. Au-delà, l'envoi SMS est refusé (surcoût et
+ * risque de troncature).
+ */
+function luziapi_sms_fits_one_segment($text, $link) {
+    return luziapi_sms_segments(luziapi_sms_compose_delivered($text, $link)) <= 1;
+}
+
+/**
+ * Nombre de segments du SMS tel qu'il sera livré pour un article donné
+ * (dépend de WordPress : lien court + texte/titre). S'appuie sur le message
+ * d'envoi en y substituant le code STOP réel pour refléter la longueur livrée.
+ */
+function luziapi_nl_sms_segments_for_post(WP_Post $post) {
+    $delivered = str_replace('[STOP_CODE]', LUZIAPI_SMS_STOP_CODE, luziapi_nl_sms_message($post));
+    return luziapi_sms_segments($delivered);
 }
 
 /* ------------------------------------------------------------------ *
@@ -214,6 +304,15 @@ function luziapi_nl_send_sms_for_post(WP_Post $post) {
     $listId  = defined('LUZIAPI_BREVO_LIST_ID') ? (int) LUZIAPI_BREVO_LIST_ID : 2;
     $title   = wp_strip_all_tags(get_the_title($post));
     $content = luziapi_nl_sms_message($post);
+
+    // Garde-fou : ne jamais envoyer un SMS multi-segments (surcoût + troncature
+    // possible). La saisie est déjà bloquée en amont (metabox + save_post) ;
+    // c'est ici la dernière barrière avant l'appel à Brevo.
+    $segments = luziapi_nl_sms_segments_for_post($post);
+    if ($segments > 1) {
+        luziapi_nl_log('SMS annulé (#' . $post->ID . ') : ' . $segments . ' segments (> 1), texte trop long.');
+        return;
+    }
 
     $create = wp_remote_post('https://api.brevo.com/v3/smsCampaigns', [
         'timeout' => 30,
@@ -285,7 +384,7 @@ function luziapi_nl_metabox(WP_Post $post) {
     if (!$shortlink) {
         $shortlink = get_permalink($post);
     }
-    $reserved = strlen($shortlink) + 1 + 14; // lien + espace + mention « STOP au XXXXX » (≈14)
+    $reserved = strlen($shortlink) + 1 + luziapi_sms_stop_len(); // lien + espace + mention « STOP au XXXXX »
     $smsText  = get_post_meta($post->ID, '_luziapi_nl_sms_text', true);
     $smsPh    = 'LuziApi : ' . wp_strip_all_tags(get_the_title($post));
 
@@ -293,7 +392,7 @@ function luziapi_nl_metabox(WP_Post $post) {
     echo '<label for="luziapi_nl_sms_text" style="display:block;color:#444;font-size:12px;margin-bottom:.2em;">Texte du SMS (optionnel)</label>';
     echo '<textarea id="luziapi_nl_sms_text" name="luziapi_nl_sms_text" rows="3" style="width:100%;box-sizing:border-box;"' . ($sentS ? ' disabled' : '') . ' placeholder="' . esc_attr($smsPh) . '">' . esc_textarea($smsText) . '</textarea>';
     echo '<p id="luziapi_sms_count" style="margin:.3em 0 0;font-size:11px;"></p>';
-    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Le lien court (~' . strlen($shortlink) . ' car.) et la mention légale « STOP au … » sont ajoutés automatiquement à la fin — inutile de les écrire. Vide = le titre est utilisé.</p>';
+    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Le lien court (~' . strlen($shortlink) . ' car.) et la mention légale « STOP au … » sont ajoutés automatiquement à la fin — inutile de les écrire. Vide = le titre est utilisé. Le tout doit tenir en <strong>1 seul SMS</strong>, sinon l\'envoi par SMS est bloqué.</p>';
     echo '</div>';
     echo '<p style="margin:.6em 0 0;color:#888;font-size:11px;">Pour un simple envoi e-mail, laisse seulement « Par e-mail » coché.</p>';
 
@@ -304,23 +403,49 @@ function luziapi_nl_metabox(WP_Post $post) {
   var out=document.getElementById('luziapi_sms_count');
   if(!ta||!out){return;}
   var reserved=__RESERVED__;
+  var smsBox=document.querySelector('input[name="luziapi_nl_sms"]');
   function norm(s){
     return s.replace(/[’‘]/g,"'").replace(/[“”„«»]/g,'"')
             .replace(/[–—]/g,'-').replace(/…/g,'...')
             .replace(/[  ]/g,' ').replace(/œ/g,'oe').replace(/Œ/g,'OE')
-            .replace(/æ/g,'ae').replace(/Æ/g,'AE').replace(/·/g,'-');
+            .replace(/æ/g,'ae').replace(/Æ/g,'AE').replace(/·/g,'-')
+            .replace(/â/g,'a').replace(/Â/g,'A').replace(/ê/g,'e').replace(/Ê/g,'E')
+            .replace(/î/g,'i').replace(/Î/g,'I').replace(/ô/g,'o').replace(/Ô/g,'O')
+            .replace(/û/g,'u').replace(/Û/g,'U').replace(/ë/g,'e').replace(/Ë/g,'E')
+            .replace(/ï/g,'i').replace(/Ï/g,'I');
   }
   var NONGSM=/[^\x20-\x7E£¥§¿¡éèàùçìòñüöäÄÖÑÜÉ]/;
+  // Éditeur classique : boutons Publier / Enregistrer (à (dé)bloquer). En
+  // Gutenberg ils n'existent pas — le filet reste le blocage serveur au save.
+  function pubBtns(){
+    return [document.getElementById('publish'),document.getElementById('save-post')].filter(Boolean);
+  }
+  function setBlocked(b){
+    pubBtns().forEach(function(el){el.disabled=b;el.classList.toggle('disabled',b);});
+  }
   function upd(){
     var t=norm((ta.value||ta.getAttribute('placeholder')||'').trim());
     var total=t.length+reserved;
     var uni=NONGSM.test(t);
     var per=uni?70:160, perMulti=uni?67:153;
     var seg=total<=per?1:Math.ceil(total/perMulti);
-    out.textContent='≈ '+total+' caracteres · '+(uni?'Unicode':'GSM')+' · '+seg+' SMS'+(seg>1?' / personne':'');
-    out.style.color=seg>1?'#a15c00':'#1f5e12';
+    var over=seg>1;
+    var smsOn=smsBox?smsBox.checked:false;
+    var label='≈ '+total+' caracteres · '+(uni?'Unicode':'GSM')+' · '+seg+' SMS'+(over?' / personne':'');
+    // On ne bloque que si « Par SMS » est coché (sinon aucun SMS ne partira).
+    if(over&&smsOn){
+      out.textContent='⛔ '+label+' — trop long pour 1 SMS, raccourcis le texte';
+      out.style.color='#a00';
+      setBlocked(true);
+    }else{
+      out.textContent=label;
+      out.style.color=over?'#a15c00':'#1f5e12';
+      setBlocked(false);
+    }
   }
-  ta.addEventListener('input',upd); upd();
+  ta.addEventListener('input',upd);
+  if(smsBox){smsBox.addEventListener('change',upd);}
+  upd();
 })();
 </script>
 JS;
@@ -339,11 +464,45 @@ add_action('save_post_post', function ($post_id) {
     }
     update_post_meta($post_id, '_luziapi_nl_choice_set', '1');
     update_post_meta($post_id, '_luziapi_nl_email', !empty($_POST['luziapi_nl_email']) ? '1' : '0');
-    update_post_meta($post_id, '_luziapi_nl_sms', !empty($_POST['luziapi_nl_sms']) ? '1' : '0');
+
+    // Texte du SMS d'abord : luziapi_nl_sms_message() (ci-dessous) le relit.
     $sms_text = isset($_POST['luziapi_nl_sms_text']) ? sanitize_textarea_field(wp_unslash($_POST['luziapi_nl_sms_text'])) : '';
     update_post_meta($post_id, '_luziapi_nl_sms_text', $sms_text);
+
+    // Blocage : on n'active « Par SMS » que si le message tient en 1 segment.
+    $sms = !empty($_POST['luziapi_nl_sms']);
+    if ($sms) {
+        $segments = luziapi_nl_sms_segments_for_post(get_post($post_id));
+        if ($segments > 1) {
+            $sms = false; // trop long : envoi SMS refusé
+            set_transient('luziapi_nl_sms_blocked_' . $post_id, $segments, 60);
+        }
+    }
+    update_post_meta($post_id, '_luziapi_nl_sms', $sms ? '1' : '0');
+
     $email_subject = isset($_POST['luziapi_nl_email_subject']) ? sanitize_text_field(wp_unslash($_POST['luziapi_nl_email_subject'])) : '';
     update_post_meta($post_id, '_luziapi_nl_email_subject', $email_subject);
+});
+
+/* ------------------------------------------------------------------ *
+ * Avertissement dans l'éditeur quand l'envoi SMS a été bloqué (texte trop
+ * long). Complète le retour en direct du compteur JS de la metabox.
+ * ------------------------------------------------------------------ */
+add_action('admin_notices', function () {
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (!$screen || $screen->base !== 'post' || $screen->post_type !== 'post') {
+        return;
+    }
+    $post = get_post();
+    if (!$post) {
+        return;
+    }
+    $segments = get_transient('luziapi_nl_sms_blocked_' . $post->ID);
+    if ($segments) {
+        delete_transient('luziapi_nl_sms_blocked_' . $post->ID);
+        echo '<div class="notice notice-warning is-dismissible"><p><strong>Newsletter LuziApi :</strong> le SMS dépassait 1 segment ('
+            . (int) $segments . ' segments avec le lien et la mention « STOP au … ») — l\'envoi <em>par SMS</em> a été désactivé pour éviter un surcoût. Raccourcis le texte, puis recoche « Par SMS ».</p></div>';
+    }
 });
 
 /* ------------------------------------------------------------------ *

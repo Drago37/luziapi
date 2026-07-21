@@ -14,7 +14,11 @@ tmp/
 
 # --- Dépendances ---
 /www/wp-content/themes/luziapi/vendor/
+/vendor/
 node_modules/
+
+# --- Tests ---
+/.phpunit.cache/
 
 # --- WordPress core (fourni par Docker / l'hébergeur, non versionné) ---
 /www/wp-admin/

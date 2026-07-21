@@ -1,0 +1,15 @@
+{
+    "name": "luziapi/site",
+    "description": "Tests unitaires des mu-plugins LuziApi (logique SMS de la newsletter).",
+    "type": "project",
+    "license": "proprietary",
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
