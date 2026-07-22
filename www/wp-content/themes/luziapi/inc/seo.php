@@ -149,7 +149,7 @@ add_action('wp_head', static function (): void {
                     'areaServed' => 'Luzillé et 15 km alentour (Indre-et-Loire)',
                 ],
             ],
-            'sameAs'     => ['https://www.facebook.com/luziapi'],
+            'sameAs'     => ['https://www.facebook.com/luziapi', 'https://www.instagram.com/antho.luziapi/'],
         ];
     }
 

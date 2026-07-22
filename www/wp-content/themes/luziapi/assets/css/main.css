@@ -61,6 +61,8 @@ body.admin-bar .site-header{top:32px}
 .btn-sos:hover{background:#b02f24;border-color:#b02f24;color:#fff}
 .btn-fb{background:#0866ff;border-color:#0866ff;color:#fff;font-weight:800}
 .btn-fb:hover{background:#0653cc;border-color:#0653cc;color:#fff}
+.btn-ig{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);border-color:transparent;color:#fff;font-weight:800}
+.btn-ig:hover{filter:brightness(.93);color:#fff}
 /* Section Avis (Google) — accueil + boutique */
 .reviews{background:var(--cream);padding:64px 0}
 .home section.reviews{min-height:auto}
@@ -75,6 +77,8 @@ body.admin-bar .site-header{top:32px}
 .fab a.is-shop:hover{background:var(--gold);border-color:var(--gold)}
 .fab a.fab-fb{background:#0866ff;color:#fff;border-color:#0866ff}
 .fab a.fab-fb:hover{background:#0653cc;color:#fff;border-color:#0653cc}
+.fab a.fab-ig{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);color:#fff;border-color:transparent}
+.fab a.fab-ig:hover{filter:brightness(.93);color:#fff}
 .fab a svg{width:22px;height:22px}
 .fab .label{font-size:.6rem;font-weight:800;letter-spacing:.02em;line-height:1;text-transform:uppercase}
 /* Panier dans les boutons flottants (couleur distincte, en tête) */
@@ -384,6 +388,10 @@ article.page{padding:28px 0 56px}
 .foot-social .social-ic{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0866ff;color:#fff;transition:background .2s,color .2s,transform .2s}
 .foot-social .social-ic:hover{background:#0653cc;color:#fff;transform:translateY(-2px)}
 .foot-social .social-ic svg{width:20px;height:20px}
+.foot-social{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.foot-social h3{width:100%;margin-bottom:0}
+.foot-social .social-ic--ig{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888)}
+.foot-social .social-ic--ig:hover{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);filter:brightness(.93);color:#fff}
 .foot-bottom{border-top:1px solid rgba(224,161,36,.18);margin-top:46px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.8rem;color:#a8946f}
 .credit{color:var(--gold)}
 .credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
