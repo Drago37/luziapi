@@ -30,13 +30,23 @@ add_action('woocommerce_after_main_content', static function (): void {
 // Nombre de produits par ligne dans la boutique.
 add_filter('loop_shop_columns', static fn (): int => 4);
 
-// Badge « À venir » sur la vignette produit dans la boutique.
+// Ruban d'indisponibilité sur la vignette produit dans la boutique.
 add_action('woocommerce_before_shop_loop_item_title', static function (): void {
     global $product;
-    if ($product instanceof \WC_Product && luziapi_is_coming_soon($product)) {
+    if (! $product instanceof \WC_Product) {
+        return;
+    }
+    if (luziapi_is_no_harvest($product)) {
+        echo '<span class="wc-ribbon wc-ribbon--off">' . esc_html(luziapi_no_harvest_label_short($product)) . '</span>';
+    } elseif (luziapi_is_coming_soon($product)) {
         echo '<span class="wc-ribbon">' . esc_html__('À venir', 'luziapi') . '</span>';
     }
 }, 5);
+
+// Récolte annulée : produit non achetable même s'il reste du stock déclaré.
+add_filter('woocommerce_is_purchasable', static function (bool $purchasable, \WC_Product $product): bool {
+    return luziapi_is_no_harvest($product) ? false : $purchasable;
+}, 10, 2);
 
 /**
  * Pot de miel dessiné (SVG) — affiché quand le produit n'a pas de photo,
@@ -204,7 +214,10 @@ function luziapi_product_badges_html(\WC_Product $product, bool $compact = false
         $gout = trim((string) preg_replace('/\s*\(.*$/u', '', $gout)); // raccourci pour les vignettes
     }
 
-    if (luziapi_is_coming_soon($product)) {
+    $noHarvest = luziapi_is_no_harvest($product);
+    if ($noHarvest) {
+        $stock = ['off', luziapi_no_harvest_label($product)];
+    } elseif (luziapi_is_coming_soon($product)) {
         $recolte = luziapi_product_attr($product, 'Récolte');
         $stock   = ['soon', '' !== $recolte ? 'À venir · récolte ' . $recolte : 'À venir'];
     } elseif ($product->is_in_stock()) {
@@ -215,6 +228,13 @@ function luziapi_product_badges_html(\WC_Product $product, bool $compact = false
 
     $html  = '<div class="product-badges">';
     $html .= '<span class="product-badge product-badge--' . $stock[0] . '"><span class="dot"></span>' . esc_html($stock[1]) . '</span>';
+    // Lien explicatif « Pourquoi ? » (fiche produit uniquement) vers l'article dédié.
+    if ($noHarvest && ! $compact) {
+        $why = luziapi_no_harvest_url($product);
+        if ('' !== $why) {
+            $html .= '<a class="badge-why" href="' . esc_url($why) . '">' . esc_html__('Pourquoi ?', 'luziapi') . '</a>';
+        }
+    }
     if ('' !== $gout) {
         $html .= '<span class="product-badge"><b>Goût</b> ' . esc_html($gout) . '</span>';
     }
@@ -259,16 +279,22 @@ add_action('woocommerce_after_shop_loop_item_title', static function (): void {
  * plutôt que InStock/OutOfStock — c'est plus juste pour Google (le produit revient).
  */
 add_filter('woocommerce_structured_data_product', static function ($markup, $product) {
-    if (
-        is_array($markup)
-        && ! empty($markup['offers'])
-        && $product instanceof \WC_Product
-        && function_exists('luziapi_is_coming_soon')
-        && luziapi_is_coming_soon($product)
-    ) {
-        foreach ($markup['offers'] as $i => $offer) {
-            $markup['offers'][$i]['availability'] = 'https://schema.org/PreOrder';
-        }
+    if (! is_array($markup) || empty($markup['offers']) || ! $product instanceof \WC_Product) {
+        return $markup;
+    }
+
+    // Récolte annulée (saison sautée) : OutOfStock, plus honnête que PreOrder.
+    // « À venir » (récolte prochaine) : PreOrder, le produit revient bientôt.
+    if (function_exists('luziapi_is_no_harvest') && luziapi_is_no_harvest($product)) {
+        $availability = 'https://schema.org/OutOfStock';
+    } elseif (function_exists('luziapi_is_coming_soon') && luziapi_is_coming_soon($product)) {
+        $availability = 'https://schema.org/PreOrder';
+    } else {
+        return $markup;
+    }
+
+    foreach ($markup['offers'] as $i => $offer) {
+        $markup['offers'][$i]['availability'] = $availability;
     }
 
     return $markup;

@@ -83,7 +83,7 @@
                         {% if h.desc %}<p class="desc">{{ h.desc }}</p>{% endif %}
                         <div class="row">
                             <span class="price">{{ h.price }} <small>/ 1&nbsp;kg jar</small></span>
-                            <span class="en-avail {{ h.coming ? 'en-avail--soon' : 'en-avail--now' }}">{{ h.availability }}</span>
+                            <span class="en-avail {{ h.no_harvest ? 'en-avail--off' : (h.coming ? 'en-avail--soon' : 'en-avail--now') }}">{{ h.availability }}</span>
                         </div>
                     </div>
                 </article>

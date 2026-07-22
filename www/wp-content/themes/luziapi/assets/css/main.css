@@ -224,6 +224,7 @@ body.admin-bar .site-header{top:32px}
 .card .add:hover{background:var(--bark);color:var(--cream)}
 .card .add.disabled{border-color:var(--line);color:var(--muted);background:transparent;cursor:default;pointer-events:none}
 .card .ribbon{position:absolute;top:14px;left:14px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800;padding:.45em .8em;border-radius:999px;box-shadow:0 6px 14px -6px rgba(0,0,0,.45)}
+.card .ribbon--off{background:#6b5636;color:#f3e9d6}
 .card.coming .pic .jar{filter:grayscale(.6) opacity(.72)}
 .card.coming:hover .pic .jar{transform:none}
 .keep{display:flex;align-items:center;justify-content:center;gap:.6em;text-align:center;color:var(--muted);font-size:.92rem;margin-top:30px}
@@ -356,6 +357,7 @@ article.page{padding:28px 0 56px}
 .en-avail{font-size:.76rem;font-weight:700;white-space:nowrap}
 .en-avail--now{color:#2f7d32}
 .en-avail--soon{color:#9a5a10}
+.en-avail--off{color:#6b5636}
 .en-shop-note{text-align:center;color:var(--muted);font-size:.92rem;margin-top:1rem}
 .en-shop-note a{color:var(--honey-deep)}
 /* Bouton de langue : rond, flottant en haut à gauche (sous l'en-tête) */
@@ -441,6 +443,7 @@ article.page{padding:28px 0 56px}
 .woocommerce span.price,.woocommerce div.product p.price{color:var(--bark);font-family:var(--serif);font-weight:700}
 .woocommerce span.price del{color:var(--muted);font-weight:400}
 .woocommerce .wc-ribbon{position:absolute;top:10px;left:10px;z-index:2;background:var(--espresso);color:var(--gold);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:.4em .7em;border-radius:999px}
+.woocommerce .wc-ribbon--off{background:#6b5636;color:#f3e9d6}
 
 /* Fiche produit */
 .single-product div.product{display:grid;grid-template-columns:300px minmax(0,1fr) 260px;grid-template-areas:"gallery summary related" "tabs tabs related";gap:24px 28px;align-items:start}
@@ -466,6 +469,10 @@ article.page{padding:28px 0 56px}
 .product-badge--in{background:#eaf7e6;border-color:#bfe3b3;color:#1f5e12;font-weight:700}
 .product-badge--out{background:#fdecea;border-color:#f3c0ba;color:#7a1c12;font-weight:700}
 .product-badge--soon{background:#fce4c4;border-color:#e8a33d;color:#8a4e06;font-weight:700}
+/* Récolte annulée (saison sautée) : ton sobre, distinct du « À venir » orange */
+.product-badge--off{background:#efe7db;border-color:#d9c9ad;color:#6b5636;font-weight:700}
+.badge-why{align-self:center;font-size:.82rem;color:var(--honey-deep);text-decoration:underline;text-underline-offset:2px}
+.badge-why:hover{text-decoration:none}
 /* Version compacte sur les cartes (accueil + boutique) */
 .card .product-badges{gap:6px;margin:.45em 0 .1em}
 .woocommerce ul.products li.product .product-badges{gap:6px;margin:.2em 0 .6em;justify-content:center}

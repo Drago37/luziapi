@@ -120,7 +120,7 @@
         <div class="grid-honeys">
             {% for h in honeys %}
             <article class="card {{ h.coming ? 'coming' : '' }}">
-                {% if h.coming %}<span class="ribbon">À venir</span>{% endif %}
+                {% if h.coming %}<span class="ribbon {{ h.no_harvest ? 'ribbon--off' : '' }}">{{ h.avail_label }}</span>{% endif %}
                 <a class="pic" href="{{ h.permalink }}" aria-label="{{ h.name }}">
                     {% if h.image %}
                         <img src="{{ h.image }}" alt="{{ h.name }}" loading="lazy" decoding="async">
@@ -136,7 +136,7 @@
                     <div class="row">
                         <span class="price {{ h.coming ? 'soon' : '' }}">{{ h.price_html|raw }}</span>
                         {% if h.coming %}
-                            <span class="add disabled">À venir</span>
+                            <span class="add disabled">{{ h.avail_label }}</span>
                         {% else %}
                             <a class="add" href="{{ h.permalink }}">Commander</a>
                         {% endif %}
