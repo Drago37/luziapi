@@ -173,7 +173,7 @@
                         {{ function('luziapi_post_category_badge', p.id)|raw }}
                         <span class="pc-date">{{ p.date('j F Y') }}</span>
                         <h3>{{ p.title }}</h3>
-                        <p>{{ p.excerpt.length(26) }}</p>
+                        <p>{{ p.excerpt.length(26).read_more(false) }}</p>
                         <span class="pc-more">Lire la suite →</span>
                     </div>
                 </a>
