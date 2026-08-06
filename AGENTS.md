@@ -19,7 +19,7 @@ contenu **avec** l'utilisateur, montrer le rendu ou le résultat final, puis **a
 confirmation explicite** avant d'exécuter. Ne jamais mettre en ligne ni déclencher un envoi de
 sa propre initiative.
 
-*Pourquoi :* l'utilisateur veut garder la main et relire avant. Formulé explicitement :
+_Pourquoi :_ l'utilisateur veut garder la main et relire avant. Formulé explicitement :
 « je veux le travailler avec toi avant, comme tout le temps… tu dois avoir ma confirmation pour
 publier ensuite ».
 
@@ -34,7 +34,7 @@ confirmation au préalable — **même comme simple effet de bord** d'une autre 
 Par défaut, préserver l'existant : reporter / réimplémenter la fonctionnalité dans le nouveau
 contexte plutôt que l'abandonner.
 
-*Pourquoi :* en déplaçant le bouton panier du header vers les boutons flottants, le mini-panier
+_Pourquoi :_ en déplaçant le bouton panier du header vers les boutons flottants, le mini-panier
 déroulant (jugé pratique) a été retiré au passage sans prévenir. Mal pris.
 
 ### Git : commit direct sur `main`
@@ -50,6 +50,19 @@ Le flux « branche dédiée + PR » des règles globales vise les repos pro et n
 ### Déployer = feu vert explicite
 
 « Déploie » est une action de publication : elle demande un accord clair, comme le reste.
+
+### Tenir cette documentation à jour
+
+Ces fichiers **sont** la mémoire du projet : c'est la seule qui soit partagée entre les postes et
+entre les assistants. Dès qu'une session fait apparaître quelque chose qui mérite d'être retenu —
+préférence de l'utilisateur, piège serveur, décision de configuration, changement d'état de la
+prod — l'écrire ici dans la foulée, sans attendre qu'on le demande :
+
+- règle de comportement, flux git, méthode de déploiement, piège serveur → **`AGENTS.md`** ;
+- état de la production → **`docs/prod-o2switch.md`**.
+
+Ne jamais y écrire d'identifiant (voir § 6). `CLAUDE.md` n'est qu'un pointeur vers ce fichier :
+ne rien y dupliquer.
 
 ---
 
@@ -78,7 +91,7 @@ Tests : `phpunit.xml.dist` + `tests/`. CI : PHPStan + CS-Fixer sur le thème
 
 → **Upload FTPS ciblé**, pas `make deploy`.
 
-*Pourquoi :* `make deploy` lance `composer-prod` **dans le conteneur Docker `wordpress`** (donc
+_Pourquoi :_ `make deploy` lance `composer-prod` **dans le conteneur Docker `wordpress`** (donc
 échoue si Docker n'est pas démarré : « service wordpress is not running »), puis un
 `lftp mirror -R --delete` de **tout le thème, `vendor/` inclus** → des milliers de fichiers en
 FTPS, lent et sujet aux timeouts (constaté : timeout à 2 min rien qu'au listing). Disproportionné

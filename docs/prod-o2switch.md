@@ -23,12 +23,12 @@ pièges serveur).
 
 Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script à jeton.
 
-| Fichier | Rôle |
-| --- | --- |
-| `luziapi-security.php` | En-têtes HTTP (X-Content-Type-Options, X-Frame-Options SAMEORIGIN, Referrer-Policy, Permissions-Policy, HSTS), `DISALLOW_FILE_EDIT`, pingbacks XML-RPC neutralisés (XML-RPC **pas** coupé en entier, pour préserver Jetpack), `wp_generator`/rsd/wlwmanifest retirés, message de login générique |
-| `luziapi-mail-from.php` | Expéditeur `LuziApi <no-reply@luziapi.fr>` |
-| `luziapi-newsletter.php` | Formulaire d'inscription maison + route REST Brevo |
-| `luziapi-newsletter-autosend.php` | Envoi e-mail + SMS à la publication d'un article |
+| Fichier                           | Rôle                                                                                                                                                                                                                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `luziapi-security.php`            | En-têtes HTTP (X-Content-Type-Options, X-Frame-Options SAMEORIGIN, Referrer-Policy, Permissions-Policy, HSTS), `DISALLOW_FILE_EDIT`, pingbacks XML-RPC neutralisés (XML-RPC **pas** coupé en entier, pour préserver Jetpack), `wp_generator`/rsd/wlwmanifest retirés, message de login générique |
+| `luziapi-mail-from.php`           | Expéditeur `LuziApi <no-reply@luziapi.fr>`                                                                                                                                                                                                                                                       |
+| `luziapi-newsletter.php`          | Formulaire d'inscription maison + route REST Brevo                                                                                                                                                                                                                                               |
+| `luziapi-newsletter-autosend.php` | Envoi e-mail + SMS à la publication d'un article                                                                                                                                                                                                                                                 |
 
 ## Boutique WooCommerce
 
