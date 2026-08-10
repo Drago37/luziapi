@@ -7,6 +7,8 @@
 Thumbs.db
 *:Zone.Identifier
 tmp/
+# Verrous LibreOffice, créés tant qu'un document est ouvert.
+.~lock.*#
 
 # --- IDE ---
 .idea/

@@ -73,18 +73,22 @@ ne rien y dupliquer.
 - **docs/prod-o2switch.md** — état de la prod, architecture fonctionnelle, pièges serveur.
   À lire avant toute intervention touchant la production.
 - **docs/modeles-sms-brevo.md** — modèles de SMS.
-- **docs/** (carte-visite, étiquettes, flyers, social, sources) — supports imprimés et visuels.
+- **docs/** — supports imprimés et visuels :
+  - `print/` — brochure, flyer et carte de visite. Deux variantes par document : sans suffixe
+    (destinée au web) et `-print` (fonds perdus / profil pour l'imprimeur).
+  - `sources/` — fichiers éditables zippés dont sont tirés les PDF de `print/`.
+  - `etiquettes/` — étiquettes de pots ; `social/` — visuels des réseaux sociaux.
 - **prod-mu-plugins/** — les mu-plugins de production, versionnés ici mais **déployés à part**
   (le compte FTP ne les voit pas, voir plus bas).
 
 ### Brochure et flyer téléchargeables
 
-`docs/flyers/` est la **source** ; les versions publiées sur le site sont des **copies** dans
+`docs/print/` est la **source** ; les versions publiées sur le site sont des **copies** dans
 `www/wp-content/themes/luziapi/assets/docs/` (variantes web uniquement, pas les `-print`). Les
 deux se désynchronisent facilement — constaté : le thème et la prod servaient une version plus
 ancienne que les sources. Quand un de ces PDF change :
 
-1. recopier `docs/flyers/LuziApi-{brochure,flyer}.pdf` dans `assets/docs/` ;
+1. recopier `docs/print/LuziApi-{brochure,flyer}.pdf` dans `assets/docs/` ;
 2. corriger la taille annoncée dans la colonne « Documents » de
    `templates/partials/footer.twig` — elle est **écrite en dur** (convention : base 1024,
    `Ko` entier, `Mo` à une décimale) ;
