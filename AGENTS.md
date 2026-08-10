@@ -77,6 +77,19 @@ ne rien y dupliquer.
 - **prod-mu-plugins/** — les mu-plugins de production, versionnés ici mais **déployés à part**
   (le compte FTP ne les voit pas, voir plus bas).
 
+### Brochure et flyer téléchargeables
+
+`docs/flyers/` est la **source** ; les versions publiées sur le site sont des **copies** dans
+`www/wp-content/themes/luziapi/assets/docs/` (variantes web uniquement, pas les `-print`). Les
+deux se désynchronisent facilement — constaté : le thème et la prod servaient une version plus
+ancienne que les sources. Quand un de ces PDF change :
+
+1. recopier `docs/flyers/LuziApi-{brochure,flyer}.pdf` dans `assets/docs/` ;
+2. corriger la taille annoncée dans la colonne « Documents » de
+   `templates/partials/footer.twig` — elle est **écrite en dur** (convention : base 1024,
+   `Ko` entier, `Mo` à une décimale) ;
+3. déployer les 3 fichiers en FTPS ciblé (§ 3) et vérifier le `content-length` servi.
+
 Seul le **thème** `www/wp-content/themes/luziapi/` est versionné : cœur WordPress, plugins et
 médias sont fournis par l'hébergeur ou par Docker.
 
