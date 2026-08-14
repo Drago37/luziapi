@@ -40,6 +40,7 @@ Timber\Timber::init();
 Timber\Timber::$dirname = 'templates';
 
 require_once LUZIAPI_DIR . '/inc/setup.php';
+require_once LUZIAPI_DIR . '/inc/login.php';
 require_once LUZIAPI_DIR . '/inc/timber.php';
 require_once LUZIAPI_DIR . '/inc/seo.php';
 require_once LUZIAPI_DIR . '/inc/shop.php';

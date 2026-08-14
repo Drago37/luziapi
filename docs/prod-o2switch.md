@@ -162,6 +162,12 @@ Tout refuser / Personnaliser). Le crédit « Propulsé par » est masqué en CSS
   `rootMargin` 300 px) via `loadLeaflet()` à l'approche de `#map` / `#essaim-map`.
 - PageSpeed : ~75 mobile, 99 bureau.
 
+## Connexion à l’administration
+
+- L’écran WordPress natif `/wp-login.php` conserve tous ses parcours (connexion, mot de passe
+  oublié, choix de langue), avec une identité visuelle LuziApi chargée par `inc/login.php` et
+  `assets/css/login.css` : logo, palette miel et bois, motif alvéolé et mise en page responsive.
+
 ## Sauvegardes
 
 - **UpdraftPlus** installé et activé (par script à jeton), planifié : base **quotidienne**,

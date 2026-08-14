@@ -168,11 +168,17 @@ function luziapi_offer_html(): string
         . '</div>';
 }
 // Fiche produit : bandeau d'offre en pleine largeur, au-dessus du produit.
-add_action('woocommerce_before_single_product', static function (): void { echo luziapi_offer_html(); }, 15);
+add_action('woocommerce_before_single_product', static function (): void {
+    echo luziapi_offer_html();
+}, 15);
 // En haut de la boutique (au-dessus de la grille).
-add_action('woocommerce_before_shop_loop', static function (): void { echo luziapi_offer_html(); }, 5);
+add_action('woocommerce_before_shop_loop', static function (): void {
+    echo luziapi_offer_html();
+}, 5);
 // En haut du panier.
-add_action('woocommerce_before_cart', static function (): void { echo luziapi_offer_html(); }, 5);
+add_action('woocommerce_before_cart', static function (): void {
+    echo luziapi_offer_html();
+}, 5);
 
 // Supprime la partie « Avis » : onglet de la fiche + note en étoiles sous le titre.
 add_filter('woocommerce_product_tabs', static function (array $tabs): array {

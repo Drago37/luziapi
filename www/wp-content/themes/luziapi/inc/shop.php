@@ -117,8 +117,9 @@ function luziapi_get_honeys(int $limit = 8): array
     foreach ($products as $product) {
         $slug   = $product->get_slug();
         $colors = luziapi_jar_colors($slug);
-        $image  = $product->get_image_id()
-            ? wp_get_attachment_image_url($product->get_image_id(), 'large')
+        $imageId = absint($product->get_image_id());
+        $image  = $imageId > 0
+            ? wp_get_attachment_image_url($imageId, 'large')
             : null;
 
         $noHarvest = luziapi_is_no_harvest($product);
