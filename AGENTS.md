@@ -97,6 +97,12 @@ ancienne que les sources. Quand un de ces PDF change :
 Seul le **thème** `www/wp-content/themes/luziapi/` est versionné : cœur WordPress, plugins et
 médias sont fournis par l'hébergeur ou par Docker.
 
+### Nommage des fichiers destinés à un imprimeur
+
+Pour une variante préparée pour un site d'impression, mettre uniquement le nom du site en
+suffixe final : par exemple `LuziApi-carte-recto-saxoprint.pdf`. Ne pas ajouter au nom les
+détails techniques (`x4`, `vectorise`, etc.), qui se vérifient dans le fichier lui-même.
+
 Tests : `phpunit.xml.dist` + `tests/`. CI : PHPStan + CS-Fixer sur le thème
 (`.github/workflows/ci.yml`).
 
