@@ -93,7 +93,10 @@ Côté SMS :
 
 - lien court `wp_get_shortlink()` (`/?p=ID`) plutôt que le permalien ;
 - message normalisé en alphabet GSM par `luziapi_sms_normalize()` (— → -, … → ..., apostrophes et
-  guillemets courbes, espaces insécables…) pour tenir en **1 segment = 1 crédit par personne** ;
+  guillemets courbes, espaces insécables…) pour limiter le nombre de segments (1 segment =
+  1 crédit par personne). Plafond configurable via la constante `LUZIAPI_SMS_MAX_SEGMENTS`
+  (**2** par défaut) ; au-delà, l'envoi SMS est bloqué (compteur metabox + save_post + garde-fou
+  avant Brevo) ;
 - mention légale **« STOP au [STOP_CODE] »** ajoutée d'office (conformité France, constante
   `LUZIAPI_SMS_STOP`) ; Brevo remplace `[STOP_CODE]` par le numéro court réel à l'envoi ;
 - **contrainte horaire Brevo** : SMS marketing uniquement 8h–21h30, jamais le dimanche ni les

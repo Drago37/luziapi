@@ -21,6 +21,11 @@ if (!defined('LUZIAPI_SMS_STOP_CODE')) {
     // propre numéro à la place de [STOP_CODE] ; seule sa longueur compte ici.
     define('LUZIAPI_SMS_STOP_CODE', '36180');
 }
+if (!defined('LUZIAPI_SMS_MAX_SEGMENTS')) {
+    // Nombre maximal de segments SMS autorisés par message (1 crédit / segment /
+    // personne). Au-delà, l'envoi SMS est refusé (surcoût + risque de troncature).
+    define('LUZIAPI_SMS_MAX_SEGMENTS', 2);
+}
 
 /* ------------------------------------------------------------------ *
  * Planification à la 1re mise en ligne d'un article (jamais sur update).
@@ -305,12 +310,12 @@ function luziapi_nl_send_sms_for_post(WP_Post $post) {
     $title   = wp_strip_all_tags(get_the_title($post));
     $content = luziapi_nl_sms_message($post);
 
-    // Garde-fou : ne jamais envoyer un SMS multi-segments (surcoût + troncature
+    // Garde-fou : ne jamais dépasser le plafond de segments (surcoût + troncature
     // possible). La saisie est déjà bloquée en amont (metabox + save_post) ;
     // c'est ici la dernière barrière avant l'appel à Brevo.
     $segments = luziapi_nl_sms_segments_for_post($post);
-    if ($segments > 1) {
-        luziapi_nl_log('SMS annulé (#' . $post->ID . ') : ' . $segments . ' segments (> 1), texte trop long.');
+    if ($segments > LUZIAPI_SMS_MAX_SEGMENTS) {
+        luziapi_nl_log('SMS annulé (#' . $post->ID . ') : ' . $segments . ' segments (> ' . LUZIAPI_SMS_MAX_SEGMENTS . '), texte trop long.');
         return;
     }
 
@@ -392,7 +397,9 @@ function luziapi_nl_metabox(WP_Post $post) {
     echo '<label for="luziapi_nl_sms_text" style="display:block;color:#444;font-size:12px;margin-bottom:.2em;">Texte du SMS (optionnel)</label>';
     echo '<textarea id="luziapi_nl_sms_text" name="luziapi_nl_sms_text" rows="3" style="width:100%;box-sizing:border-box;"' . ($sentS ? ' disabled' : '') . ' placeholder="' . esc_attr($smsPh) . '">' . esc_textarea($smsText) . '</textarea>';
     echo '<p id="luziapi_sms_count" style="margin:.3em 0 0;font-size:11px;"></p>';
-    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Le lien court (~' . strlen($shortlink) . ' car.) et la mention légale « STOP au … » sont ajoutés automatiquement à la fin — inutile de les écrire. Vide = le titre est utilisé. Le tout doit tenir en <strong>1 seul SMS</strong>, sinon l\'envoi par SMS est bloqué.</p>';
+    $maxSeg   = (int) LUZIAPI_SMS_MAX_SEGMENTS;
+    $maxLabel = $maxSeg > 1 ? ($maxSeg . ' SMS (' . $maxSeg . ' crédits/personne)') : '1 seul SMS';
+    echo '<p style="margin:.3em 0 0;color:#888;font-size:11px;">Le lien court (~' . strlen($shortlink) . ' car.) et la mention légale « STOP au … » sont ajoutés automatiquement à la fin — inutile de les écrire. Vide = le titre est utilisé. Le tout doit tenir en <strong>' . esc_html($maxLabel) . '</strong> maximum, sinon l\'envoi par SMS est bloqué.</p>';
     echo '</div>';
     echo '<p style="margin:.6em 0 0;color:#888;font-size:11px;">Pour un simple envoi e-mail, laisse seulement « Par e-mail » coché.</p>';
 
@@ -403,6 +410,7 @@ function luziapi_nl_metabox(WP_Post $post) {
   var out=document.getElementById('luziapi_sms_count');
   if(!ta||!out){return;}
   var reserved=__RESERVED__;
+  var maxSeg=__MAXSEG__;
   var smsBox=document.querySelector('input[name="luziapi_nl_sms"]');
   function norm(s){
     return s.replace(/[’‘]/g,"'").replace(/[“”„«»]/g,'"')
@@ -429,12 +437,12 @@ function luziapi_nl_metabox(WP_Post $post) {
     var uni=NONGSM.test(t);
     var per=uni?70:160, perMulti=uni?67:153;
     var seg=total<=per?1:Math.ceil(total/perMulti);
-    var over=seg>1;
+    var over=seg>maxSeg;
     var smsOn=smsBox?smsBox.checked:false;
-    var label='≈ '+total+' caracteres · '+(uni?'Unicode':'GSM')+' · '+seg+' SMS'+(over?' / personne':'');
+    var label='≈ '+total+' caracteres · '+(uni?'Unicode':'GSM')+' · '+seg+' SMS'+(seg>1?' ('+seg+' credits/personne)':'');
     // On ne bloque que si « Par SMS » est coché (sinon aucun SMS ne partira).
     if(over&&smsOn){
-      out.textContent='⛔ '+label+' — trop long pour 1 SMS, raccourcis le texte';
+      out.textContent='⛔ '+label+' — trop long ('+maxSeg+' SMS max), raccourcis le texte';
       out.style.color='#a00';
       setBlocked(true);
     }else{
@@ -449,7 +457,7 @@ function luziapi_nl_metabox(WP_Post $post) {
 })();
 </script>
 JS;
-    echo str_replace('__RESERVED__', (int) $reserved, $js);
+    echo str_replace(['__RESERVED__', '__MAXSEG__'], [(int) $reserved, (int) LUZIAPI_SMS_MAX_SEGMENTS], $js);
 }
 
 add_action('save_post_post', function ($post_id) {
@@ -469,11 +477,11 @@ add_action('save_post_post', function ($post_id) {
     $sms_text = isset($_POST['luziapi_nl_sms_text']) ? sanitize_textarea_field(wp_unslash($_POST['luziapi_nl_sms_text'])) : '';
     update_post_meta($post_id, '_luziapi_nl_sms_text', $sms_text);
 
-    // Blocage : on n'active « Par SMS » que si le message tient en 1 segment.
+    // Blocage : on n'active « Par SMS » que si le message tient dans le plafond.
     $sms = !empty($_POST['luziapi_nl_sms']);
     if ($sms) {
         $segments = luziapi_nl_sms_segments_for_post(get_post($post_id));
-        if ($segments > 1) {
+        if ($segments > LUZIAPI_SMS_MAX_SEGMENTS) {
             $sms = false; // trop long : envoi SMS refusé
             set_transient('luziapi_nl_sms_blocked_' . $post_id, $segments, 60);
         }
@@ -500,7 +508,7 @@ add_action('admin_notices', function () {
     $segments = get_transient('luziapi_nl_sms_blocked_' . $post->ID);
     if ($segments) {
         delete_transient('luziapi_nl_sms_blocked_' . $post->ID);
-        echo '<div class="notice notice-warning is-dismissible"><p><strong>Newsletter LuziApi :</strong> le SMS dépassait 1 segment ('
+        echo '<div class="notice notice-warning is-dismissible"><p><strong>Newsletter LuziApi :</strong> le SMS dépassait le plafond de ' . (int) LUZIAPI_SMS_MAX_SEGMENTS . ' segment(s) ('
             . (int) $segments . ' segments avec le lien et la mention « STOP au … ») — l\'envoi <em>par SMS</em> a été désactivé pour éviter un surcoût. Raccourcis le texte, puis recoche « Par SMS ».</p></div>';
     }
 });
