@@ -163,6 +163,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'plain_text'         => false,
                 'email'              => $this,
                 'message_lines'      => $this->get_message_lines(),
+                'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
             ],
             '',
             $this->template_base
@@ -181,6 +182,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'plain_text'         => true,
                 'email'              => $this,
                 'message_lines'      => $this->get_message_lines(),
+                'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
             ],
             '',
             $this->template_base

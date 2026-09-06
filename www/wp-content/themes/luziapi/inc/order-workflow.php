@@ -252,7 +252,7 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
         'Luziapi_Email_Customer_Completed' => [
             'id'          => 'luziapi_customer_completed',
             'title'       => 'LuziApi — Commande terminée',
-            'description' => 'Confirme que la commande a bien été livrée ou retirée.',
+            'description' => 'Confirme la remise et propose l’inscription aux actualités par e-mail ou SMS.',
             'subject'     => 'Votre commande LuziApi n°{order_number} a bien été remise',
             'heading'     => 'Merci pour votre commande',
             'message'     => 'completed',

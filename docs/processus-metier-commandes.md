@@ -258,7 +258,7 @@ explicitement ce comportement.
 | Commande confirmée | **Attente paiement**, **Échouée**, **En attente** ou **Annulée** → **En cours** | `Votre commande LuziApi n°{order_number} est confirmée` | Activé — modèle LuziApi |
 | En cours de livraison | Toute entrée dans **En cours de livraison** | `Organisons la livraison de votre commande LuziApi n°{order_number}` | Activé — modèle LuziApi |
 | Prête au retrait | Toute entrée dans **Prête au retrait** | `Votre commande LuziApi n°{order_number} est prête au retrait` | Activé — modèle LuziApi |
-| Commande terminée | Toute entrée dans le statut **Terminée** | `Votre commande LuziApi n°{order_number} a bien été remise` | Activé — modèle LuziApi |
+| Commande terminée | Toute entrée dans le statut **Terminée** | `Votre commande LuziApi n°{order_number} a bien été remise` | Activé — modèle LuziApi ; invitation newsletter/SMS avec lien vers le formulaire |
 | Commande échouée | Toute entrée dans le statut **Échouée** | `Votre commande {site_title} n’a pas abouti` | Activé |
 | Commande remboursée — total | Remboursement total réellement saisi dans WooCommerce | `Votre commande n°{order_number} sur {site_title} a été remboursée` | Activé |
 | Commande remboursée — partiel | Remboursement partiel réellement saisi dans WooCommerce | `Votre commande n°{order_number} sur {site_title} a été partiellement remboursée` | Activé |
@@ -452,7 +452,7 @@ flowchart LR
 | En cours | `Votre commande LuziApi n°{order_number} est confirmée` | Commande confirmée et mise en préparation, sans prise de rendez-vous à ce stade |
 | En cours de livraison | `Organisons la livraison de votre commande LuziApi n°{order_number}` | Prise de contact pour convenir du jour et de l'heure à l'adresse de livraison |
 | Prête au retrait | `Votre commande LuziApi n°{order_number} est prête au retrait` | Retrait au domicile de LuziApi ; prise de contact uniquement pour le jour et l'heure |
-| Terminée | `Votre commande LuziApi n°{order_number} a bien été remise` | Confirmation que la commande a été livrée ou retirée |
+| Terminée | `Votre commande LuziApi n°{order_number} a bien été remise` | Confirmation de remise, puis invitation à s'abonner aux actualités et alertes de récolte par newsletter et/ou SMS |
 
 Contrôles réalisés lors de la mise en service, sans créer de commande ni envoyer d'e-mail :
 
