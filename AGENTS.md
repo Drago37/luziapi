@@ -72,6 +72,8 @@ ne rien y dupliquer.
 - **DEPLOIEMENT.md** — mise en ligne et mise à jour du thème (`make deploy`, FTPS).
 - **docs/prod-o2switch.md** — état de la prod, architecture fonctionnelle, pièges serveur.
   À lire avant toute intervention touchant la production.
+- **docs/processus-metier-commandes.md** — processus réel de vente et de traitement des commandes,
+  diagramme, automatismes, notifications et écarts de configuration.
 - **docs/modeles-sms-brevo.md** — modèles de SMS.
 - **docs/** — supports imprimés et visuels :
   - `print/` — brochure, flyer et carte de visite. Deux variantes par document : sans suffixe
@@ -172,10 +174,32 @@ empreintes de fichiers.
   thème (`inc/*.php`, `functions.php`…), appeler `opcache_reset()`. Constaté : un nouveau hook
   WooCommerce restait invisible tant que l'OPcache n'était pas vidé. **Vaut aussi pour
   `make deploy`.**
+- **Liste des commandes WooCommerce** : la production utilise **HPOS**. Avec WordPress 7.1 et
+  WooCommerce 10.8.1, cliquer une case de sélection peut ouvrir la commande au lieu de la cocher
+  (même symptôme que le bug amont `woocommerce/woocommerce#67906`). Le contournement ciblé dans
+  `inc/woocommerce.php` couvre les écrans HPOS et historique, bloque uniquement la remontée du
+  clic de la case et conserve le reste de la ligne cliquable. Ne le retirer qu'après vérification
+  d'un correctif amont.
 - **Cache PowerBoost** (o2switch) sert parfois une page périmée.
 - **Cache navigateur CSS/JS** : le thème enqueue `main.css` / `main.js` avec `filemtime()` comme
   `?ver` (et non plus `LUZIAPI_VERSION`, figé à `1.0.0`). C'était la cause de changements de style
   invisibles. Quand un changement CSS « ne s'affiche pas », vérifier le `?ver` réellement servi.
+
+### Processus de remise en production depuis le 6 septembre 2026
+
+- Deux choix au checkout : **retrait au domicile de LuziApi à Luzillé sur rendez-vous** et
+  **livraison gratuite à Luzillé ou Bléré sur rendez-vous**.
+- Le code postal 37150 couvre d'autres communes : la livraison doit être validée sur le triplet
+  pays France + code postal 37150 + ville normalisée (`Bléré` ou `Luzillé`), jamais sur le seul
+  code postal.
+- Le retrait reste disponible hors de ces deux villes ; son lieu est fixe. Seuls le jour et
+  l'heure du rendez-vous sont à convenir.
+- L'e-mail de retrait lit l'adresse de la boutique depuis les réglages WooCommerce : ne pas la
+  dupliquer dans le code du workflow des commandes.
+- Après **En cours**, le traitement se sépare en **En cours de livraison** ou **Prête au retrait**,
+  puis revient à **Terminée** après la remise effective.
+- Les textes validés, leurs déclencheurs et le diagramme sont consignés dans
+  `docs/processus-metier-commandes.md`.
 
 ---
 

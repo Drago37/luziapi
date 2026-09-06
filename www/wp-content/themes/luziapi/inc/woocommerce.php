@@ -14,6 +14,40 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+// Le gestionnaire de clic WooCommerce peut interpréter un clic sur une case de
+// sélection comme un clic sur la ligne et ouvrir la commande
+// (woocommerce/woocommerce#67906). Couvrir les écrans historique et HPOS, puis
+// bloquer uniquement la remontée du clic depuis les cases : le reste de la
+// ligne demeure cliquable et les actions groupées fonctionnent à nouveau.
+add_action('admin_enqueue_scripts', static function (string $hookSuffix): void {
+    $postType = isset($_GET['post_type'])
+        ? sanitize_key(wp_unslash((string) $_GET['post_type']))
+        : '';
+    $action = isset($_GET['action'])
+        ? sanitize_key(wp_unslash((string) $_GET['action']))
+        : '';
+
+    $isLegacyOrderList = 'edit.php' === $hookSuffix && 'shop_order' === $postType;
+    $isHposOrderList   = 'woocommerce_page_wc-orders' === $hookSuffix && '' === $action;
+
+    if (! $isLegacyOrderList && ! $isHposOrderList) {
+        return;
+    }
+
+    wp_add_inline_script(
+        'jquery-core',
+        <<<'JS'
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('#the-list input[type="checkbox"]').forEach(function (checkbox) {
+                    checkbox.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                    });
+                });
+            });
+            JS
+    );
+});
+
 // Retire les wrappers par défaut de WooCommerce.
 remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
 remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);

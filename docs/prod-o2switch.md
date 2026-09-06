@@ -10,7 +10,8 @@ pièges serveur).
 
 ## Hébergement
 
-- WordPress **mono-site** (WP 7.0) chez **o2switch**, racine `/home/gran4488/public_html`.
+- WordPress **mono-site** (WP 7.1, vérifié le 6 septembre 2026) chez **o2switch**, racine
+  `/home/gran4488/public_html`.
 - Thème **luziapi** (Timber/Twig + WooCommerce).
 - HTTPS forcé : redirection 301 vers `https://www.luziapi.fr` par un bloc placé dans
   `public_html/.htaccess`, **au-dessus** de `# BEGIN WordPress`.
@@ -38,6 +39,10 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   vraies photos quand elles existeront.
 - **Parcours d'achat mixte** : accueil = vitrine (« Voir le miel » → fiche, pas d'ajout direct) ;
   boutique = ajout AJAX (on reste sur place) ; fiche = ajout standard.
+- Administration sous WooCommerce 10.8.1 avec **HPOS activé** (vérifié le 6 septembre 2026) :
+  contournement dans `inc/woocommerce.php` du problème de clic sur les cases de la liste des
+  commandes. Il couvre l'écran HPOS et l'écran historique sans retirer l'ouverture d'une commande
+  par clic sur le reste de sa ligne.
 - **Panier dans le header** : icône + compteur + mini-panier déroulant, rafraîchis en AJAX via
   `woocommerce_add_to_cart_fragments`.
 - Pages **Panier (#8)** et **Commande (#9)** repassées en **shortcode classique**
@@ -48,8 +53,20 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   attributs Floraison / Couleur / Texture / Goût / Brassé / Récolte / Conditionnement (pot
   plastique) / Origine / Conservation, poids 1 kg, descriptions rédigées.
 - Encart d'offre « −1 €/pot dès 2 pots » sur fiche, boutique et panier.
-- Livraison zone 37150 + retrait ; paiements COD et BACS. PayPal : plugin désactivé **puis
-  fichiers supprimés**.
+- La documentation détaillée du parcours est dans
+  [`processus-metier-commandes.md`](processus-metier-commandes.md).
+- **Livraison activée**, limitée aux pays de vente — actuellement la France. Deux choix sont
+  proposés au checkout : retrait au domicile de LuziApi à Luzillé sur rendez-vous pour toutes les
+  commandes, et livraison gratuite sur rendez-vous uniquement à Bléré ou Luzillé. Le filtre du
+  thème exige pays `FR` + code postal `37150` + ville normalisée `Bléré` ou `Luzillé` : les autres
+  communes du 37150 n'obtiennent que le retrait. L'e-mail de retrait lit l'adresse centralisée
+  dans les réglages WooCommerce au lieu de la dupliquer dans le workflow.
+- Deux statuts métier sont enregistrés avec HPOS : **En cours de livraison** et **Prête au
+  retrait**. Ils déclenchent leurs e-mails clients respectifs. Les e-mails **En attente**, **En
+  cours** et **Terminée** ont également été remplacés par les formulations LuziApi validées ;
+  « Terminée » ne dit plus que la commande est en chemin.
+- Paiements hors ligne actifs : virement bancaire / WERO, chèque, espèces ou chèque à la remise.
+  PayPal : plugin désactivé **puis fichiers supprimés**.
 
 ## Newsletter (Brevo)
 
@@ -118,8 +135,9 @@ achetés (le champ SMS est donc actif).
 - Expéditeur Brevo = `no-reply@luziapi.fr` (sender id 2, SPF/DKIM OK). L'ancien sender Gmail
   (id 1) est conservé mais inutilisé. `sib_home_option` : from = no-reply, sender = 2.
 - `admin_email`, destinataire Contact Form 7 (#21) et notifications WooCommerce :
-  `luziapi37150@gmail.com`. WooCommerce from = `no-reply@luziapi.fr`. CF7 : sender = no-reply,
-  Reply-To = `[your-email]`.
+  `luziapi37150@gmail.com`. La notification WooCommerce **« Nouvelle commande »** est
+  explicitement activée avec cette adresse comme destinataire (vérifié le 6 septembre 2026).
+  WooCommerce from = `no-reply@luziapi.fr`. CF7 : sender = no-reply, Reply-To = `[your-email]`.
 
 ## Page « Récupération d'essaims »
 

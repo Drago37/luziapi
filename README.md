@@ -103,3 +103,9 @@ Si la CI signale du style, lancer `composer cs` en local pour corriger automatiq
 ## Mise en ligne
 
 Voir **[DEPLOIEMENT.md](DEPLOIEMENT.md)** pour la procédure complète vers o2switch.
+
+## Documentation métier
+
+Voir **[docs/processus-metier-commandes.md](docs/processus-metier-commandes.md)** pour le parcours
+réel de vente et de traitement des commandes, les statuts, les notifications et les écarts de
+configuration relevés en production.
