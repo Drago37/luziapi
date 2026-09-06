@@ -102,6 +102,14 @@ les commandes en souffrance sont interdites et plusieurs pots identiques peuvent
 | Miel de Châtaignier | 12 € | Hors stock et « Récolte annulée » | Bloqué |
 | Miel de Tournesol | 11 € | En stock | Autorisé |
 
+Informations produit communes et texte validé pour l'acacia :
+
+- la conservation affichée pour les quatre miels est « Entre 15 et 20 °C, à l'abri de la
+  lumière » ;
+- la texture affichée pour l'acacia est « Liquide à onctueuse » ; sa description précise que le
+  miel non brassé peut cristalliser naturellement, devenir plus dense, onctueux, voire plus ferme,
+  et qu'une floraison tardive du colza peut accélérer cette évolution.
+
 Règles d'affichage et de vente :
 
 - « Récolte annulée » force l'impossibilité d'acheter, même si un stock résiduel existe.

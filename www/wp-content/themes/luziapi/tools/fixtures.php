@@ -50,7 +50,7 @@ if (! class_exists('WC_Product_Simple')) {
 
 $honeys = [
     ['name' => 'Miel de Printemps',   'price' => '10', 'tag' => 'Récolte de printemps', 'coming' => false, 'desc' => 'À dominante colza. Blanc et crémeux, brassé pour une texture onctueuse, facile à tartiner.'],
-    ['name' => "Miel d'Acacia",       'price' => '14', 'tag' => 'Floraison de mai',     'coming' => false, 'desc' => 'Clair et délicat, tout en douceur. Reste liquide longtemps : non brassé.'],
+    ['name' => "Miel d'Acacia",       'price' => '14', 'tag' => 'Floraison de mai',     'coming' => false, 'desc' => 'Le plus doux de nos miels : clair et délicatement floral. Sa texture évolue naturellement de liquide à onctueuse selon la récolte et le temps.'],
     ['name' => 'Miel de Châtaignier', 'price' => '12', 'tag' => 'Été · sous-bois',      'coming' => true,  'desc' => 'Ambré foncé et corsé, des notes boisées et puissantes. Non brassé.'],
     ['name' => 'Miel de Tournesol',   'price' => '11', 'tag' => 'Plein été',            'coming' => true,  'desc' => 'Jaune lumineux, additionné de 5 à 10 % de miel de printemps et brassé pour rester souple.'],
 ];

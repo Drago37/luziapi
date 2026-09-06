@@ -160,7 +160,7 @@ function luziapi_get_honeys_en(int $limit = 8): array
 
     $map = [
         'miel-de-printemps'   => ['Spring Honey', 'The first harvest of the year — mild and light, with a creamy texture, mostly from rapeseed blossom.'],
-        'miel-d-acacia'       => ['Acacia Honey', 'Our mildest honey: clear and runny, it stays liquid for a long time, with delicate floral notes.'],
+        'miel-d-acacia'       => ['Acacia Honey', 'Our mildest honey: clear with delicate floral notes. Its texture naturally evolves from runny to smooth, depending on the harvest and over time.'],
         'miel-de-chataignier' => ['Chestnut Honey', 'A bold, amber honey with powerful woodland notes — for those who love character.'],
         'miel-de-tournesol'   => ['Sunflower Honey', 'Sunshine-yellow and naturally creamy: a tender, smooth honey with a gentle taste.'],
     ];
