@@ -43,15 +43,24 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   contournement dans `inc/woocommerce.php` du problème de clic sur les cases de la liste des
   commandes. Il couvre l'écran HPOS et l'écran historique sans retirer l'ouverture d'une commande
   par clic sur le reste de sa ligne.
-- **Panier dans le header** : icône + compteur + mini-panier déroulant, rafraîchis en AJAX via
-  `woocommerce_add_to_cart_fragments`.
+- **Navigation boutique déployée le 7 septembre 2026** : bouton « Boutique » avec icône de
+  magasin et panier toujours visible dans le header (« Vide », puis nombre d'articles). Le
+  mini-panier s'ouvre au survol sur ordinateur et au toucher sur mobile/tablette ; son contenu est
+  rafraîchi en AJAX via `woocommerce_add_to_cart_fragments`. Les accès rapides sont regroupés en
+  une colonne espacée à droite, avec SOS Essaim en premier, puis Contact / S'abonner et enfin les
+  réseaux sociaux.
 - Pages **Panier (#8)** et **Commande (#9)** repassées en **shortcode classique**
   (`[woocommerce_cart]` / `[woocommerce_checkout]`) : en blocs Gutenberg, elles n'étaient pas
   couvertes par l'habillage du thème (images et boutons cassés). Pot SVG dans le panier via le
-  filtre `woocommerce_cart_item_thumbnail`.
+  filtre `woocommerce_cart_item_thumbnail`. Le récapitulatif occupe toute la largeur et le
+  calculateur de frais d'expédition est masqué : les modes réellement disponibles sont déterminés
+  au checkout selon la commune.
 - **Fiche produit** : onglet Avis et note en étoiles retirés, stock et catégorie masqués ;
   attributs Floraison / Couleur / Texture / Goût / Brassé / Récolte / Conditionnement (pot
-  plastique) / Origine / Conservation, poids 1 kg, descriptions rédigées.
+  plastique) / Origine / Conservation, poids 1 kg, descriptions rédigées. Depuis le 7 septembre
+  2026, les quatre miels indiquent « Entre 15 et 20 °C, à l'abri de la lumière ». L'acacia affiche
+  « Liquide à onctueuse » et sa description explique la cristallisation naturelle, la texture
+  parfois plus ferme et l'influence possible d'une floraison tardive du colza.
 - Encart d'offre « −1 €/pot dès 2 pots » sur fiche, boutique et panier.
 - La documentation détaillée du parcours est dans
   [`processus-metier-commandes.md`](processus-metier-commandes.md).
