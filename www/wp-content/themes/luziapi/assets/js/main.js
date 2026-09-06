@@ -27,6 +27,30 @@
     });
   }
 
+  // ----- Mini-panier : survol au bureau, ouverture au toucher sur mobile -----
+  var headerCartWrap = document.querySelector('.header-cart-wrap');
+  var headerCartLink = headerCartWrap ? headerCartWrap.querySelector('.header-cart') : null;
+  if (headerCartWrap && headerCartLink) {
+    headerCartLink.addEventListener('click', function (event) {
+      if (!window.matchMedia('(max-width: 980px)').matches) { return; }
+      event.preventDefault();
+      var open = headerCartWrap.classList.toggle('is-open');
+      headerCartLink.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (event) {
+      if (!headerCartWrap.contains(event.target)) {
+        headerCartWrap.classList.remove('is-open');
+        headerCartLink.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if ('Escape' === event.key) {
+        headerCartWrap.classList.remove('is-open');
+        headerCartLink.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
   // ----- Bandeau cookies : libellés des boutons en français -----
   var ckLabels = {
     cookieadmin_accept_button: 'Tout accepter',

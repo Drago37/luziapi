@@ -143,8 +143,9 @@ add_action('woocommerce_before_single_product_summary', static function (): void
 // Mise à jour AJAX du compteur de panier et du mini-panier (header), sans rechargement.
 add_filter('woocommerce_add_to_cart_fragments', static function (array $fragments): array {
     $count = (function_exists('WC') && WC()->cart) ? WC()->cart->get_cart_contents_count() : 0;
+    $label = 0 === $count ? 'Vide' : sprintf('%d article%s', $count, $count > 1 ? 's' : '');
 
-    $fragments['span.cart-count'] = '<span class="cart-count' . ($count > 0 ? '' : ' is-empty') . '">' . esc_html((string) $count) . '</span>';
+    $fragments['span.header-cart-state'] = '<span class="header-cart-state">' . esc_html($label) . '</span>';
 
     ob_start();
     woocommerce_mini_cart();

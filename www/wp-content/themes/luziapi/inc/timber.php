@@ -29,6 +29,9 @@ add_filter('timber/context', static function (array $context): array {
         $context['cart_url']   = function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/');
         $context['mini_cart']  = '';
     }
+    $context['cart_label'] = 0 === $context['cart_count']
+        ? 'Vide'
+        : sprintf('%d article%s', $context['cart_count'], $context['cart_count'] > 1 ? 's' : '');
 
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
     $context['contact'] = [
