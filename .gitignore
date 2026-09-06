@@ -37,6 +37,8 @@ node_modules/
 # --- wp-content : on ne versionne QUE notre thème ---
 /www/wp-content/plugins/*
 !/www/wp-content/plugins/.gitkeep
+/www/wp-content/mu-plugins/
+/www/wp-content/languages/
 /www/wp-content/uploads/*
 !/www/wp-content/uploads/.gitkeep
 /www/wp-content/upgrade/
