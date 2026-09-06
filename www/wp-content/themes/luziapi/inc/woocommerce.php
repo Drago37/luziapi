@@ -182,6 +182,17 @@ add_filter('woocommerce_output_related_products_args', static function (array $a
 // Le client n'a pas à voir le stock disponible : on masque l'affichage du stock.
 add_filter('woocommerce_get_stock_html', '__return_empty_string');
 
+// Le calculateur d'expédition du panier est inutile : les modes réels sont
+// déterminés à l'étape de commande selon la ville (livraison gratuite à Bléré
+// ou Luzillé, retrait au domicile LuziApi partout ailleurs).
+add_filter('pre_option_woocommerce_enable_shipping_calc', static function ($value) {
+    if (! is_admin() && function_exists('is_cart') && is_cart()) {
+        return 'no';
+    }
+
+    return $value;
+});
+
 // E-mails : afficher le contact luziapi37150@gmail.com (et non l'expéditeur no-reply)
 // dans le corps du message ET en Reply-To. L'expéditeur reste no-reply (délivrabilité).
 add_filter('woocommerce_mail_content', static function (string $content): string {

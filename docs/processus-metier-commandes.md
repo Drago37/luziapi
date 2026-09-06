@@ -143,6 +143,9 @@ manuellement puisque l'inscription publique est coupée.
 La livraison est activée pour les pays où LuziApi vend, actuellement la France. Le checkout
 enregistre obligatoirement l'un des deux choix suivants :
 
+Le panier n'affiche pas de calculateur de frais d'expédition : il ne ferait que demander une
+adresse alors que le choix réel est déterminé à l'étape de commande selon la commune saisie.
+
 | Choix affiché | Disponibilité | Organisation du rendez-vous |
 |---|---|---|
 | Retrait à mon domicile à Luzillé sur RDV | Toutes les commandes françaises | Lieu fixe ; LuziApi prend contact uniquement pour convenir du jour et de l'heure |

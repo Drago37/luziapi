@@ -526,6 +526,7 @@ article.page{padding:28px 0 56px}
 .woocommerce-cart table.cart td.actions .coupon{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;float:none}
 .woocommerce-cart table.cart td.actions .coupon .input-text{width:190px;max-width:46vw;margin:0;border:1px solid var(--line);border-radius:999px;padding:.7em 1.1em}
 .woocommerce-cart table.cart td.actions button[name="update_cart"]{float:right}
+.woocommerce-cart .cart-collaterals .cart_totals{float:none!important;width:100%!important}
 .woocommerce-cart .wc-proceed-to-checkout{margin-top:18px}
 .woocommerce-cart .wc-proceed-to-checkout .checkout-button{display:block;text-align:center;font-size:1.05rem}
 /* Page de confirmation de commande (« commande reçue ») */
