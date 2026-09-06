@@ -143,16 +143,60 @@ add_action('woocommerce_before_single_product_summary', static function (): void
     }
 }, 20);
 
-// Mise à jour AJAX du compteur de panier et du mini-panier (header), sans rechargement.
-add_filter('woocommerce_add_to_cart_fragments', static function (array $fragments): array {
-    $count = (function_exists('WC') && WC()->cart) ? WC()->cart->get_cart_contents_count() : 0;
-    $label = 0 === $count ? 'Vide' : sprintf('%d article%s', $count, $count > 1 ? 's' : '');
+/**
+ * Libellé compact du panier dans la langue de la page.
+ */
+function luziapi_cart_label(int $count, bool $english = false): string
+{
+    if (0 === $count) {
+        return $english ? 'Empty' : 'Vide';
+    }
 
-    $fragments['span.header-cart-state'] = '<span class="header-cart-state">' . esc_html($label) . '</span>';
+    if ($english) {
+        return sprintf('%d item%s', $count, $count > 1 ? 's' : '');
+    }
+
+    return sprintf('%d article%s', $count, $count > 1 ? 's' : '');
+}
+
+/**
+ * Rend le mini-panier WooCommerce dans une langue donnée, puis restaure la langue courante.
+ */
+function luziapi_render_mini_cart(string $locale = 'fr_FR'): string
+{
+    $switched = function_exists('switch_to_locale') && switch_to_locale($locale);
 
     ob_start();
     woocommerce_mini_cart();
-    $fragments['div.cart-dropdown__body'] = '<div class="cart-dropdown__body">' . ob_get_clean() . '</div>';
+    $html = (string) ob_get_clean();
+
+    if ($switched) {
+        restore_previous_locale();
+    }
+
+    return $html;
+}
+
+// Mise à jour AJAX des versions française et anglaise du compteur et du mini-panier.
+add_filter('woocommerce_add_to_cart_fragments', static function (array $fragments): array {
+    $count = (function_exists('WC') && WC()->cart) ? WC()->cart->get_cart_contents_count() : 0;
+
+    foreach (['fr' => 'fr_FR', 'en' => 'en_US'] as $language => $locale) {
+        $english = 'en' === $language;
+        $stateClass = 'header-cart-state--' . $language;
+        $bodyClass  = 'cart-dropdown__body--' . $language;
+
+        $fragments['span.' . $stateClass] = sprintf(
+            '<span class="header-cart-state %s">%s</span>',
+            esc_attr($stateClass),
+            esc_html(luziapi_cart_label($count, $english))
+        );
+        $fragments['div.' . $bodyClass] = sprintf(
+            '<div class="cart-dropdown__body %s">%s</div>',
+            esc_attr($bodyClass),
+            luziapi_render_mini_cart($locale)
+        );
+    }
 
     return $fragments;
 });

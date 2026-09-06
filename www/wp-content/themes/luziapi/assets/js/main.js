@@ -51,8 +51,12 @@
     });
   }
 
-  // ----- Bandeau cookies : libellés des boutons en français -----
-  var ckLabels = {
+  // ----- Bandeau cookies : libellés cohérents avec la langue de la page -----
+  var ckLabels = document.documentElement.lang === 'en' ? {
+    cookieadmin_accept_button: 'Accept all',
+    cookieadmin_reject_button: 'Reject all',
+    cookieadmin_customize_button: 'Customize'
+  } : {
     cookieadmin_accept_button: 'Tout accepter',
     cookieadmin_reject_button: 'Tout refuser',
     cookieadmin_customize_button: 'Personnaliser'

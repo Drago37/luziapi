@@ -133,6 +133,19 @@ add_filter('wpcf7_form_elements', static function (string $html): string {
 
     return $hp . $html;
 });
+
+// Le formulaire dédié à /en/ conserve sa langue lors du rendu et des requêtes REST CF7.
+add_action('wpcf7_contact_form', static function ($contactForm): void {
+    if (! is_object($contactForm) || ! method_exists($contactForm, 'id') || ! method_exists($contactForm, 'set_locale')) {
+        return;
+    }
+
+    $englishFormId = (int) get_option('luziapi_cf7_en_id');
+    if ($englishFormId > 0 && $englishFormId === (int) $contactForm->id()) {
+        $contactForm->set_locale('en_US');
+    }
+});
+
 add_filter('wpcf7_spam', static function ($spam, $submission = null) {
     if ($spam) {
         return $spam;

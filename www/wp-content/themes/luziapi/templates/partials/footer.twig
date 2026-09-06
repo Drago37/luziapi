@@ -1,9 +1,10 @@
 {% set home = function('home_url', '/') %}
 {% set shop = function('wc_get_page_permalink', 'shop') %}
+{% set page_home = is_english_page ? home ~ 'en/' : home %}
 <footer class="site-footer">
     <div class="wrap foot">
         <div>
-            <a class="brand" href="{{ home }}">
+            <a class="brand" href="{{ page_home }}">
                 <svg class="bee" viewBox="0 0 48 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <ellipse cx="12" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(-26 12 20)"/>
                     <ellipse cx="36" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(26 36 20)"/>
@@ -21,17 +22,19 @@
                 </svg>
                 <span class="wm">Luzi<b>Api</b></span>
             </a>
-            <p>Miel artisanal récolté, extrait et mis en pot à Luzillé, au cœur de l'Indre-et-Loire. Le goût d'une apiculture patiente et locale.</p>
+            <p>{{ is_english_page
+                ? 'Artisanal honey harvested, extracted and jarred in Luzillé, in the heart of the Loire Valley. The taste of patient, local beekeeping.'
+                : "Miel artisanal récolté, extrait et mis en pot à Luzillé, au cœur de l'Indre-et-Loire. Le goût d'une apiculture patiente et locale." }}</p>
             {% if contact.facebook or contact.instagram %}
             <div class="foot-social">
-                <h3>Suivez-nous</h3>
+                <h3>{{ is_english_page ? 'Follow us' : 'Suivez-nous' }}</h3>
                 {% if contact.facebook %}
-                <a class="social-ic" href="{{ contact.facebook }}" target="_blank" rel="noopener" aria-label="Page Facebook de LuziApi">
+                <a class="social-ic" href="{{ contact.facebook }}" target="_blank" rel="noopener" aria-label="{{ is_english_page ? 'LuziApi Facebook page' : 'Page Facebook de LuziApi' }}">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7h2.3l.35-2.7H13.5V9.6c0-.78.22-1.3 1.33-1.3h1.42V5.9c-.25-.03-1.1-.1-2.08-.1-2.06 0-3.47 1.26-3.47 3.57v1.98H8.4V14h2.3v7h2.8z"/></svg>
                 </a>
                 {% endif %}
                 {% if contact.instagram %}
-                <a class="social-ic social-ic--ig" href="{{ contact.instagram }}" target="_blank" rel="noopener" aria-label="Compte Instagram de LuziApi">
+                <a class="social-ic social-ic--ig" href="{{ contact.instagram }}" target="_blank" rel="noopener" aria-label="{{ is_english_page ? 'LuziApi Instagram account' : 'Compte Instagram de LuziApi' }}">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.62c-3.15 0-3.52.01-4.76.07-1.15.05-1.77.24-2.19.41-.55.21-.94.47-1.35.88-.41.41-.67.8-.88 1.35-.17.42-.36 1.04-.41 2.19-.06 1.24-.07 1.61-.07 4.76s.01 3.52.07 4.76c.05 1.15.24 1.77.41 2.19.21.55.47.94.88 1.35.41.41.8.67 1.35.88.42.17 1.04.36 2.19.41 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c1.15-.05 1.77-.24 2.19-.41.55-.21.94-.47 1.35-.88.41-.41.67-.8.88-1.35.17-.42.36-1.04.41-2.19.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.05-1.15-.24-1.77-.41-2.19a3.63 3.63 0 0 0-.88-1.35 3.63 3.63 0 0 0-1.35-.88c-.42-.17-1.04-.36-2.19-.41-1.24-.06-1.61-.07-4.76-.07zm0 4.13a5.09 5.09 0 1 1 0 10.18 5.09 5.09 0 0 1 0-10.18zm0 1.62a3.47 3.47 0 1 0 0 6.94 3.47 3.47 0 0 0 0-6.94zm5.23-1.07a1.19 1.19 0 1 1-2.38 0 1.19 1.19 0 0 1 2.38 0z"/></svg>
                 </a>
                 {% endif %}
@@ -40,6 +43,14 @@
         </div>
         <div>
             <h3>Navigation</h3>
+            {% if is_english_page %}
+            <a class="lnk" href="#beekeeper">The beekeeper</a>
+            <a class="lnk" href="#honeys">Our honeys</a>
+            <a class="lnk" href="#visit">Visit us</a>
+            <a class="lnk" href="#contact">Contact</a>
+            {% if shop %}<a class="lnk" href="{{ shop }}">Shop <small>(in French)</small></a>{% endif %}
+            <a class="lnk" href="{{ home }}recuperation-essaims/">Bee swarm rescue <small>(in French)</small></a>
+            {% else %}
             <a class="lnk" href="{{ home }}#apiculteur">L'apiculteur</a>
             <a class="lnk" href="{{ home }}#savoir-faire">Savoir-faire</a>
             <a class="lnk" href="{{ home }}#produits">Nos miels</a>
@@ -47,29 +58,38 @@
             <a class="lnk" href="{{ home }}#localisation">Nous trouver</a>
             {% if shop %}<a class="lnk" href="{{ shop }}">Boutique</a>{% endif %}
             <a class="lnk" href="{{ home }}recuperation-essaims/">SOS Essaim</a>
+            {% endif %}
         </div>
         <div>
-            <h3>Informations</h3>
+            <h3>{{ is_english_page ? 'Information' : 'Informations' }}</h3>
+            {% if is_english_page %}
+            <a class="lnk" href="{{ home }}#newsletter">Subscribe to the newsletter <small>(in French)</small></a>
+            <a class="lnk" href="#contact">Contact</a>
+            <a class="lnk" href="https://g.page/r/CaBl568csp6SECE" target="_blank" rel="noopener">Find us on Google</a>
+            <a class="lnk" href="{{ home }}mentions-legales/">Legal notice <small>(in French)</small></a>
+            <a class="lnk" href="{{ home }}politique-de-confidentialite/">Privacy policy <small>(in French)</small></a>
+            {% else %}
             <a class="lnk" href="{{ home }}#newsletter">S'abonner à la newsletter</a>
             <a class="lnk" href="{{ home }}#contact">Contact</a>
             <a class="lnk" href="https://g.page/r/CaBl568csp6SECE" target="_blank" rel="noopener">Nous trouver sur Google</a>
             <a class="lnk" href="{{ home }}mentions-legales/">Mentions légales</a>
             <a class="lnk" href="{{ home }}politique-de-confidentialite/">Politique de confidentialité</a>
+            {% endif %}
         </div>
         <div>
             <h3>Documents</h3>
             <a class="lnk doc-lnk" href="{{ asset('docs/LuziApi-brochure.pdf') }}" target="_blank" rel="noopener">
                 <svg class="doc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-                <span>Brochure <span class="doc-size">PDF · 2,3 Mo</span></span>
+                <span>Brochure{% if is_english_page %} <small>(in French)</small>{% endif %} <span class="doc-size">PDF · 2,3 Mo</span></span>
             </a>
             <a class="lnk doc-lnk" href="{{ asset('docs/LuziApi-flyer.pdf') }}" target="_blank" rel="noopener">
                 <svg class="doc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-                <span>Flyer <span class="doc-size">PDF · 1,5 Mo</span></span>
+                <span>Flyer{% if is_english_page %} <small>(in French)</small>{% endif %} <span class="doc-size">PDF · 1,5 Mo</span></span>
             </a>
         </div>
     </div>
     <div class="wrap foot-bottom">
         <span>© {{ "now"|date("Y") }} {{ contact.marque }} — {{ contact.nom }}</span>
-        <span class="credit">Photographies © <a href="{{ photographe.url }}" target="_blank" rel="noopener">{{ credit_photo }}</a></span>
+        <span class="credit">{{ is_english_page ? 'Photography' : 'Photographies' }} © <a href="{{ photographe.url }}" target="_blank" rel="noopener">{{ credit_photo }}</a></span>
     </div>
 </footer>

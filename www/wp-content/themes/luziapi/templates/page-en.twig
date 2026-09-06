@@ -33,14 +33,14 @@
                 <p class="lead">I'm a passionate beekeeper in Luzillé, in the Loire Valley: I harvest, extract and jar a pure honey — no industrial processing, straight from the hive.</p>
                 <div class="cta">
                     <a class="btn btn-primary" href="#honeys">Discover our honeys</a>
-                    <a class="btn btn-ghost" href="{{ home }}">🇫🇷 Site en français</a>
+                    <a class="btn btn-ghost" href="{{ home }}">🇫🇷 View the site in French</a>
                 </div>
             </div>
         </div>
     </section>
 
     {# ---------- THE BEEKEEPER ---------- #}
-    <section class="about">
+    <section class="about" id="beekeeper">
         <div class="wrap split rev">
             <div class="ph">
                 <picture>
@@ -52,7 +52,7 @@
                 <span class="eyebrow">The beekeeper</span>
                 <h2>Engineer by trade, beekeeper at heart</h2>
                 <p>By day, I'm a software engineer. But for over ten years, my bees have filled my free time. Self-taught, season after season, I tend my hives by hand — out of pure love for nature.</p>
-                <p>His idea is simple: offer a <strong>local, honest honey at a fair price</strong> — not a luxury product, but an everyday pleasure. And behind every jar, one conviction: caring for bees means caring for our ecosystem.</p>
+                <p>My idea is simple: offer a <strong>local, honest honey at a fair price</strong> — not a luxury product, but an everyday pleasure. And behind every jar, one conviction: caring for bees means caring for our ecosystem.</p>
             </div>
         </div>
     </section>
@@ -70,7 +70,7 @@
                 <span class="badge">Offer</span>
                 <span>From 2&nbsp;jars: <b>−€1 per jar</b></span>
                 <span class="sep">•</span>
-                <span><b>Free local delivery</b> around Luzillé &amp; Bléré</span>
+                <span><b>Free delivery</b> in Luzillé or Bléré, by appointment</span>
             </div>
 
             {% if honeys_en is not empty %}
@@ -91,7 +91,7 @@
             </div>
             {% endif %}
 
-            <p class="keep">🍯 Keeps for <b>2&nbsp;years</b> — store away from light and heat.</p>
+            <p class="keep">🍯 Store between <b>15 and 20&nbsp;°C</b>, away from light.</p>
             <p class="en-shop-note">Online ordering is available <strong>in French</strong>{% if shop %} (<a href="{{ shop }}">visit the shop</a>){% endif %}. English-speaking visitors are welcome to <a href="#contact">contact me directly</a>.</p>
         </div>
     </section>
@@ -102,13 +102,13 @@
             <div class="info-card">
                 <span class="eyebrow">Visit us</span>
                 <h2>Find us in Luzillé</h2>
-                <p class="muted">Direct sales at the apiary, by appointment. Free local delivery around Luzillé and Bléré.</p>
+                <p class="muted">Collection from my home in Luzillé, by appointment. Free delivery in Luzillé or Bléré, by appointment.</p>
                 <ul class="info-list">
                     <li><span class="ic">📍</span><span><b>{{ contact.adresse }}</b><br>{{ contact.cp_ville }}, Loire Valley, France</span></li>
                     <li><span class="ic">📞</span><span><b><a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a></b></span></li>
                     <li><span class="ic">✉️</span><span><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></span></li>
                 </ul>
-                <div class="rdv">🚚 <b>Free local delivery around Luzillé &amp; Bléré.</b> By appointment.</div>
+                <div class="rdv">🚚 <b>Free delivery in Luzillé or Bléré.</b> By appointment.</div>
                 <p style="margin-top:1.4rem"><a class="btn btn-primary" href="https://g.page/r/CaBl568csp6SECE" target="_blank" rel="noopener">🗺️&nbsp;Get directions</a></p>
             </div>
             <div id="map"></div>
@@ -128,7 +128,7 @@
                 {{ function('do_shortcode', contact_form_shortcode)|raw }}
             </div>
             {% endif %}
-            <p style="text-align:center;margin-top:2rem"><a class="btn btn-ghost" href="{{ home }}">🇫🇷 Voir le site en français</a></p>
+            <p style="text-align:center;margin-top:2rem"><a class="btn btn-ghost" href="{{ home }}">🇫🇷 View the site in French</a></p>
         </div>
     </section>
 

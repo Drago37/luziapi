@@ -170,20 +170,27 @@ Les plugins de traduction qui interceptent le rendu **plantent** avec ce thème 
 - page WP slug `en` (id 89), gabarit `templates/page-en.twig` routé dans `page.php` ;
 - miels via `luziapi_get_honeys_en()` dans `inc/shop.php` : noms et descriptions EN mappés par
   slug, prix et disponibilité dynamiques depuis WooCommerce, attribut Récolte traduit ;
-- bouton « 🇬🇧 EN » dans `header.twig` ;
+- bouton de langue flottant « 🇬🇧 EN » (et retour « 🇫🇷 FR » sur `/en/`) dans
+  `sticky-actions.twig` ;
 - **formulaire de contact EN** = un second formulaire CF7 (« Contact (English) », id **91**,
   dupliqué du FR #21, libellés traduits). Son id est stocké dans l'option `luziapi_cf7_en_id` et
-  `page.php` l'injecte sur `/en/`.
+  `page.php` l'injecte sur `/en/`. Le thème force sa locale à `en_US`, y compris lors des requêtes
+  REST, afin que ses messages système et de validation restent en anglais ;
 - Contenus rédigés à la première personne (I / my), comme l'accueil FR.
-- **Pas de partie essaims en anglais** (réservée aux locaux). Le reste du site, achat en ligne
-  compris, demeure en français.
+- Le gabarit, son SEO, le header, le mini-panier, les boutons flottants et le footer sont traduits
+  sur `/en/`. Les liens vers une ressource uniquement française l'indiquent explicitement.
+- **Pas de partie essaims en anglais** (réservée aux locaux). L'achat en ligne, la newsletter,
+  les documents et les pages juridiques demeurent en français.
+- Les informations métier reflètent les règles de la boutique : retrait au domicile à Luzillé
+  sur rendez-vous, livraison gratuite uniquement à Luzillé ou Bléré sur rendez-vous, et
+  conservation du miel entre 15 et 20 °C à l'abri de la lumière.
 
 ## Bandeau cookies (CookieAdmin / cookieadmin-pro)
 
 Les libellés des boutons **ne se configurent pas** via l'option `cookieadmin_consent_settings` :
-le rendu ignore `cookieadmin_gdpr.*_btn`. Ils sont donc forcés en français **par JS** dans
-`assets/js/main.js` (IDs `cookieadmin_accept_button` / `reject` / `customize` → Tout accepter /
-Tout refuser / Personnaliser). Le crédit « Propulsé par » est masqué en CSS
+le rendu ignore `cookieadmin_gdpr.*_btn`. Ils sont donc forcés **par JS** dans
+`assets/js/main.js` (IDs `cookieadmin_accept_button` / `reject` / `customize`) : en français sur
+le site principal et en anglais sur `/en/`. Le crédit « Propulsé par » est masqué en CSS
 (`.cookieadmin-poweredby{display:none}`) pour le contraste.
 
 ## Accessibilité et performances

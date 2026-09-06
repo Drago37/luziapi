@@ -13,6 +13,7 @@ if (! defined('ABSPATH')) {
 add_filter('timber/context', static function (array $context): array {
     $context['site_name'] = get_bloginfo('name');
     $context['theme_uri'] = LUZIAPI_URI;
+    $context['is_english_page'] = is_page('en');
     $actus = get_page_by_path('actualites');
     $context['blog_url'] = $actus
         ? get_permalink($actus->ID)
@@ -21,17 +22,17 @@ add_filter('timber/context', static function (array $context): array {
     if (function_exists('WC') && WC()->cart) {
         $context['cart_count'] = WC()->cart->get_cart_contents_count();
         $context['cart_url']   = wc_get_cart_url();
-        ob_start();
-        woocommerce_mini_cart();
-        $context['mini_cart'] = ob_get_clean();
+        $context['mini_cart'] = function_exists('luziapi_render_mini_cart')
+            ? luziapi_render_mini_cart($context['is_english_page'] ? 'en_US' : 'fr_FR')
+            : '';
     } else {
         $context['cart_count'] = 0;
         $context['cart_url']   = function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/');
         $context['mini_cart']  = '';
     }
-    $context['cart_label'] = 0 === $context['cart_count']
-        ? 'Vide'
-        : sprintf('%d article%s', $context['cart_count'], $context['cart_count'] > 1 ? 's' : '');
+    $context['cart_label'] = function_exists('luziapi_cart_label')
+        ? luziapi_cart_label($context['cart_count'], $context['is_english_page'])
+        : '';
 
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
     $context['contact'] = [

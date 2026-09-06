@@ -1,8 +1,9 @@
 {% set home = function('home_url', '/') %}
 {% set shop = function('wc_get_page_permalink', 'shop') %}
+{% set page_home = is_english_page ? home ~ 'en/' : home %}
 <header class="site-header">
     <div class="wrap nav">
-        <a class="brand" href="{{ home }}">
+        <a class="brand" href="{{ page_home }}">
             <svg class="bee" viewBox="0 0 48 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <ellipse cx="12" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(-26 12 20)"/>
                 <ellipse cx="36" cy="20" rx="9" ry="6" fill="#f7dd9b" opacity="0.8" transform="rotate(26 36 20)"/>
@@ -23,6 +24,16 @@
 
         <div class="nav-right">
             <nav class="menu">
+                {% if is_english_page %}
+                <a href="#beekeeper">The beekeeper</a>
+                <a href="#honeys">Our honeys</a>
+                <a href="#visit">Visit us</a>
+                <a href="#contact">Contact</a>
+                <a class="btn btn-soft menu-phone-link" href="tel:{{ contact.tel_lien }}">
+                    <svg class="btn-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.1 2.2z"/></svg>
+                    Call {{ contact.tel }}
+                </a>
+                {% else %}
                 <a href="{{ home }}#apiculteur">L'apiculteur</a>
                 <a href="{{ home }}#savoir-faire">Savoir-faire</a>
                 <a href="{{ home }}#produits">Nos miels</a>
@@ -33,27 +44,28 @@
                     <svg class="btn-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.1 2.2z"/></svg>
                     Appeler le {{ contact.tel }}
                 </a>
+                {% endif %}
             </nav>
 
-            <a class="header-shop" href="{{ shop ?: (home ~ '#produits') }}" aria-label="Aller à la boutique">
+            <a class="header-shop" href="{{ shop ?: (home ~ '#produits') }}" aria-label="{{ is_english_page ? 'Visit the shop (in French)' : 'Aller à la boutique' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8M9 20v-5h6v5"/></svg>
-                <span>Boutique</span>
+                <span>{{ is_english_page ? 'Shop' : 'Boutique' }}</span>
             </a>
 
             <div class="cart-wrap header-cart-wrap">
-                <a class="header-cart" href="{{ cart_url }}" aria-label="Voir le panier" aria-expanded="false">
+                <a class="header-cart" href="{{ cart_url }}" aria-label="{{ is_english_page ? 'View cart (in French)' : 'Voir le panier' }}" aria-expanded="false">
                     <svg class="header-cart-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
                     <span class="header-cart-copy">
-                        <span class="header-cart-title">Panier</span>
-                        <span class="header-cart-state">{{ cart_label }}</span>
+                        <span class="header-cart-title">{{ is_english_page ? 'Cart' : 'Panier' }}</span>
+                        <span class="header-cart-state header-cart-state--{{ is_english_page ? 'en' : 'fr' }}">{{ cart_label }}</span>
                     </span>
                 </a>
                 <div class="cart-dropdown">
-                    <div class="cart-dropdown__body">{{ mini_cart|raw }}</div>
+                    <div class="cart-dropdown__body cart-dropdown__body--{{ is_english_page ? 'en' : 'fr' }}">{{ mini_cart|raw }}</div>
                 </div>
             </div>
 
-            <a class="call-btn" href="tel:{{ contact.tel_lien }}" aria-label="Appeler le {{ contact.tel }}">
+            <a class="call-btn" href="tel:{{ contact.tel_lien }}" aria-label="{{ is_english_page ? 'Call ' ~ contact.tel : 'Appeler le ' ~ contact.tel }}">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.1 2.2z"/></svg>
                 <span>{{ contact.tel }}</span>
             </a>

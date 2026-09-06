@@ -26,6 +26,17 @@ function luziapi_seo_plugin_active(): bool
 }
 
 /**
+ * Titre explicite de la page anglaise, au lieu du titre éditorial « English ».
+ */
+add_filter('document_title_parts', static function (array $parts): array {
+    if (is_page('en')) {
+        $parts['title'] = 'Local honey from Luzillé, Loire Valley';
+    }
+
+    return $parts;
+});
+
+/**
  * Préchargement de l'image hero sur l'accueil (améliore le LCP / Core Web Vitals).
  */
 add_action('wp_head', static function (): void {
@@ -45,12 +56,20 @@ add_action('wp_head', static function (): void {
         return;
     }
 
-    $site  = get_bloginfo('name');
-    $image = LUZIAPI_URI . '/assets/img/og-image.jpg';
-    $type  = 'website';
-    $url   = home_url('/');
+    $site      = get_bloginfo('name');
+    $image     = LUZIAPI_URI . '/assets/img/og-image.jpg';
+    $type      = 'website';
+    $url       = home_url('/');
+    $locale    = 'fr_FR';
+    $imageAlt  = 'LuziApi — apiculture artisanale et miel récolté à Luzillé (Indre-et-Loire)';
 
-    if (is_front_page()) {
+    if (is_page('en')) {
+        $title    = 'Local honey from Luzillé, Loire Valley · ' . $site;
+        $desc     = 'Artisanal honey harvested, extracted and jarred in Luzillé, Loire Valley. Collection by appointment and free delivery in Luzillé or Bléré.';
+        $url      = (string) get_permalink();
+        $locale   = 'en_GB';
+        $imageAlt = 'LuziApi — artisanal honey harvested in Luzillé, Loire Valley';
+    } elseif (is_front_page()) {
         $title = $site . ' · Miel artisanal à Luzillé (Indre-et-Loire)';
         $desc  = 'Miel artisanal récolté, extrait et mis en pot à Luzillé (37) par Anthony Graule : printemps, acacia, châtaignier, tournesol. Vente directe et livraison gratuite à Luzillé et Bléré.';
     } elseif (is_singular()) {
@@ -76,7 +95,7 @@ add_action('wp_head', static function (): void {
 
     echo "\n<!-- LuziApi SEO -->\n";
     printf('<meta name="description" content="%s">' . "\n", esc_attr($desc));
-    printf('<meta property="og:locale" content="%s">' . "\n", 'fr_FR');
+    printf('<meta property="og:locale" content="%s">' . "\n", esc_attr($locale));
     printf('<meta property="og:type" content="%s">' . "\n", esc_attr($type));
     printf('<meta property="og:site_name" content="%s">' . "\n", esc_attr($site));
     printf('<meta property="og:title" content="%s">' . "\n", esc_attr($title));
@@ -87,7 +106,7 @@ add_action('wp_head', static function (): void {
         echo '<meta property="og:image:width" content="1200">' . "\n";
         echo '<meta property="og:image:height" content="630">' . "\n";
     }
-    printf('<meta property="og:image:alt" content="%s">' . "\n", esc_attr('LuziApi — apiculture artisanale et miel récolté à Luzillé (Indre-et-Loire)'));
+    printf('<meta property="og:image:alt" content="%s">' . "\n", esc_attr($imageAlt));
     printf('<meta name="twitter:image" content="%s">' . "\n", esc_url($image));
     echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
     echo '<meta property="fb:app_id" content="1887284285302068">' . "\n";

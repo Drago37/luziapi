@@ -3,7 +3,7 @@
 
 {# Bouton de langue, rond, en haut à gauche (FR sur la page anglaise, EN ailleurs) #}
 {% if function('is_page', 'en') %}
-<a class="lang-fab" href="{{ home }}" aria-label="Voir le site en français" title="Français">
+<a class="lang-fab" href="{{ home }}" aria-label="View the site in French" title="French">
     <span aria-hidden="true">🇫🇷</span><span class="ll">FR</span>
 </a>
 {% else %}
@@ -12,21 +12,21 @@
 </a>
 {% endif %}
 
-<div class="fab" aria-label="Accès rapide">
+<div class="fab" aria-label="{{ is_english_page ? 'Quick access' : 'Accès rapide' }}">
     <div class="fab-group fab-group-sos">
-        <a class="fab-sos" href="{{ home }}recuperation-essaims/" aria-label="SOS essaim : récupération gratuite d'un essaim d'abeilles">
+        <a class="fab-sos" href="{{ home }}recuperation-essaims/" aria-label="{{ is_english_page ? 'Bee swarm SOS: free collection (page in French)' : "SOS essaim : récupération gratuite d'un essaim d'abeilles" }}">
             <span class="fab-sos-ic" aria-hidden="true">🐝</span>
-            <span class="label">SOS&nbsp;Essaim</span>
+            <span class="label">{{ is_english_page ? 'Swarm&nbsp;SOS' : 'SOS&nbsp;Essaim' }}</span>
         </a>
     </div>
     <div class="fab-group">
-        <a href="{{ home }}#contact" aria-label="Aller au formulaire de contact">
+        <a href="{{ is_english_page ? '#contact' : home ~ '#contact' }}" aria-label="{{ is_english_page ? 'Go to the contact form' : 'Aller au formulaire de contact' }}">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 7L4 7v1l8 5 8-5V7l-8 5z"/></svg>
             <span class="label">Contact</span>
         </a>
-        <a class="fab-subscribe" href="{{ home }}#newsletter" aria-label="S'abonner à la newsletter">
+        <a class="fab-subscribe" href="{{ home }}#newsletter" aria-label="{{ is_english_page ? 'Subscribe to the newsletter (form in French)' : "S'abonner à la newsletter" }}">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-            <span class="label">S'abonner</span>
+            <span class="label">{{ is_english_page ? 'Subscribe' : "S'abonner" }}</span>
         </a>
     </div>
     <div class="fab-group">
@@ -37,7 +37,7 @@
         </a>
         {% endif %}
         {% if contact.instagram %}
-        <a class="fab-ig" href="{{ contact.instagram }}" target="_blank" rel="noopener" aria-label="Compte Instagram">
+        <a class="fab-ig" href="{{ contact.instagram }}" target="_blank" rel="noopener" aria-label="{{ is_english_page ? 'Instagram account' : 'Compte Instagram' }}">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.62c-3.15 0-3.52.01-4.76.07-1.15.05-1.77.24-2.19.41-.55.21-.94.47-1.35.88-.41.41-.67.8-.88 1.35-.17.42-.36 1.04-.41 2.19-.06 1.24-.07 1.61-.07 4.76s.01 3.52.07 4.76c.05 1.15.24 1.77.41 2.19.21.55.47.94.88 1.35.41.41.8.67 1.35.88.42.17 1.04.36 2.19.41 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c1.15-.05 1.77-.24 2.19-.41.55-.21.94-.47 1.35-.88.41-.41.67-.8.88-1.35.17-.42.36-1.04.41-2.19.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.05-1.15-.24-1.77-.41-2.19a3.63 3.63 0 0 0-.88-1.35 3.63 3.63 0 0 0-1.35-.88c-.42-.17-1.04-.36-2.19-.41-1.24-.06-1.61-.07-4.76-.07zm0 4.13a5.09 5.09 0 1 1 0 10.18 5.09 5.09 0 0 1 0-10.18zm0 1.62a3.47 3.47 0 1 0 0 6.94 3.47 3.47 0 0 0 0-6.94zm5.23-1.07a1.19 1.19 0 1 1-2.38 0 1.19 1.19 0 0 1 2.38 0z"/></svg>
             <span class="label">Instagram</span>
         </a>
