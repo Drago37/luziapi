@@ -195,6 +195,9 @@ Tout refuser / Personnaliser). Le crédit « Propulsé par » est masqué en CSS
   fichiers **hebdomadaires**, rétention **7**.
 - ⚠️ **Stockage distant non connecté** — c'est à l'utilisateur de lier son Google Drive (OAuth,
   Réglages → UpdraftPlus) et de lancer la première sauvegarde.
+- Vérification du 6 septembre 2026 : **aucune archive de base UpdraftPlus n'est encore présente**
+  sur le serveur. La planification seule ne constitue donc pas encore une sauvegarde récupérable ;
+  lancer et contrôler la première sauvegarde reste nécessaire.
 - Côté hébergeur : sauvegardes automatiques o2switch (**JetBackup**) dans le cPanel, à vérifier
   par l'utilisateur.
 
