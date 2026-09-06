@@ -39,6 +39,8 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   vraies photos quand elles existeront.
 - **Parcours d'achat mixte** : accueil = vitrine (« Voir le miel » → fiche, pas d'ajout direct) ;
   boutique = ajout AJAX (on reste sur place) ; fiche = ajout standard.
+- La boutique conserve l'ordre défini des quatre miels et n'affiche plus le sélecteur de tri
+  WooCommerce, retiré le 7 septembre 2026 car inutile sur ce catalogue réduit.
 - Administration sous WooCommerce 10.8.1 avec **HPOS activé** (vérifié le 6 septembre 2026) :
   contournement dans `inc/woocommerce.php` du problème de clic sur les cases de la liste des
   commandes. Il couvre l'écran HPOS et l'écran historique sans retirer l'ouverture d'une commande

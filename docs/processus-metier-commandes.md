@@ -77,6 +77,8 @@ flowchart TD
 
 - Depuis l'accueil, « Voir le miel » ouvre la fiche produit ; l'accueil ne fait pas d'ajout direct.
 - Depuis la boutique, l'ajout au panier est réalisé en AJAX, sans changement de page.
+- Les quatre produits conservent leur ordre défini dans WooCommerce ; le sélecteur de tri est
+  masqué car il n'apporte rien sur ce catalogue réduit.
 - Depuis une fiche produit, l'ajout suit le fonctionnement WooCommerce standard.
 - Le mini-panier et son compteur sont rafraîchis en AJAX.
 - Le client peut commander sans créer de compte.

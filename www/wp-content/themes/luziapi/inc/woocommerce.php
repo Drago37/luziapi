@@ -64,6 +64,9 @@ add_action('woocommerce_after_main_content', static function (): void {
 // Nombre de produits par ligne dans la boutique.
 add_filter('loop_shop_columns', static fn (): int => 4);
 
+// Quatre produits seulement : conserver leur ordre défini et masquer le tri.
+remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
+
 // Ruban d'indisponibilité sur la vignette produit dans la boutique.
 add_action('woocommerce_before_shop_loop_item_title', static function (): void {
     global $product;
