@@ -2,6 +2,8 @@
 # .env est versionné (valeurs par défaut, sans secret) ; seuls les overrides locaux sont ignorés.
 .env.local
 .env.*.local
+# Identité de test e2e (données personnelles) — jamais versionnée.
+/www/wp-content/themes/luziapi/tools/.e2e-identity.json
 *.log
 .DS_Store
 Thumbs.db

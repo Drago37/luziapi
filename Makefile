@@ -34,7 +34,7 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .DEFAULT_GOAL := help
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
-        cs cs-check stan qa deploy deploy-dry deploy-check
+        cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -62,6 +62,12 @@ install: env up wait composer wp-install theme plugins fixtures ## Installe tout
 
 fixtures: ## Charge le contenu de démo (4 miels + actualités, devise EUR) — idempotent
 	$(DC) run --rm wpcli wp eval-file $(THEME)/tools/fixtures.php --user=admin
+
+e2e-local: ## Joue le test e2e des commandes en local (identité : tools/.e2e-identity.json)
+	$(DC) run --rm -e LUZIAPI_E2E_PAYLOAD wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orders.php';" --user=admin
+
+e2e-clean: ## Supprime toute trace de commande/produit de test e2e resté en base
+	$(DC) run --rm -e LUZIAPI_E2E_PAYLOAD='{"options":{"cleanup_only":true}}' wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orders.php';" --user=admin
 
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."
