@@ -1,9 +1,8 @@
 # Processus métier — vente et traitement des commandes de miel
 
-> **État de la production relevé et mis à jour le 6 septembre 2026.** Ce document décrit le
-> fonctionnement réellement configuré à cette date. Les fonctions CGV et rétractation décrites
-> comme « préparées en local » correspondent au rendu du 7 septembre 2026 et ne sont pas encore
-> publiées. Le document distingue les automatismes WooCommerce des opérations manuelles.
+> **État de la production relevé et mis à jour le 7 septembre 2026.** Ce document décrit le
+> fonctionnement réellement configuré à cette date. Il distingue les automatismes WooCommerce
+> des opérations manuelles.
 
 ## 1. Périmètre et socle
 
@@ -20,9 +19,9 @@ La production utilise :
 - uniquement des paiements hors ligne ;
 - les e-mails transactionnels natifs de WordPress/o2switch, pas Brevo.
 
-La mise en service du processus de livraison/retrait n'a lu aucune commande ni donnée client et
-n'a envoyé aucun e-mail. Les fonctions légales ajoutées ensuite ont été vérifiées uniquement en
-local avec une commande entièrement fictive et un dispositif bloquant tout e-mail sortant.
+La mise en service du processus de livraison/retrait et des fonctions légales n'a lu aucune
+commande ni donnée client de production et n'a envoyé aucun e-mail réel. Le parcours complet a été
+vérifié en local avec une commande entièrement fictive avant son déploiement.
 
 ## 2. Vue d'ensemble
 
@@ -145,8 +144,8 @@ Règles d'affichage et de vente :
 - Les notes de commande utilisent le comportement WooCommerce par défaut, donc elles sont
   disponibles au client.
 - Une politique de confidentialité est associée au site.
-- **Aucune page de conditions générales de vente n'est associée à WooCommerce** : aucune case
-  d'acceptation des CGV n'est donc imposée par le tunnel.
+- La page **Conditions générales de vente (#108)** est associée à WooCommerce. La case
+  d'acceptation est obligatoire et décochée par défaut dans le tunnel.
 
 La page « Mon compte » existe, mais elle sert essentiellement aux comptes déjà créés ou créés
 manuellement puisque l'inscription publique est coupée.

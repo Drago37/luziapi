@@ -84,13 +84,14 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   retrait ou de la livraison — espèces ou chèque ». Le moyen « Chèque » séparé est désactivé :
   aucun chèque n'est envoyé, il est accepté uniquement au moment de la remise.
   PayPal : plugin désactivé **puis fichiers supprimés**.
-- Aucune page CGV n'est encore publiée ni associée au checkout en production. La version du
-  7 septembre 2026 est préparée et testée uniquement en local dans [`projet-cgv.md`](projet-cgv.md),
-  avec l'adhésion CM2C, mais attend encore la validation visuelle de l'utilisateur avant publication.
+- Les CGV versionnées du 7 septembre 2026 sont publiées, associées au checkout et documentées dans
+  [`projet-cgv.md`](projet-cgv.md). L'adhésion CM2C est active.
 
-### CGV et rétractation préparées en local — non déployées
+### CGV et rétractation — déployées le 7 septembre 2026
 
-- page `/conditions-generales-de-vente/` dans le design du thème et PDF immuable associé ;
+- page **Conditions générales de vente (#108)** à `/conditions-generales-de-vente/`, dans le design
+  du thème, et PDF immuable associé ;
+- page **Exercer mon droit de rétractation (#109)** à `/retractation/` ;
 - lien dans le footer français et anglais, le checkout, les e-mails et les détails de commande ;
 - case d'acceptation WooCommerce obligatoire et décochée, avec le bouton
   « Commander avec obligation de paiement » ;

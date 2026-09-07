@@ -1,6 +1,6 @@
 # Conditions générales de vente — source de travail LuziApi
 
-> Texte final proposé pour la version du 7 septembre 2026. Le rendu public versionné se trouve dans
+> Texte publié pour la version du 7 septembre 2026. Le rendu public versionné se trouve dans
 > `templates/page-conditions-generales-de-vente.twig` et sa copie durable dans
 > `assets/docs/LuziApi-CGV-2026-09-07.pdf`. Toute évolution doit modifier la date de version et
 > produire un nouveau PDF sans écraser les versions déjà acceptées par des clients.
