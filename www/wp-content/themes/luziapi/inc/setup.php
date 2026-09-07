@@ -142,7 +142,7 @@ add_action('wpcf7_contact_form', static function ($contactForm): void {
 
     $englishFormId = (int) get_option('luziapi_cf7_en_id');
     if ($englishFormId > 0 && $englishFormId === (int) $contactForm->id()) {
-        $contactForm->set_locale('en_US');
+        $contactForm->set_locale('en_GB');
     }
 });
 

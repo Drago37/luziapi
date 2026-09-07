@@ -23,7 +23,7 @@ add_filter('timber/context', static function (array $context): array {
         $context['cart_count'] = WC()->cart->get_cart_contents_count();
         $context['cart_url']   = wc_get_cart_url();
         $context['mini_cart'] = function_exists('luziapi_render_mini_cart')
-            ? luziapi_render_mini_cart($context['is_english_page'] ? 'en_US' : 'fr_FR')
+            ? luziapi_render_mini_cart($context['is_english_page'] ? 'en_GB' : 'fr_FR')
             : '';
     } else {
         $context['cart_count'] = 0;
