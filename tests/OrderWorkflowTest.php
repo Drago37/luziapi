@@ -56,4 +56,25 @@ final class OrderWorkflowTest extends TestCase
             ],
         ];
     }
+
+    public function testSevenBusinessDaysSkipWeekend(): void
+    {
+        $start = new DateTimeImmutable('2026-09-04 12:00:00', new DateTimeZone('Europe/Paris'));
+
+        self::assertSame('2026-09-15', luziapi_add_business_days($start, 7)->format('Y-m-d'));
+    }
+
+    public function testBusinessDaysSkipMayDay(): void
+    {
+        $start = new DateTimeImmutable('2026-04-30 12:00:00', new DateTimeZone('Europe/Paris'));
+
+        self::assertSame('2026-05-05', luziapi_add_business_days($start, 2)->format('Y-m-d'));
+    }
+
+    public function testBusinessDaysSkipAscension(): void
+    {
+        $start = new DateTimeImmutable('2026-05-13 12:00:00', new DateTimeZone('Europe/Paris'));
+
+        self::assertSame('2026-05-15', luziapi_add_business_days($start, 1)->format('Y-m-d'));
+    }
 }

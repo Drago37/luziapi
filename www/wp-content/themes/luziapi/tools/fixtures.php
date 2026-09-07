@@ -35,11 +35,14 @@ $find_by_title = static function (string $title, string $type): int {
 /* ------------------------------------------------------------------ */
 /*  Réglages WooCommerce : euros, format français « 10 € »            */
 /* ------------------------------------------------------------------ */
-WP_CLI::log('→ Réglages WooCommerce (EUR, format français)…');
+WP_CLI::log('→ Réglages WooCommerce (EUR, format et fuseau français)…');
 update_option('woocommerce_currency', 'EUR');
 update_option('woocommerce_currency_pos', 'right_space');
 update_option('woocommerce_price_num_decimals', 0);
 update_option('woocommerce_price_thousand_sep', ' ');
+update_option('timezone_string', 'Europe/Paris');
+update_option('date_format', 'd/m/Y');
+update_option('time_format', 'H:i');
 
 /* ------------------------------------------------------------------ */
 /*  Pages légales de la boutique                                     */
