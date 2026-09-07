@@ -62,3 +62,44 @@ if (!defined('ABSPATH')) {
 require __DIR__ . '/../prod-mu-plugins/luziapi-newsletter-autosend.php';
 require __DIR__ . '/../www/wp-content/themes/luziapi/inc/order-workflow.php';
 require __DIR__ . '/../www/wp-content/themes/luziapi/inc/payment-deadline.php';
+
+/*
+ * Stubs WooCommerce minimalistes : juste ce que les fonctions testées lisent sur
+ * une commande (moyen de paiement et méthodes d'expédition).
+ */
+if (!class_exists('WC_Order')) {
+    class WC_Order
+    {
+        /** @param list<Luziapi_Test_Shipping_Method> $shippingMethods */
+        public function __construct(
+            private string $paymentMethod = '',
+            private array $shippingMethods = []
+        ) {
+        }
+
+        public function get_payment_method(): string
+        {
+            return $this->paymentMethod;
+        }
+
+        /** @return list<Luziapi_Test_Shipping_Method> */
+        public function get_shipping_methods(): array
+        {
+            return $this->shippingMethods;
+        }
+    }
+}
+
+if (!class_exists('Luziapi_Test_Shipping_Method')) {
+    class Luziapi_Test_Shipping_Method
+    {
+        public function __construct(private string $methodId)
+        {
+        }
+
+        public function get_method_id(): string
+        {
+            return $this->methodId;
+        }
+    }
+}
