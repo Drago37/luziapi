@@ -81,6 +81,55 @@ add_filter('loop_shop_columns', static fn (): int => 4);
 // Quatre produits seulement : conserver leur ordre défini et masquer le tri.
 remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
 
+/**
+ * Masque le champ « code promo » tant qu'aucun coupon publié et globalement
+ * utilisable n'existe. Il réapparaît automatiquement lors d'une campagne.
+ */
+function luziapi_has_usable_coupon(): bool
+{
+    static $hasUsableCoupon = null;
+
+    if (null !== $hasUsableCoupon) {
+        return $hasUsableCoupon;
+    }
+
+    $hasUsableCoupon = false;
+    $couponIds       = get_posts([
+        'post_type'      => 'shop_coupon',
+        'post_status'    => 'publish',
+        'posts_per_page' => 50,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+    ]);
+
+    foreach ($couponIds as $couponId) {
+        $coupon  = new \WC_Coupon((int) $couponId);
+        $expires = $coupon->get_date_expires();
+        $limit   = $coupon->get_usage_limit();
+
+        if ($expires && $expires->getTimestamp() < time()) {
+            continue;
+        }
+
+        if ($limit > 0 && $coupon->get_usage_count() >= $limit) {
+            continue;
+        }
+
+        $hasUsableCoupon = true;
+        break;
+    }
+
+    return $hasUsableCoupon;
+}
+
+add_filter('woocommerce_coupons_enabled', static function (bool $enabled): bool {
+    if (! $enabled || (is_admin() && ! wp_doing_ajax())) {
+        return $enabled;
+    }
+
+    return luziapi_has_usable_coupon();
+});
+
 // Ruban d'indisponibilité sur la vignette produit dans la boutique.
 add_action('woocommerce_before_shop_loop_item_title', static function (): void {
     global $product;

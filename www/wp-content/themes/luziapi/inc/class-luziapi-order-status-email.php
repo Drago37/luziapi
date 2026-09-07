@@ -89,6 +89,27 @@ final class Luziapi_Order_Status_Email extends \WC_Email
             $this->placeholders['{order_number}'] = $order->get_order_number();
         }
 
+        if ($this->object instanceof \WC_Order
+            && in_array($this->message, ['out_for_delivery', 'ready_for_pickup'], true)
+            && function_exists('luziapi_order_status_matches_fulfillment')
+            && ! luziapi_order_status_matches_fulfillment($this->object, $this->message)) {
+            $this->object->add_order_note(
+                'E-mail client non envoyé : le statut choisi ne correspond pas au mode de remise de la commande.',
+                0
+            );
+            $this->restore_locale();
+
+            return;
+        }
+
+        if ('cancelled' === $this->message
+            && $this->object instanceof \WC_Order
+            && '' === trim((string) $this->object->get_meta('_luziapi_cancellation_reason'))) {
+            $this->restore_locale();
+
+            return;
+        }
+
         if ($this->is_enabled() && $this->get_recipient()) {
             $sent = $this->send(
                 $this->get_recipient(),
@@ -103,6 +124,22 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 && $this->object instanceof \WC_Order
                 && function_exists('luziapi_mark_cgv_copy_sent')) {
                 luziapi_mark_cgv_copy_sent($this->object);
+            }
+
+            if (in_array($this->message, ['payment_reminder', 'cancelled'], true)
+                && $this->object instanceof \WC_Order) {
+                $labels = [
+                    'payment_reminder' => 'de rappel de règlement',
+                    'cancelled'        => 'd’annulation',
+                ];
+                $this->object->add_order_note(
+                    sprintf(
+                        'E-mail client %s %s.',
+                        $labels[$this->message],
+                        $sent ? 'envoyé' : 'non envoyé — échec du transport'
+                    ),
+                    0
+                );
             }
         }
 
@@ -122,9 +159,16 @@ final class Luziapi_Order_Status_Email extends \WC_Email
 
         switch ($this->message) {
             case 'on_hold':
+                $dueDate = function_exists('luziapi_payment_due_label')
+                    ? luziapi_payment_due_label($this->object)
+                    : '';
+
                 return [
                     sprintf('J’ai bien reçu votre commande n°%s. Elle est actuellement en attente de confirmation du règlement.', $orderNumber),
-                    'Sa préparation commencera dès que le paiement aura été confirmé.',
+                    '' !== $dueDate
+                        ? sprintf('Le règlement par virement bancaire ou WERO doit être reçu au plus tard le %s inclus, soit sous 7 jours ouvrés.', $dueDate)
+                        : 'Le règlement par virement bancaire ou WERO doit être reçu sous 7 jours ouvrés.',
+                    'Sa préparation commencera dès que le paiement aura été confirmé. Sans règlement dans ce délai, la commande sera annulée et les pots remis en stock.',
                 ];
 
             case 'processing':
@@ -153,6 +197,26 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                     'Merci pour votre commande et pour votre confiance.',
                     'À bientôt chez LuziApi !',
                 ];
+
+            case 'payment_reminder':
+                $dueDate = function_exists('luziapi_payment_due_label')
+                    ? luziapi_payment_due_label($this->object)
+                    : '';
+
+                return [
+                    sprintf('Je n’ai pas encore reçu le règlement de votre commande n°%s.', $orderNumber),
+                    '' !== $dueDate
+                        ? sprintf('Vous pouvez effectuer le virement bancaire ou le règlement WERO jusqu’au %s inclus.', $dueDate)
+                        : 'Vous pouvez encore effectuer le virement bancaire ou le règlement WERO.',
+                    'Sans règlement dans le délai prévu, la commande sera automatiquement annulée et les pots seront remis en stock.',
+                ];
+
+            case 'cancelled':
+                return [
+                    sprintf('Votre commande n°%s a été annulée.', $orderNumber),
+                    'Motif : ' . trim((string) $this->object->get_meta('_luziapi_cancellation_reason')),
+                    'Si un règlement avait déjà été reçu, je prendrai contact avec vous concernant son remboursement.',
+                ];
         }
 
         return [];
@@ -172,7 +236,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'message_lines'      => $this->get_message_lines(),
                 'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
                 'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
-                'cgv_version'        => defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '',
+                'cgv_version'        => $this->get_order_cgv_version(),
                 'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
             ],
             '',
@@ -194,12 +258,24 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'message_lines'      => $this->get_message_lines(),
                 'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
                 'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
-                'cgv_version'        => defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '',
+                'cgv_version'        => $this->get_order_cgv_version(),
                 'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
             ],
             '',
             $this->template_base
         );
+    }
+
+    private function get_order_cgv_version(): string
+    {
+        if ($this->object instanceof \WC_Order) {
+            $version = trim((string) $this->object->get_meta('_luziapi_cgv_version'));
+            if ('' !== $version) {
+                return $version;
+            }
+        }
+
+        return defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '';
     }
 }
 

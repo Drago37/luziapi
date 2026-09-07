@@ -39,6 +39,39 @@ function luziapi_is_local_delivery_destination(array $destination): bool
 }
 
 /**
+ * Retourne le mode de remise réellement enregistré dans la commande.
+ */
+function luziapi_order_fulfillment_mode(\WC_Order $order): string
+{
+    foreach ($order->get_shipping_methods() as $shippingItem) {
+        if ('free_shipping' === $shippingItem->get_method_id()) {
+            return 'delivery';
+        }
+
+        if ('local_pickup' === $shippingItem->get_method_id()) {
+            return 'pickup';
+        }
+    }
+
+    return 'unknown';
+}
+
+function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $status): bool
+{
+    $mode = luziapi_order_fulfillment_mode($order);
+
+    if ('out_for_delivery' === $status) {
+        return 'pickup' !== $mode;
+    }
+
+    if ('ready_for_pickup' === $status) {
+        return 'delivery' !== $mode;
+    }
+
+    return true;
+}
+
+/**
  * Affiche les deux modes convenus et masque réellement la livraison pour toute
  * autre destination. Le retrait reste disponible quelle que soit la commune.
  *
@@ -198,6 +231,10 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
         'WC_Email_Customer_Completed_Order' => [
             'woocommerce_order_status_completed_notification',
         ],
+        'WC_Email_Customer_Cancelled_Order' => [
+            'woocommerce_order_status_processing_to_cancelled_notification',
+            'woocommerce_order_status_on-hold_to_cancelled_notification',
+        ],
     ];
 
     foreach ($replacedEmails as $className => $hooks) {
@@ -258,6 +295,24 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
             'message'     => 'completed',
             'hooks'       => $replacedEmails['WC_Email_Customer_Completed_Order'],
         ],
+        'Luziapi_Email_Customer_Payment_Reminder' => [
+            'id'          => 'luziapi_customer_payment_reminder',
+            'title'       => 'LuziApi — Rappel de règlement',
+            'description' => 'Rappelle l’échéance d’une commande en attente de virement ou WERO.',
+            'subject'     => 'Rappel — règlement de votre commande LuziApi n°{order_number}',
+            'heading'     => 'Votre règlement est toujours en attente',
+            'message'     => 'payment_reminder',
+            'hooks'       => ['luziapi_bacs_payment_reminder_notification'],
+        ],
+        'Luziapi_Email_Customer_Cancelled' => [
+            'id'          => 'luziapi_customer_cancelled',
+            'title'       => 'LuziApi — Commande annulée',
+            'description' => 'Informe le client uniquement lorsqu’un motif d’annulation est renseigné.',
+            'subject'     => 'Votre commande LuziApi n°{order_number} a été annulée',
+            'heading'     => 'Votre commande a été annulée',
+            'message'     => 'cancelled',
+            'hooks'       => $replacedEmails['WC_Email_Customer_Cancelled_Order'],
+        ],
     ];
 
     foreach ($definitions as $className => $definition) {
@@ -266,3 +321,95 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
 
     return $emails;
 });
+
+/**
+ * Dans l'administration, rappelle le mode de remise et exige un motif avant
+ * toute annulation. Le contrôle côté e-mail reste actif pour les changements
+ * provenant d'une API ou d'une action groupée.
+ */
+add_action('woocommerce_admin_order_data_after_order_details', static function (\WC_Order $order): void {
+    $mode   = luziapi_order_fulfillment_mode($order);
+    $reason = (string) $order->get_meta('_luziapi_cancellation_reason');
+    $labels = [
+        'delivery' => 'Livraison gratuite à Luzillé ou Bléré sur rendez-vous',
+        'pickup'   => 'Retrait au domicile de LuziApi à Luzillé sur rendez-vous',
+        'unknown'  => 'Mode de remise non reconnu — vérification manuelle nécessaire',
+    ];
+    ?>
+    <div class="luziapi-order-workflow" data-fulfillment="<?php echo esc_attr($mode); ?>" style="clear:both;padding-top:12px;">
+        <p><strong>Mode de remise LuziApi :</strong><br><?php echo esc_html($labels[$mode]); ?></p>
+        <p class="form-field form-field-wide">
+            <label for="luziapi_cancellation_reason"><strong>Motif d’annulation communiqué au client</strong></label>
+            <textarea id="luziapi_cancellation_reason" name="luziapi_cancellation_reason" rows="3" style="width:100%;"><?php echo esc_textarea($reason); ?></textarea>
+            <span class="description">Obligatoire avant de sélectionner « Annulée ». Ce texte sera repris dans l’e-mail client et tracé dans la commande.</span>
+        </p>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const box = document.querySelector('.luziapi-order-workflow');
+        const status = document.querySelector('#order_status');
+        const reason = document.querySelector('#luziapi_cancellation_reason');
+        if (!box || !status || !reason) return;
+
+        const incompatible = box.dataset.fulfillment === 'delivery'
+            ? 'wc-ready-for-pickup'
+            : (box.dataset.fulfillment === 'pickup' ? 'wc-out-for-delivery' : '');
+        const option = incompatible ? status.querySelector('option[value="' + incompatible + '"]') : null;
+        if (option && !option.selected) option.disabled = true;
+
+        const form = status.closest('form');
+        if (!form) return;
+        form.addEventListener('submit', function (event) {
+            if (status.value === 'wc-cancelled' && reason.value.trim() === '') {
+                event.preventDefault();
+                window.alert('Renseignez le motif d’annulation à communiquer au client avant d’annuler la commande.');
+                reason.focus();
+            }
+        });
+    });
+    </script>
+    <?php
+});
+
+// Le motif est sauvegardé avant la transition de statut afin que l'e-mail
+// transactionnel puisse le lire immédiatement.
+add_action('woocommerce_before_order_object_save', static function ($order): void {
+    if (! is_admin() || ! $order instanceof \WC_Order || ! isset($_POST['order_status'])) {
+        return;
+    }
+
+    $newStatus = sanitize_key(wp_unslash((string) $_POST['order_status']));
+    if ('wc-cancelled' !== $newStatus && 'cancelled' !== $newStatus) {
+        return;
+    }
+
+    $reason = isset($_POST['luziapi_cancellation_reason'])
+        ? sanitize_textarea_field(wp_unslash((string) $_POST['luziapi_cancellation_reason']))
+        : '';
+
+    if ('' === $reason) {
+        $order->delete_meta_data('_luziapi_cancellation_reason');
+
+        return;
+    }
+
+    $order->update_meta_data('_luziapi_cancellation_reason', $reason);
+}, 10, 1);
+
+add_action('woocommerce_order_status_cancelled', static function (int $orderId, $order = null): void {
+    if (! $order instanceof \WC_Order) {
+        $order = wc_get_order($orderId);
+    }
+
+    if (! $order instanceof \WC_Order) {
+        return;
+    }
+
+    $reason = trim((string) $order->get_meta('_luziapi_cancellation_reason'));
+    $order->add_order_note(
+        '' !== $reason
+            ? 'Motif d’annulation communiqué au client : ' . $reason
+            : 'Aucun e-mail d’annulation envoyé au client : le motif obligatoire est absent.',
+        0
+    );
+}, 20, 2);

@@ -10,7 +10,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const LUZIAPI_CGV_VERSION = '2026-09-07';
+const LUZIAPI_CGV_VERSION = '2026-09-07-v2';
 const LUZIAPI_CGV_PDF     = 'LuziApi-CGV-' . LUZIAPI_CGV_VERSION . '.pdf';
 
 /**
@@ -35,9 +35,17 @@ function luziapi_withdrawal_url(): string
     return luziapi_legal_page_url('retractation');
 }
 
-function luziapi_cgv_pdf_path(): string
+function luziapi_cgv_pdf_path(?\WC_Order $order = null): string
 {
-    return LUZIAPI_DIR . '/assets/docs/' . LUZIAPI_CGV_PDF;
+    $version = $order instanceof \WC_Order
+        ? trim((string) $order->get_meta('_luziapi_cgv_version'))
+        : '';
+
+    if ('' === $version || 1 !== preg_match('/^[a-zA-Z0-9._-]+$/', $version)) {
+        $version = LUZIAPI_CGV_VERSION;
+    }
+
+    return LUZIAPI_DIR . '/assets/docs/LuziApi-CGV-' . $version . '.pdf';
 }
 
 function luziapi_cgv_pdf_url(): string
@@ -55,6 +63,20 @@ add_filter('woocommerce_get_terms_and_conditions_checkbox_text', static function
         esc_url(luziapi_cgv_url())
     );
 });
+
+// Information contractuelle liée au recueil, même facultatif, du numéro de téléphone.
+add_filter('woocommerce_form_field', static function (
+    string $field,
+    string $key
+): string {
+    if ('billing_phone' !== $key || ! function_exists('is_checkout') || ! is_checkout()) {
+        return $field;
+    }
+
+    return $field
+        . '<p class="luziapi-phone-notice">Ce numéro sert uniquement au traitement de la commande et à l’organisation du rendez-vous. '
+        . 'Aucun démarchage téléphonique sans votre consentement préalable.</p>';
+}, 20, 2);
 
 // Le contenu complet est long : le lien ouvre la page dédiée au lieu d'afficher
 // l'extrait WordPress dans le petit panneau déroulant natif du checkout.
@@ -124,7 +146,7 @@ add_filter('woocommerce_email_attachments', static function (
         return $attachments;
     }
 
-    $path = luziapi_cgv_pdf_path();
+    $path = luziapi_cgv_pdf_path($object);
     if (is_readable($path)) {
         $attachments[] = $path;
     }
@@ -137,7 +159,7 @@ add_filter('woocommerce_email_attachments', static function (
  */
 function luziapi_mark_cgv_copy_sent(\WC_Order $order): void
 {
-    if (! is_readable(luziapi_cgv_pdf_path())) {
+    if (! is_readable(luziapi_cgv_pdf_path($order))) {
         return;
     }
 

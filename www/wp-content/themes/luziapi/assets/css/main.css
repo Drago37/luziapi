@@ -367,6 +367,7 @@ article.page{padding:28px 0 56px}
 .withdrawal-help a{color:var(--honey-deep)}
 .luziapi-order-legal{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);font-size:.9rem}
 .luziapi-order-legal a{color:var(--honey-deep)}
+.luziapi-phone-notice{margin:-6px 0 18px;font-size:.82rem;line-height:1.45;color:var(--muted)}
 .lz-hp{position:absolute!important;left:-9999px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
 @media(max-width:680px){.legal-summary ol{columns:1}.withdrawal-review dl div{grid-template-columns:1fr;gap:2px}}
 @media print{

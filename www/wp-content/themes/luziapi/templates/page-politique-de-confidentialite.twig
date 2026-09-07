@@ -1,0 +1,88 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<article class="page legal privacy-page">
+    <div class="wrap page-legal">
+        <header class="legal-head">
+            <span class="eyebrow">Vos données personnelles</span>
+            <h1>Politique de confidentialité</h1>
+            <p class="legal-version">Dernière mise à jour : 7 septembre 2026</p>
+            <p>Cette politique explique comment LuziApi collecte et utilise vos données personnelles.</p>
+        </header>
+
+        <div class="prose legal-prose">
+            <section>
+                <h2>1. Responsable du traitement</h2>
+                <p><strong>{{ contact.nom }} — LuziApi</strong><br>
+                {{ contact.adresse }}, {{ contact.cp_ville }}<br>
+                E-mail : <a href="mailto:{{ contact.email }}">{{ contact.email }}</a> ·
+                Téléphone : <a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a>.</p>
+            </section>
+
+            <section>
+                <h2>2. Données collectées</h2>
+                <ul>
+                    <li><strong>Contact :</strong> nom, e-mail, téléphone facultatif et contenu du message.</li>
+                    <li><strong>Commande :</strong> identité, coordonnées, produits commandés, paiement choisi, mode de remise et informations nécessaires à son suivi.</li>
+                    <li><strong>Preuve contractuelle :</strong> version des CGV acceptée et date de cette acceptation.</li>
+                    <li><strong>Rétractation :</strong> numéro de commande, adresse e-mail, produits concernés, référence, date et heure de la demande.</li>
+                    <li><strong>Newsletter et alertes SMS :</strong> e-mail et, si vous le choisissez, numéro de téléphone ainsi que la preuve de vos consentements.</li>
+                    <li><strong>Navigation :</strong> données techniques strictement nécessaires au fonctionnement et à la sécurité du site.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>3. Finalités et bases légales</h2>
+                <ul>
+                    <li>répondre aux demandes : intérêt légitime ou mesures précontractuelles ;</li>
+                    <li>gérer les commandes, paiements, rendez-vous, livraisons, rétractations et garanties : exécution du contrat et obligations légales ;</li>
+                    <li>conserver les preuves nécessaires : obligations légales et défense des droits de LuziApi ;</li>
+                    <li>envoyer les actualités par e-mail ou SMS : consentement, révocable à tout moment ;</li>
+                    <li>assurer la sécurité et le fonctionnement du site : intérêt légitime.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. Téléphone et prospection</h2>
+                <p>Le numéro fourni lors d’une commande sert uniquement à son traitement et à l’organisation du rendez-vous. Il n’autorise aucun démarchage commercial.</p>
+                <p>Toute prospection téléphonique nécessite votre consentement préalable, libre, spécifique et révocable, sauf lorsqu’un appel est directement lié à l’exécution d’un contrat en cours. Le consentement facultatif aux alertes SMS est recueilli séparément.</p>
+            </section>
+
+            <section>
+                <h2>5. Destinataires et prestataires</h2>
+                <p>Vos données ne sont jamais vendues. Elles sont accessibles à LuziApi et, dans la limite nécessaire à leurs missions, aux prestataires techniques agissant pour son compte :</p>
+                <ul>
+                    <li><strong>o2switch</strong>, hébergement du site et transport des e-mails transactionnels, en France ;</li>
+                    <li><strong>Brevo — Sendinblue SAS</strong>, gestion des abonnements et campagnes e-mail/SMS lorsque vous y avez consenti.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>6. Durées de conservation</h2>
+                <ul>
+                    <li>messages de contact : jusqu’à un an après le dernier échange ;</li>
+                    <li>données nécessaires aux commandes et pièces comptables : pendant la relation commerciale puis jusqu’à dix ans lorsque la loi l’impose ;</li>
+                    <li>preuves d’acceptation des CGV et demandes de rétractation : avec la commande correspondante, pendant la durée nécessaire au respect des obligations légales et à la défense des droits ;</li>
+                    <li>newsletter et alertes SMS : jusqu’au retrait du consentement ; les contacts inactifs sont réévalués ou supprimés au plus tard trois ans après leur dernier contact avec LuziApi.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>7. Vos droits</h2>
+                <p>Vous disposez, selon les conditions prévues par la réglementation, de droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité. Vous pouvez également retirer à tout moment un consentement donné.</p>
+                <p>Pour exercer vos droits, écrivez à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>. Vous pouvez introduire une réclamation auprès de la <a href="https://www.cnil.fr/" target="_blank" rel="noopener">CNIL</a>.</p>
+            </section>
+
+            <section>
+                <h2>8. Cookies et services externes</h2>
+                <p>Les cookies strictement nécessaires permettent notamment le fonctionnement de la session, du panier et des choix de consentement. Les éventuels cookies facultatifs ne sont déposés qu’après votre accord via le bandeau prévu à cet effet, où vous pouvez modifier vos choix.</p>
+            </section>
+
+            <section>
+                <h2>9. Sécurité</h2>
+                <p>Le site utilise HTTPS et des mesures techniques et organisationnelles raisonnables pour protéger les données contre l’accès, la modification ou la divulgation non autorisés.</p>
+            </section>
+        </div>
+    </div>
+</article>
+{% endblock %}

@@ -36,6 +36,10 @@ if ($post && $post->post_name === 'retractation') {
         : [];
 }
 
+if ($post && $post->post_name === 'politique-de-confidentialite') {
+    array_unshift($templates, 'page-politique-de-confidentialite.twig');
+}
+
 // Gabarit dédié pour la page anglaise (présentation pour les touristes).
 if ($post && $post->post_name === 'en') {
     array_unshift($templates, 'page-en.twig');
