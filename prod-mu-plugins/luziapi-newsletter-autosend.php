@@ -79,10 +79,7 @@ function luziapi_nl_send_for_post_id($post_id) {
     }
     $email = get_post_meta($post_id, '_luziapi_nl_email', true);
     $sms   = get_post_meta($post_id, '_luziapi_nl_sms', true);
-    // Repli si aucun choix enregistré (publication hors éditeur) : e-mail par défaut.
-    if ($email === '' && $sms === '') {
-        $email = '1';
-    }
+    // Aucun canal n'est implicite : sans choix enregistré, rien n'est envoyé.
     if ($email === '1' && !get_post_meta($post_id, '_luziapi_nl_sent', true)) {
         luziapi_nl_send_for_post($post);
     }
@@ -367,8 +364,8 @@ function luziapi_nl_metabox(WP_Post $post) {
     $sentE     = get_post_meta($post->ID, '_luziapi_nl_sent', true);
     $sentS     = get_post_meta($post->ID, '_luziapi_nl_sms_sent', true);
     $choiceSet = get_post_meta($post->ID, '_luziapi_nl_choice_set', true) === '1';
-    // Nouvel article : e-mail coché par défaut, SMS décoché.
-    $email = $choiceSet ? (get_post_meta($post->ID, '_luziapi_nl_email', true) === '1') : true;
+    // Nouvel article : aucun envoi sans choix explicite de l'auteur.
+    $email = $choiceSet ? (get_post_meta($post->ID, '_luziapi_nl_email', true) === '1') : false;
     $sms   = $choiceSet ? (get_post_meta($post->ID, '_luziapi_nl_sms', true) === '1') : false;
 
     echo '<p style="margin:0 0 .5em;color:#444;font-size:12px;">Envoyer cet article aux abonnés (~10 min après publication) :</p>';
