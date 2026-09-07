@@ -23,13 +23,13 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
 
 ## Scénarios
 
-| Clé | Scénario | Ce qui est vérifié |
-| --- | --- | --- |
-| `delivery` | Commande **livraison** (`free_shipping`), paiement à la remise | mode « delivery » ; e-mails confirmée → en cours de livraison → terminée ; **« prête au retrait » bloqué** ; version CGV estampillée |
-| `pickup` | Commande **retrait** (`local_pickup`) | mode « pickup » ; e-mail « prête au retrait » ; **« en cours de livraison » bloqué** |
-| `cancel` | **Annulation** pour non-paiement (virement/WERO `bacs`) | e-mail « en attente » ; 2 actions planifiées (rappel + expiration) ; rappel envoyé ; expiration → commande annulée + **stock remis** + e-mail d'annulation |
-| `paid_on_time` | Virement **payé à temps** | échéance planifiée à la mise en attente, puis **déprogrammée** au paiement |
-| `cancel_no_reason` | **Annulation manuelle sans motif** | e-mail d'annulation **non envoyé** + note « motif obligatoire absent » |
+| Clé                | Scénario                                                       | Ce qui est vérifié                                                                                                                                         |
+| ------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `delivery`         | Commande **livraison** (`free_shipping`), paiement à la remise | mode « delivery » ; e-mails confirmée → en cours de livraison → terminée ; **« prête au retrait » bloqué** ; PDF CGV joint au 1er e-mail                   |
+| `pickup`           | Commande **retrait** (`local_pickup`)                          | mode « pickup » ; e-mail « prête au retrait » ; **« en cours de livraison » bloqué**                                                                       |
+| `cancel`           | **Annulation** pour non-paiement (virement/WERO `bacs`)        | e-mail « en attente » ; 2 actions planifiées (rappel + expiration) ; rappel envoyé ; expiration → commande annulée + **stock remis** + e-mail d'annulation |
+| `paid_on_time`     | Virement **payé à temps**                                      | échéance planifiée à la mise en attente, puis **déprogrammée** au paiement                                                                                 |
+| `cancel_no_reason` | **Annulation manuelle sans motif**                             | e-mail d'annulation **non envoyé** + note « motif obligatoire absent »                                                                                     |
 
 ## Identité et options (payload JSON)
 
@@ -49,12 +49,18 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
     "send_emails": false,
     "quantity": 2,
     "cleanup_only": false,
-    "scenarios": ["delivery", "pickup", "cancel", "paid_on_time", "cancel_no_reason"]
+    "scenarios": [
+      "delivery",
+      "pickup",
+      "cancel",
+      "paid_on_time",
+      "cancel_no_reason"
+    ]
   }
 }
 ```
 
-- `send_emails` : `false` = *dry-run* (e-mails journalisés mais **non expédiés**) ;
+- `send_emails` : `false` = _dry-run_ (e-mails journalisés mais **non expédiés**) ;
   `true` = e-mails **réellement envoyés** à l'adresse `identity.email`.
 - Pour le scénario `delivery`, `city` doit être **Luzillé** ou **Bléré** (37150) pour
   refléter la règle réelle de livraison locale.
@@ -72,6 +78,7 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
 
    > En local, l'envoi d'e-mails n'aboutit nulle part (pas de SMTP) : garder
    > `send_emails: false`. Le local sert à valider **la logique et le nettoyage**.
+
 4. Purger d'éventuels résidus : `make e2e-clean`.
 
 ## Lancer en prod (FTPS + jeton HTTPS)
@@ -80,18 +87,32 @@ L'accès prod se fait sans SSH, par script à jeton (voir
 [prod-o2switch.md](prod-o2switch.md) et [AGENTS.md](../AGENTS.md) § 4). En prod, mettre
 `send_emails: true` pour **recevoir réellement** les e-mails de test (~12 par run complet).
 
-1. Injecter un jeton à usage unique dans une copie du script (remplacer
-   `REPLACE_WITH_TOKEN`), la déposer en FTPS dans `tools/`.
-2. Appeler en HTTPS en **POST** (le payload passe par le corps, jamais par l'URL, pour
-   ne pas laisser de données personnelles dans les logs d'accès) :
+Le compte FTP est chrooté sur le thème, sans dossier `tools/` en prod, et o2switch
+filtre les POST vers un PHP du thème (404). On dépose donc le script **à la racine du
+thème** et on **embarque le payload en base64** dans le script (aucune donnée
+personnelle dans l'URL ni les logs d'accès), puis on appelle en **GET** :
+
+1. Injecter, dans une copie du script, le jeton à usage unique (à la place de
+   `REPLACE_WITH_TOKEN`) et le payload encodé (à la place de `B64PAYLOAD_PLACEHOLDER`),
+   par exemple :
 
    ```bash
-   curl -sS -X POST \
-     "https://www.luziapi.fr/wp-content/themes/luziapi/tools/e2e-orders.php?k=<JETON>" \
-     -H 'Content-Type: application/json' \
-     --data @tools/.e2e-identity.json
+   TOKEN=$(openssl rand -hex 16)
+   B64=$(base64 -w0 tools/.e2e-identity.json)
+   sed -e "s/REPLACE_WITH_TOKEN/$TOKEN/" -e "s#B64PAYLOAD_PLACEHOLDER#$B64#" \
+       tools/e2e-orders.php > /tmp/_e2e-orders.php
    ```
+
+2. Déposer `/tmp/_e2e-orders.php` en FTPS à la racine du thème (`put -O .`), puis
+   appeler en HTTPS :
+
+   ```bash
+   curl -sS "https://www.luziapi.fr/wp-content/themes/luziapi/_e2e-orders.php?k=$TOKEN"
+   ```
+
+   > À défaut de payload embarqué, le script lit aussi le corps d'une requête POST.
+
 3. Lire le JSON de résultat (`summary`, `results`, `mails_logged`, `cleanup`).
 4. **Supprimer le script** déposé (`rm` FTPS) et vérifier qu'il renvoie 404.
 
-En cas de doute sur un résidu, relancer en `cleanup_only: true`.
+En cas de doute sur un résidu, relancer avec `options.cleanup_only: true`.

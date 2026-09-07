@@ -35,14 +35,24 @@ if (! $isCli) {
     require $dir . '/wp-load.php';
 
     // Jeton injecté au déploiement (remplacé par sed). Sans remplacement, refus.
-    $expectedToken = 'REPLACE_WITH_TOKEN';
-    if ('REPLACE_WITH_TOKEN' === $expectedToken || ($_GET['k'] ?? '') !== $expectedToken) {
+    // Le témoin « non injecté » est reconstruit par concaténation pour que le sed,
+    // qui cherche la chaîne contiguë, ne le remplace pas lui aussi.
+    $expectedToken    = 'REPLACE_WITH_TOKEN';
+    $tokenNotInjected = ('REPLACE_' . 'WITH_TOKEN') === $expectedToken;
+    if ($tokenNotInjected || ($_GET['k'] ?? '') !== $expectedToken) {
         http_response_code(403);
         exit('forbidden');
     }
 
     header('Content-Type: application/json; charset=utf-8');
-    $rawPayload = (string) file_get_contents('php://input');
+
+    // Payload embarqué (base64 injecté au déploiement) prioritaire sur le corps
+    // POST : évite toute donnée personnelle dans l'URL ou les logs d'accès. Le
+    // marqueur par défaut n'est pas du base64 valide (caractère « _ »).
+    $embeddedPayload = base64_decode('B64PAYLOAD_PLACEHOLDER', true);
+    $rawPayload = is_string($embeddedPayload) && str_starts_with($embeddedPayload, '{')
+        ? $embeddedPayload
+        : (string) file_get_contents('php://input');
 }
 
 if ($isCli) {
