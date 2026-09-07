@@ -84,7 +84,7 @@ LuziApi ne demande jamais l'envoi d'un chèque par voie postale. Aucun paiement 
 n'est proposé sur le site.
 
 En cas de virement bancaire ou de règlement WERO, le paiement doit être reçu dans un délai de
-**sept jours ouvrés** à compter de la commande. Sont comptés les jours du lundi au vendredi, hors
+**dix jours ouvrés** à compter de la commande. Sont comptés les jours du lundi au vendredi, hors
 jours fériés en France métropolitaine. Un rappel est envoyé après cinq jours ouvrés. À défaut de
 règlement à l'expiration du délai, la commande est automatiquement annulée, le client en est
 informé et les pots sont remis en stock.

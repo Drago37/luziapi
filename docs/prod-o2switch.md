@@ -107,10 +107,11 @@ téléphone et la prospection, délai de règlement de 10 jours ouvrés avec rap
 e-mail d'annulation conditionné à un motif, contrôle du statut selon le mode de remise, fuseau
 Europe/Paris, politique de confidentialité enrichie et champ coupon masqué sans coupon utilisable.
 
-> **En attente :** le délai de règlement a été porté à **10 jours ouvrés** (rappel toujours à 5)
-> côté traitement et e-mails le 7 septembre 2026. La mise à jour du **texte public des CGV** et de
-> son **PDF** (millésime `2026-09-07-v2`) reste à déployer : elle attend la régénération du PDF avec
-> la nouvelle valeur. Le texte Twig modifié est prêt en local mais non publié.
+> **Délai de règlement porté à 10 jours ouvrés** (rappel toujours à 5) le 7 septembre 2026, sur
+> toute la chaîne : traitement, e-mails, **texte public des CGV** et **PDF** `2026-09-07-v2`
+> (régénéré et redéployé, l'ancien PDF « 7 jours » écrasé sur ce même millésime car aucune commande
+> client ne l'avait encore accepté). La feuille d'impression du thème masque désormais aussi les
+> boutons flottants (`.fab-group`) et le bandeau cookies, pour un PDF des CGV propre.
 
 ## Newsletter (Brevo)
 

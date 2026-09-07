@@ -371,7 +371,10 @@ article.page{padding:28px 0 56px}
 .lz-hp{position:absolute!important;left:-9999px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
 @media(max-width:680px){.legal-summary ol{columns:1}.withdrawal-review dl div{grid-template-columns:1fr;gap:2px}}
 @media print{
-  .no-print,.site-header,.site-footer,.sticky-actions,.lang-fab{display:none!important}
+  @page{margin:16mm 14mm}
+  .no-print,.site-header,.site-footer,.sticky-actions,.lang-fab,.fab-group,.fab{display:none!important}
+  /* Bandeau de consentement cookies (CookieAdmin) : jamais imprimé. */
+  [class*="cookieadmin" i],[id*="cookieadmin" i],[class*="cky" i],[id*="cky" i]{display:none!important}
   article.page{padding:0}
   .page-legal{max-width:none}
   .legal-head{max-width:none}
