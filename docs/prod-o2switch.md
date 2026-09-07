@@ -103,9 +103,14 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   hors du dépôt ; seules les coordonnées publiques nécessaires figurent dans les CGV.
 
 La **révision 2 est en production depuis le 7 septembre 2026** : nouvelle information sur le
-téléphone et la prospection, délai de règlement de 7 jours ouvrés avec rappel puis annulation,
+téléphone et la prospection, délai de règlement de 10 jours ouvrés avec rappel puis annulation,
 e-mail d'annulation conditionné à un motif, contrôle du statut selon le mode de remise, fuseau
 Europe/Paris, politique de confidentialité enrichie et champ coupon masqué sans coupon utilisable.
+
+> **En attente :** le délai de règlement a été porté à **10 jours ouvrés** (rappel toujours à 5)
+> côté traitement et e-mails le 7 septembre 2026. La mise à jour du **texte public des CGV** et de
+> son **PDF** (millésime `2026-09-07-v2`) reste à déployer : elle attend la régénération du PDF avec
+> la nouvelle valeur. Le texte Twig modifié est prêt en local mais non publié.
 
 ## Newsletter (Brevo)
 

@@ -162,12 +162,15 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 $dueDate = function_exists('luziapi_payment_due_label')
                     ? luziapi_payment_due_label($this->object)
                     : '';
+                $deadlineDays = defined('LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS')
+                    ? LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS
+                    : 10;
 
                 return [
                     sprintf('J’ai bien reçu votre commande n°%s. Elle est actuellement en attente de confirmation du règlement.', $orderNumber),
                     '' !== $dueDate
-                        ? sprintf('Le règlement par virement bancaire ou WERO doit être reçu au plus tard le %s inclus, soit sous 7 jours ouvrés.', $dueDate)
-                        : 'Le règlement par virement bancaire ou WERO doit être reçu sous 7 jours ouvrés.',
+                        ? sprintf('Le règlement par virement bancaire ou WERO doit être reçu au plus tard le %s inclus, soit sous %d jours ouvrés.', $dueDate, $deadlineDays)
+                        : sprintf('Le règlement par virement bancaire ou WERO doit être reçu sous %d jours ouvrés.', $deadlineDays),
                     'Sa préparation commencera dès que le paiement aura été confirmé. Sans règlement dans ce délai, la commande sera annulée et les pots remis en stock.',
                 ];
 

@@ -10,7 +10,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS      = 7;
+const LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS      = 10;
 const LUZIAPI_PAYMENT_REMINDER_BUSINESS_DAYS = 5;
 
 /**
@@ -104,7 +104,7 @@ function luziapi_payment_due_label(\WC_Order $order): string
 
 /**
  * Programme un rappel au cinquième jour ouvré et l'annulation à l'issue du
- * septième. Action Scheduler est privilégié car il est fourni par WooCommerce.
+ * dixième. Action Scheduler est privilégié car il est fourni par WooCommerce.
  */
 function luziapi_schedule_payment_deadline(int $orderId, $order = null): void
 {
