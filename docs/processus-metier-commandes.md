@@ -99,12 +99,12 @@ WooCommerce, ou le stock doit être corrigé séparément.
 Tous les produits sont des pots physiques simples de 1 kg. Le stock est suivi individuellement,
 les commandes en souffrance sont interdites et plusieurs pots identiques peuvent être commandés.
 
-| Produit | Prix | État constaté | Achat |
-|---|---:|---|---|
-| Miel de Printemps | 10 € | En stock | Autorisé |
-| Miel d'Acacia | 14 € | En stock | Autorisé |
-| Miel de Châtaignier | 12 € | Hors stock et « Récolte annulée » | Bloqué |
-| Miel de Tournesol | 11 € | En stock | Autorisé |
+| Produit             | Prix | État constaté                     | Achat    |
+| ------------------- | ---: | --------------------------------- | -------- |
+| Miel de Printemps   | 10 € | En stock                          | Autorisé |
+| Miel d'Acacia       | 14 € | En stock                          | Autorisé |
+| Miel de Châtaignier | 12 € | Hors stock et « Récolte annulée » | Bloqué   |
+| Miel de Tournesol   | 11 € | En stock                          | Autorisé |
 
 Informations produit communes et texte validé pour l'acacia :
 
@@ -158,9 +158,9 @@ enregistre obligatoirement l'un des deux choix suivants :
 Le panier n'affiche pas de calculateur de frais d'expédition : il ne ferait que demander une
 adresse alors que le choix réel est déterminé à l'étape de commande selon la commune saisie.
 
-| Choix affiché | Disponibilité | Organisation du rendez-vous |
-|---|---|---|
-| Retrait à mon domicile à Luzillé sur RDV | Toutes les commandes françaises | Lieu fixe ; LuziApi prend contact uniquement pour convenir du jour et de l'heure |
+| Choix affiché                                   | Disponibilité                                                  | Organisation du rendez-vous                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Retrait à mon domicile à Luzillé sur RDV        | Toutes les commandes françaises                                | Lieu fixe ; LuziApi prend contact uniquement pour convenir du jour et de l'heure     |
 | Livraison gratuite sur Luzillé ou Bléré sur RDV | Adresse en France, code postal 37150 et ville Bléré ou Luzillé | LuziApi prend contact pour convenir du jour et de l'heure à l'adresse de la commande |
 
 Le code postal 37150 étant partagé par plusieurs communes, la zone WooCommerce ne suffit pas à
@@ -177,10 +177,10 @@ choisi pour une livraison comme pour un retrait.
 
 ## 8. Moyens de paiement et statut initial
 
-| Moyen affiché au client | Statut initial normal | Effet métier |
-|---|---|---|
-| Virement bancaire ou WERO avant la remise | En attente | Attendre et vérifier le règlement manuellement |
-| Paiement lors du retrait ou de la livraison — espèces ou chèque | En cours | Préparer la commande ; le statut ne signifie pas que l'argent a déjà été encaissé |
+| Moyen affiché au client                                         | Statut initial normal | Effet métier                                                                      |
+| --------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| Virement bancaire ou WERO avant la remise                       | En attente            | Attendre et vérifier le règlement manuellement                                    |
+| Paiement lors du retrait ou de la livraison — espèces ou chèque | En cours              | Préparer la commande ; le statut ne signifie pas que l'argent a déjà été encaissé |
 
 Un compte bancaire BACS est configuré, sans que ses coordonnées soient reproduites dans ce dépôt.
 Aucune passerelle ne prend un paiement en ligne et aucune ne sait exécuter un remboursement par API.
@@ -191,18 +191,18 @@ au même titre que les espèces, et place immédiatement la commande en cours.
 
 ## 9. Cycle de vie des commandes
 
-| Statut | Signification opérationnelle | Stock | Action attendue |
-|---|---|---|---|
-| Brouillon | Statut enregistré par WooCommerce pour certains tunnels en blocs | Réservation possible | Normalement inutilisé ici, car le checkout est en shortcode classique |
-| Attente paiement | Commande créée mais paiement non traité | Réservé au maximum 60 min | Attendre le passage de la passerelle ou annuler |
-| En attente | Paiement hors ligne à vérifier | Décrémenté | Vérifier le virement/WERO ou le chèque, puis passer en cours |
-| En cours | Commande confirmée et à préparer | Décrémenté | Préparer les pots ; aucun rendez-vous n'est encore annoncé par cet e-mail |
-| En cours de livraison | Commande prête, livraison locale à organiser | Déjà décrémenté | Prendre contact pour fixer le jour et l'heure, puis livrer |
-| Prête au retrait | Commande prête au domicile de LuziApi | Déjà décrémenté | Prendre contact pour fixer uniquement le jour et l'heure du retrait |
-| Terminée | Commande effectivement livrée ou retirée | Déjà décrémenté | Plus d'action normale |
-| Échouée | Paiement déclaré en échec | Voir avertissement ci-dessous | Examiner puis annuler si la commande ne sera pas reprise |
-| Annulée | Commande abandonnée | Restauré si le stock avait été décrémenté | Informer le client si nécessaire, puis archiver |
-| Remboursée | Remboursement total saisi | Selon l'option choisie lors du remboursement | Vérifier que l'argent a réellement été rendu |
+| Statut                | Signification opérationnelle                                     | Stock                                        | Action attendue                                                           |
+| --------------------- | ---------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| Brouillon             | Statut enregistré par WooCommerce pour certains tunnels en blocs | Réservation possible                         | Normalement inutilisé ici, car le checkout est en shortcode classique     |
+| Attente paiement      | Commande créée mais paiement non traité                          | Réservé au maximum 60 min                    | Attendre le passage de la passerelle ou annuler                           |
+| En attente            | Paiement hors ligne à vérifier                                   | Décrémenté                                   | Vérifier le virement/WERO ou le chèque, puis passer en cours              |
+| En cours              | Commande confirmée et à préparer                                 | Décrémenté                                   | Préparer les pots ; aucun rendez-vous n'est encore annoncé par cet e-mail |
+| En cours de livraison | Commande prête, livraison locale à organiser                     | Déjà décrémenté                              | Prendre contact pour fixer le jour et l'heure, puis livrer                |
+| Prête au retrait      | Commande prête au domicile de LuziApi                            | Déjà décrémenté                              | Prendre contact pour fixer uniquement le jour et l'heure du retrait       |
+| Terminée              | Commande effectivement livrée ou retirée                         | Déjà décrémenté                              | Plus d'action normale                                                     |
+| Échouée               | Paiement déclaré en échec                                        | Voir avertissement ci-dessous                | Examiner puis annuler si la commande ne sera pas reprise                  |
+| Annulée               | Commande abandonnée                                              | Restauré si le stock avait été décrémenté    | Informer le client si nécessaire, puis archiver                           |
+| Remboursée            | Remboursement total saisi                                        | Selon l'option choisie lors du remboursement | Vérifier que l'argent a réellement été rendu                              |
 
 ### Points de vigilance sur le stock
 
@@ -237,11 +237,11 @@ Dans les objets :
 Ces trois notifications de commande sont activées et destinées à
 `luziapi37150@gmail.com`.
 
-| Nom WooCommerce | Déclencheur exact | Objet exact avant remplacement des variables |
-|---|---|---|
+| Nom WooCommerce   | Déclencheur exact                                                                               | Objet exact avant remplacement des variables                        |
+| ----------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Nouvelle commande | **Attente paiement**, **Échouée** ou **Annulée** → **En attente**, **En cours** ou **Terminée** | `[{site_title}] : Vous avez une nouvelle commande n°{order_number}` |
-| Commande annulée | **En attente** ou **En cours** → **Annulée** | `[{site_title}] : La commande n°{order_number} a été annulée` |
-| Commande échouée | **Attente paiement** ou **En attente** → **Échouée** | `[{site_title}] : La commande n°{order_number} a échoué` |
+| Commande annulée  | **En attente** ou **En cours** → **Annulée**                                                    | `[{site_title}] : La commande n°{order_number} a été annulée`       |
+| Commande échouée  | **Attente paiement** ou **En attente** → **Échouée**                                            | `[{site_title}] : La commande n°{order_number} a échoué`            |
 
 L'e-mail « Nouvelle commande » est normalement envoyé une seule fois par commande. WooCommerce
 enregistre le fait qu'il a déjà été envoyé et interdit sa répétition, sauf extension qui modifierait
@@ -249,18 +249,18 @@ explicitement ce comportement.
 
 ### E-mails automatiques envoyés au client
 
-| Nom WooCommerce | Déclencheur exact | Objet exact avant remplacement des variables | État |
-|---|---|---|---|
-| Commande en attente | **Attente paiement**, **Échouée** ou **Annulée** → **En attente** | `Commande LuziApi n°{order_number} reçue — règlement en attente` | Activé — modèle LuziApi |
-| Commande confirmée | **Attente paiement**, **Échouée**, **En attente** ou **Annulée** → **En cours** | `Votre commande LuziApi n°{order_number} est confirmée` | Activé — modèle LuziApi |
-| En cours de livraison | Toute entrée dans **En cours de livraison** | `Organisons la livraison de votre commande LuziApi n°{order_number}` | Activé — modèle LuziApi |
-| Prête au retrait | Toute entrée dans **Prête au retrait** | `Votre commande LuziApi n°{order_number} est prête au retrait` | Activé — modèle LuziApi |
-| Commande terminée | Toute entrée dans le statut **Terminée** | `Votre commande LuziApi n°{order_number} a bien été remise` | Activé — modèle LuziApi ; invitation newsletter/SMS avec lien vers le formulaire |
-| Commande échouée | Toute entrée dans le statut **Échouée** | `Votre commande {site_title} n’a pas abouti` | Activé |
-| Commande remboursée — total | Remboursement total réellement saisi dans WooCommerce | `Votre commande n°{order_number} sur {site_title} a été remboursée` | Activé |
-| Commande remboursée — partiel | Remboursement partiel réellement saisi dans WooCommerce | `Votre commande n°{order_number} sur {site_title} a été partiellement remboursée` | Activé |
-| Note client | Ajout d'une note avec l'option **Note au client** | `Une note a été ajoutée à votre commande depuis {site_title}` | Activé |
-| Commande annulée | **En attente** ou **En cours** → **Annulée** | `[{site_title}] : Votre commande nº {order_number} a été annulée.` | **Désactivé** |
+| Nom WooCommerce               | Déclencheur exact                                                               | Objet exact avant remplacement des variables                                      | État                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Commande en attente           | **Attente paiement**, **Échouée** ou **Annulée** → **En attente**               | `Commande LuziApi n°{order_number} reçue — règlement en attente`                  | Activé — modèle LuziApi                                                          |
+| Commande confirmée            | **Attente paiement**, **Échouée**, **En attente** ou **Annulée** → **En cours** | `Votre commande LuziApi n°{order_number} est confirmée`                           | Activé — modèle LuziApi                                                          |
+| En cours de livraison         | Toute entrée dans **En cours de livraison**                                     | `Organisons la livraison de votre commande LuziApi n°{order_number}`              | Activé — modèle LuziApi                                                          |
+| Prête au retrait              | Toute entrée dans **Prête au retrait**                                          | `Votre commande LuziApi n°{order_number} est prête au retrait`                    | Activé — modèle LuziApi                                                          |
+| Commande terminée             | Toute entrée dans le statut **Terminée**                                        | `Votre commande LuziApi n°{order_number} a bien été remise`                       | Activé — modèle LuziApi ; invitation newsletter/SMS avec lien vers le formulaire |
+| Commande échouée              | Toute entrée dans le statut **Échouée**                                         | `Votre commande {site_title} n’a pas abouti`                                      | Activé                                                                           |
+| Commande remboursée — total   | Remboursement total réellement saisi dans WooCommerce                           | `Votre commande n°{order_number} sur {site_title} a été remboursée`               | Activé                                                                           |
+| Commande remboursée — partiel | Remboursement partiel réellement saisi dans WooCommerce                         | `Votre commande n°{order_number} sur {site_title} a été partiellement remboursée` | Activé                                                                           |
+| Note client                   | Ajout d'une note avec l'option **Note au client**                               | `Une note a été ajoutée à votre commande depuis {site_title}`                     | Activé                                                                           |
+| Commande annulée              | **En attente** ou **En cours** → **Annulée**                                    | `[{site_title}] : Votre commande nº {order_number} a été annulée.`                | **Désactivé**                                                                    |
 
 Une note privée n'envoie pas l'e-mail « Note client ». Seule une note explicitement marquée
 **Note au client** le déclenche.
@@ -270,8 +270,8 @@ Une note privée n'envoie pas l'e-mail « Note client ». Seule une note explici
 L'action d'administration « Envoyer les détails de la commande / demander le paiement » adresse
 manuellement au client l'e-mail suivant :
 
-| Nom WooCommerce | Déclencheur | Objet exact |
-|---|---|---|
+| Nom WooCommerce        | Déclencheur                                                                    | Objet exact                                                 |
+| ---------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | Détails de la commande | Action manuelle depuis la commande ; jamais sur un simple changement de statut | `Détails pour la commande #{order_number} sur {site_title}` |
 
 Ce modèle est signalé `manual` par WooCommerce. Son indicateur technique `enabled` vaut donc
@@ -281,22 +281,22 @@ finaliser le paiement.
 
 ### Nombre d'e-mails par scénario courant
 
-| Scénario | E-mails effectivement déclenchés |
-|---|---|
-| Nouvelle commande par **virement / WERO** ou **chèque** | 2 : « Nouvelle commande » à LuziApi + « Commande en attente » au client |
-| Nouvelle commande avec **espèces ou chèque à la remise** | 2 : « Nouvelle commande » à LuziApi + « Commande en cours » au client |
-| Paiement vérifié : **En attente → En cours** | 1 : confirmation et mise en préparation au client |
-| Commande prête pour une livraison : **En cours → En cours de livraison** | 1 : prise de contact pour le jour et l'heure de livraison |
-| Commande prête au retrait : **En cours → Prête au retrait** | 1 : adresse fixe de retrait + prise de contact pour le jour et l'heure |
-| Commande remise : **En cours de livraison / Prête au retrait → Terminée** | 1 : confirmation de remise et remerciement au client |
-| **En attente / En cours → Annulée** | 1 : « Commande annulée » à LuziApi ; **aucun e-mail au client** |
-| **Attente paiement / En attente → Échouée** | 2 : « Commande échouée » à LuziApi + « Commande échouée » au client |
-| Autre statut → **Échouée** | 1 : « Commande échouée » au client ; pas de notification administrateur prévue par le modèle |
-| Remboursement partiel ou total saisi | 1 : e-mail de remboursement correspondant au client |
-| Note privée ajoutée | Aucun e-mail |
-| Note au client ajoutée | 1 : « Note client » au client |
-| Commande mise à la corbeille ou supprimée | Aucun e-mail dédié |
-| Statut enregistré sans changement | Aucun e-mail de changement de statut |
+| Scénario                                                                  | E-mails effectivement déclenchés                                                             |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Nouvelle commande par **virement / WERO** ou **chèque**                   | 2 : « Nouvelle commande » à LuziApi + « Commande en attente » au client                      |
+| Nouvelle commande avec **espèces ou chèque à la remise**                  | 2 : « Nouvelle commande » à LuziApi + « Commande en cours » au client                        |
+| Paiement vérifié : **En attente → En cours**                              | 1 : confirmation et mise en préparation au client                                            |
+| Commande prête pour une livraison : **En cours → En cours de livraison**  | 1 : prise de contact pour le jour et l'heure de livraison                                    |
+| Commande prête au retrait : **En cours → Prête au retrait**               | 1 : adresse fixe de retrait + prise de contact pour le jour et l'heure                       |
+| Commande remise : **En cours de livraison / Prête au retrait → Terminée** | 1 : confirmation de remise et remerciement au client                                         |
+| **En attente / En cours → Annulée**                                       | 1 : « Commande annulée » à LuziApi ; **aucun e-mail au client**                              |
+| **Attente paiement / En attente → Échouée**                               | 2 : « Commande échouée » à LuziApi + « Commande échouée » au client                          |
+| Autre statut → **Échouée**                                                | 1 : « Commande échouée » au client ; pas de notification administrateur prévue par le modèle |
+| Remboursement partiel ou total saisi                                      | 1 : e-mail de remboursement correspondant au client                                          |
+| Note privée ajoutée                                                       | Aucun e-mail                                                                                 |
+| Note au client ajoutée                                                    | 1 : « Note client » au client                                                                |
+| Commande mise à la corbeille ou supprimée                                 | Aucun e-mail dédié                                                                           |
+| Statut enregistré sans changement                                         | Aucun e-mail de changement de statut                                                         |
 
 Le passage manuel au seul statut **Remboursée** n'est pas équivalent à l'enregistrement d'un
 remboursement : c'est l'opération de remboursement WooCommerce, partielle ou totale, qui déclenche
@@ -304,17 +304,17 @@ le message correspondant.
 
 ### Autres modèles WooCommerce, hors traitement normal d'une commande
 
-| Modèle | Déclencheur / usage | Objet exact | État |
-|---|---|---|---|
-| Réinitialisation du mot de passe | Demande de réinitialisation d'un compte client | `Réinitialiser votre mot de passe pour {site_title}` | Activé |
-| Nouveau compte | Création d'un compte client | `Votre compte sur {site_title} a été créé` | Activé, mais inscription publique actuellement désactivée |
-| Passerelle de paiement activée | Activation d'un moyen de paiement dans l'administration | `[{site_title}] Passerelle de paiement « {gateway_title} » activée` | Activé ; notification technique administrateur |
-| Commande PDV terminée | Action manuelle liée au module point de vente | `Votre achat en boutique nº {order_number} auprès de LuziApi` | Désactivé |
-| Commande PDV remboursée | Action manuelle liée au module point de vente | `Votre commande nº {order_number} auprès de LuziApi a été remboursée` | Désactivé |
+| Modèle                           | Déclencheur / usage                                     | Objet exact                                                           | État                                                      |
+| -------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| Réinitialisation du mot de passe | Demande de réinitialisation d'un compte client          | `Réinitialiser votre mot de passe pour {site_title}`                  | Activé                                                    |
+| Nouveau compte                   | Création d'un compte client                             | `Votre compte sur {site_title} a été créé`                            | Activé, mais inscription publique actuellement désactivée |
+| Passerelle de paiement activée   | Activation d'un moyen de paiement dans l'administration | `[{site_title}] Passerelle de paiement « {gateway_title} » activée`   | Activé ; notification technique administrateur            |
+| Commande PDV terminée            | Action manuelle liée au module point de vente           | `Votre achat en boutique nº {order_number} auprès de LuziApi`         | Désactivé                                                 |
+| Commande PDV remboursée          | Action manuelle liée au module point de vente           | `Votre commande nº {order_number} auprès de LuziApi a été remboursée` | Désactivé                                                 |
 
 Les alertes de stock faible et de rupture sont également activées, mais elles ne sont pas des
-e-mails de commande. Elles partent vers une **autre adresse personnelle**, volontairement non
-reproduite ici. Seuil de stock faible : 2 ; seuil de rupture : 0.
+e-mails de commande. Elles partent vers l'adresse LuziApi. Seuil de stock faible : 5 ; seuil de
+rupture : 0.
 
 ### Conséquences opérationnelles
 
@@ -433,13 +433,13 @@ flowchart LR
 
 Ces points restent ouverts après la mise en place du workflow de remise.
 
-| Priorité | Constat | Risque / conséquence | Décision possible |
-|---|---|---|---|
-| Moyenne | Annulation client désactivée | Le client n'est pas prévenu automatiquement | Activer l'e-mail ou formaliser l'usage d'une note client |
-| Moyenne | Choix du statut de remise manuel | Risque de sélectionner « livraison » pour un retrait, ou inversement | Toujours vérifier la méthode enregistrée dans la commande |
-| Moyenne | Fuseau WordPress UTC et formats de date anglo-saxons | Horaires d'administration décalés ou ambigus | Régler Europe/Paris et des formats français |
-| Faible | Coupons autorisés mais inutilisés | Champ promo visible sans campagne | Conserver en prévision ou désactiver après décision |
-| Faible | Page Mon compte sans inscription publique | Utilité limitée pour les nouveaux clients | Assumer le parcours invité ou revoir la politique de compte |
+| Priorité | Constat                                              | Risque / conséquence                                                 | Décision possible                                           |
+| -------- | ---------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Moyenne  | Annulation client désactivée                         | Le client n'est pas prévenu automatiquement                          | Activer l'e-mail ou formaliser l'usage d'une note client    |
+| Moyenne  | Choix du statut de remise manuel                     | Risque de sélectionner « livraison » pour un retrait, ou inversement | Toujours vérifier la méthode enregistrée dans la commande   |
+| Moyenne  | Fuseau WordPress UTC et formats de date anglo-saxons | Horaires d'administration décalés ou ambigus                         | Régler Europe/Paris et des formats français                 |
+| Faible   | Coupons autorisés mais inutilisés                    | Champ promo visible sans campagne                                    | Conserver en prévision ou désactiver après décision         |
+| Faible   | Page Mon compte sans inscription publique            | Utilité limitée pour les nouveaux clients                            | Assumer le parcours invité ou revoir la politique de compte |
 
 ## 14. Mise en production et contrôles du workflow
 
@@ -468,13 +468,13 @@ flowchart LR
 
 ### E-mails actifs pour ce nouveau cycle
 
-| Statut | Objet | Information principale |
-|---|---|---|
-| En attente | `Commande LuziApi n°{order_number} reçue — règlement en attente` | Commande reçue ; préparation après confirmation du paiement |
-| En cours | `Votre commande LuziApi n°{order_number} est confirmée` | Commande confirmée et mise en préparation, sans prise de rendez-vous à ce stade |
-| En cours de livraison | `Organisons la livraison de votre commande LuziApi n°{order_number}` | Prise de contact pour convenir du jour et de l'heure à l'adresse de livraison |
-| Prête au retrait | `Votre commande LuziApi n°{order_number} est prête au retrait` | Retrait au domicile de LuziApi ; prise de contact uniquement pour le jour et l'heure |
-| Terminée | `Votre commande LuziApi n°{order_number} a bien été remise` | Confirmation de remise, puis invitation à s'abonner aux actualités et alertes de récolte par newsletter et/ou SMS |
+| Statut                | Objet                                                                | Information principale                                                                                            |
+| --------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| En attente            | `Commande LuziApi n°{order_number} reçue — règlement en attente`     | Commande reçue ; préparation après confirmation du paiement                                                       |
+| En cours              | `Votre commande LuziApi n°{order_number} est confirmée`              | Commande confirmée et mise en préparation, sans prise de rendez-vous à ce stade                                   |
+| En cours de livraison | `Organisons la livraison de votre commande LuziApi n°{order_number}` | Prise de contact pour convenir du jour et de l'heure à l'adresse de livraison                                     |
+| Prête au retrait      | `Votre commande LuziApi n°{order_number} est prête au retrait`       | Retrait au domicile de LuziApi ; prise de contact uniquement pour le jour et l'heure                              |
+| Terminée              | `Votre commande LuziApi n°{order_number} a bien été remise`          | Confirmation de remise, puis invitation à s'abonner aux actualités et alertes de récolte par newsletter et/ou SMS |
 
 Contrôles réalisés lors de la mise en service, sans créer de commande ni envoyer d'e-mail :
 

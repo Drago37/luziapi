@@ -1,11 +1,13 @@
 # Conditions générales de vente — source de travail LuziApi
 
-> Texte publié pour la version du 7 septembre 2026. Le rendu public versionné se trouve dans
+> Révision 2 publiée le 7 septembre 2026. Le
+> rendu public versionné se trouve dans
 > `templates/page-conditions-generales-de-vente.twig` et sa copie durable dans
-> `assets/docs/LuziApi-CGV-2026-09-07.pdf`. Toute évolution doit modifier la date de version et
+> `assets/docs/LuziApi-CGV-2026-09-07-v2.pdf`. La version déjà publiée reste conservée dans
+> `assets/docs/LuziApi-CGV-2026-09-07.pdf`. Toute évolution doit modifier l'identifiant de version et
 > produire un nouveau PDF sans écraser les versions déjà acceptées par des clients.
 
-Version du projet : 7 septembre 2026.
+Version du projet : 7 septembre 2026 — révision 2.
 
 ## 1. Identité du vendeur
 
@@ -81,6 +83,12 @@ Le client choisit l'un des moyens proposés lors de la commande :
 LuziApi ne demande jamais l'envoi d'un chèque par voie postale. Aucun paiement par carte bancaire
 n'est proposé sur le site.
 
+En cas de virement bancaire ou de règlement WERO, le paiement doit être reçu dans un délai de
+**sept jours ouvrés** à compter de la commande. Sont comptés les jours du lundi au vendredi, hors
+jours fériés en France métropolitaine. Un rappel est envoyé après cinq jours ouvrés. À défaut de
+règlement à l'expiration du délai, la commande est automatiquement annulée, le client en est
+informé et les pots sont remis en stock.
+
 ## 8. Retrait et livraison
 
 ### Retrait
@@ -146,6 +154,11 @@ La responsabilité de LuziApi ne peut être engagée lorsqu'un retard ou une ine
 Les données recueillies lors d'une commande sont utilisées pour son traitement, le paiement, la
 prise de rendez-vous et le suivi de la relation client. Les inscriptions à la newsletter et aux
 alertes SMS reposent sur des consentements séparés et facultatifs.
+
+Le numéro de téléphone renseigné lors de la commande sert à son traitement et à l'organisation du
+retrait ou de la livraison. Conformément à l'article L. 223-2 du Code de la consommation, il est
+interdit de démarcher un consommateur par téléphone sans son consentement préalable, sauf
+sollicitation directement liée à l'exécution du contrat en cours.
 
 Les modalités d'exercice des droits d'accès, de rectification, d'effacement et d'opposition sont
 détaillées dans la politique de confidentialité du site.

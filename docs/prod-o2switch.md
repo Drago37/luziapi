@@ -102,6 +102,11 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
 - médiateur : CM2C, adhésion valable jusqu'au 7 septembre 2029. Les documents contractuels restent
   hors du dépôt ; seules les coordonnées publiques nécessaires figurent dans les CGV.
 
+La **révision 2 est en production depuis le 7 septembre 2026** : nouvelle information sur le
+téléphone et la prospection, délai de règlement de 7 jours ouvrés avec rappel puis annulation,
+e-mail d'annulation conditionné à un motif, contrôle du statut selon le mode de remise, fuseau
+Europe/Paris, politique de confidentialité enrichie et champ coupon masqué sans coupon utilisable.
+
 ## Newsletter (Brevo)
 
 Le plugin `mailin/sendinblue.php` est connecté et conservé pour les campagnes et les contacts,
