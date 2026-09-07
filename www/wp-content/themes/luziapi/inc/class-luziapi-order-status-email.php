@@ -90,13 +90,20 @@ final class Luziapi_Order_Status_Email extends \WC_Email
         }
 
         if ($this->is_enabled() && $this->get_recipient()) {
-            $this->send(
+            $sent = $this->send(
                 $this->get_recipient(),
                 $this->get_subject(),
                 $this->get_content(),
                 $this->get_headers(),
                 $this->get_attachments()
             );
+
+            if ($sent
+                && in_array($this->message, ['on_hold', 'processing'], true)
+                && $this->object instanceof \WC_Order
+                && function_exists('luziapi_mark_cgv_copy_sent')) {
+                luziapi_mark_cgv_copy_sent($this->object);
+            }
         }
 
         $this->restore_locale();
@@ -164,6 +171,9 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'email'              => $this,
                 'message_lines'      => $this->get_message_lines(),
                 'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
+                'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
+                'cgv_version'        => defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '',
+                'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
             ],
             '',
             $this->template_base
@@ -183,6 +193,9 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 'email'              => $this,
                 'message_lines'      => $this->get_message_lines(),
                 'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
+                'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
+                'cgv_version'        => defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '',
+                'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
             ],
             '',
             $this->template_base

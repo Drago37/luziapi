@@ -61,6 +61,20 @@ add_action('woocommerce_after_main_content', static function (): void {
     echo '</section></div>';
 }, 10);
 
+/**
+ * Rappelle que le panier ne bloque pas les petites quantités disponibles.
+ */
+function luziapi_stock_reservation_notice(): void
+{
+    echo '<div class="woocommerce-info luziapi-stock-reservation-notice" role="status">'
+        . '<strong>Important&nbsp;:</strong> l’ajout d’un produit au panier ne réserve pas le stock. '
+        . 'Les pots sont réservés uniquement après validation de la commande.'
+        . '</div>';
+}
+
+add_action('woocommerce_before_cart', 'luziapi_stock_reservation_notice', 5);
+add_action('woocommerce_before_checkout_form', 'luziapi_stock_reservation_notice', 5);
+
 // Nombre de produits par ligne dans la boutique.
 add_filter('loop_shop_columns', static fn (): int => 4);
 
@@ -181,7 +195,7 @@ function luziapi_render_mini_cart(string $locale = 'fr_FR'): string
 add_filter('woocommerce_add_to_cart_fragments', static function (array $fragments): array {
     $count = (function_exists('WC') && WC()->cart) ? WC()->cart->get_cart_contents_count() : 0;
 
-    foreach (['fr' => 'fr_FR', 'en' => 'en_US'] as $language => $locale) {
+    foreach (['fr' => 'fr_FR', 'en' => 'en_GB'] as $language => $locale) {
         $english = 'en' === $language;
         $stateClass = 'header-cart-state--' . $language;
         $bodyClass  = 'cart-dropdown__body--' . $language;

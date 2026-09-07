@@ -1,0 +1,179 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<article class="page legal legal-cgv">
+    <div class="wrap page-legal">
+        <header class="legal-head">
+            <span class="eyebrow">Boutique LuziApi</span>
+            <h1>Conditions générales de vente</h1>
+            <p class="legal-version">Version du 7 septembre 2026</p>
+            <p>Ces conditions encadrent les commandes de miel passées par des consommateurs sur la boutique LuziApi.</p>
+            <div class="legal-actions no-print">
+                {% if cgv_pdf_url %}<a class="btn btn-primary" href="{{ cgv_pdf_url }}" download>Télécharger les CGV en PDF</a>{% endif %}
+                {% if withdrawal_url %}<a class="btn btn-ghost" href="{{ withdrawal_url }}">Renoncer au contrat ici</a>{% endif %}
+            </div>
+        </header>
+
+        <nav class="legal-summary no-print" aria-label="Sommaire des conditions générales de vente">
+            <strong>Sommaire</strong>
+            <ol>
+                <li><a href="#identite">Identité du vendeur</a></li>
+                <li><a href="#objet">Objet et acceptation</a></li>
+                <li><a href="#produits">Produits</a></li>
+                <li><a href="#prix">Prix</a></li>
+                <li><a href="#commande">Commande et stock</a></li>
+                <li><a href="#paiement">Paiement</a></li>
+                <li><a href="#remise">Retrait et livraison</a></li>
+                <li><a href="#retractation">Rétractation</a></li>
+                <li><a href="#garanties">Garanties légales</a></li>
+                <li><a href="#responsabilite">Responsabilité</a></li>
+                <li><a href="#donnees">Données personnelles</a></li>
+                <li><a href="#mediation">Réclamations et médiation</a></li>
+            </ol>
+        </nav>
+
+        <div class="prose legal-prose">
+            <section id="identite">
+                <h2>1. Identité du vendeur</h2>
+                <p>
+                    La boutique LuziApi est exploitée par <strong>{{ contact.nom }}</strong>, entrepreneur individuel,<br>
+                    {{ contact.adresse }}, {{ contact.cp_ville }}.<br>
+                    SIREN : 811 203 314 · SIRET : 811 203 314 00026 · Code NAF : 0149Z — Élevage d’autres animaux.<br>
+                    Téléphone : <a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a> ·
+                    E-mail : <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>.<br>
+                    TVA non applicable, article 293 B du Code général des impôts.
+                </p>
+            </section>
+
+            <section id="objet">
+                <h2>2. Objet, champ d’application et acceptation</h2>
+                <p>Les présentes conditions générales de vente régissent les commandes de miel passées par un consommateur sur le site LuziApi, avec retrait au domicile du vendeur ou livraison locale.</p>
+                <p>Le client peut consulter, télécharger et imprimer les CGV avant sa commande. La validation de la commande nécessite de cocher la case par laquelle il reconnaît les avoir lues et acceptées. La version applicable est celle acceptée au moment de la commande ; son numéro est enregistré avec celle-ci et une copie est jointe au premier e-mail de confirmation.</p>
+            </section>
+
+            <section id="produits">
+                <h2>3. Produits</h2>
+                <p>Les caractéristiques essentielles de chaque miel, son conditionnement, son prix et sa disponibilité sont indiqués sur sa fiche produit. Les photographies présentent les produits aussi fidèlement que possible.</p>
+                <p>Le miel est un produit naturel : sa couleur, son goût et sa texture peuvent varier selon la récolte et évoluer avec la cristallisation. Ces variations naturelles ne constituent pas un défaut.</p>
+            </section>
+
+            <section id="prix">
+                <h2>4. Prix</h2>
+                <p>Les prix sont indiqués en euros. La TVA n’est pas applicable conformément à l’article 293 B du Code général des impôts. Le prix applicable est celui affiché lors de la validation de la commande.</p>
+                <p>La remise affichée sur le site, soit 1 € par pot à partir de deux pots commandés, est appliquée automatiquement lorsque ses conditions sont remplies. Le retrait est gratuit. La livraison est gratuite uniquement à Luzillé ou Bléré, selon les conditions de l’article 7.</p>
+            </section>
+
+            <section id="commande">
+                <h2>5. Commande, disponibilité et réservation du stock</h2>
+                <p>Le client sélectionne les produits, vérifie son panier, renseigne ses coordonnées, choisit le mode de remise et le mode de paiement, puis vérifie le récapitulatif avant de cliquer sur « Commander avec obligation de paiement ».</p>
+                <div class="legal-callout"><strong>L’ajout d’un produit au panier ne réserve pas le stock.</strong> Les pots sont réservés uniquement après validation effective de la commande.</div>
+                <p>Les produits sont proposés dans la limite des stocks et des récoltes disponibles. Si une indisponibilité est constatée après validation, LuziApi contacte le client afin de proposer une modification ou l’annulation. Toute somme déjà reçue pour un produit indisponible est remboursée.</p>
+                <p>LuziApi peut refuser ou annuler une commande pour un motif légitime, notamment en cas d’indisponibilité, de coordonnées manifestement erronées, de fraude ou d’absence de règlement lorsque le paiement préalable a été choisi.</p>
+            </section>
+
+            <section id="paiement">
+                <h2>6. Paiement</h2>
+                <p>Le client choisit l’un des moyens proposés :</p>
+                <ul>
+                    <li><strong>virement bancaire ou WERO avant la remise</strong> : la préparation commence après confirmation du règlement et aucun produit n’est remis avant son encaissement ;</li>
+                    <li><strong>paiement lors du retrait ou de la livraison</strong> : le règlement est effectué en espèces ou par chèque au moment de la remise.</li>
+                </ul>
+                <p>LuziApi ne demande jamais l’envoi d’un chèque par voie postale. Aucun paiement par carte bancaire n’est proposé.</p>
+            </section>
+
+            <section id="remise">
+                <h2>7. Retrait et livraison</h2>
+                <h3>Retrait sur rendez-vous</h3>
+                <p>Le retrait a lieu au domicile de LuziApi, <strong>{{ contact.adresse }}, {{ contact.cp_ville }}</strong>, uniquement sur rendez-vous. LuziApi contacte le client afin de convenir du jour et de l’heure ; le lieu est fixe.</p>
+                <h3>Livraison locale sur rendez-vous</h3>
+                <p>La livraison gratuite est proposée uniquement aux adresses situées à Luzillé ou Bléré (37150). LuziApi contacte le client afin de convenir du jour et de l’heure de livraison à l’adresse indiquée. Pour toute autre commune, seul le retrait à Luzillé est disponible.</p>
+                <h3>Délai maximal</h3>
+                <p>La remise intervient dans un délai maximal de <strong>14 jours calendaires</strong> à compter de la validation de la commande lorsque le paiement est prévu à la remise, ou à compter de la réception du règlement lorsque le virement bancaire ou WERO a été choisi. Une date ultérieure peut être convenue expressément avec le client.</p>
+                <p>Le client doit signaler rapidement toute erreur d’adresse ou indisponibilité au rendez-vous. Un nouveau rendez-vous est convenu si la remise ne peut avoir lieu. Les risques de perte ou d’endommagement sont transférés au client lors de la remise physique des produits.</p>
+            </section>
+
+            <section id="retractation">
+                <h2>8. Droit de rétractation</h2>
+                <p>Le consommateur dispose de quatorze jours à compter du jour où lui-même, ou un tiers désigné par lui autre que le transporteur, prend physiquement possession des produits pour exercer son droit de rétractation sans avoir à motiver sa décision.</p>
+                <p>La décision doit être adressée avant l’expiration du délai par une déclaration dénuée d’ambiguïté, par courrier, par e-mail à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>, au moyen du modèle figurant en annexe ou grâce à la fonctionnalité <a href="{{ withdrawal_url }}"><strong>« Renoncer au contrat ici »</strong></a>. Pour une demande en ligne, LuziApi transmet sans délai un accusé de réception par e-mail comprenant son contenu, sa date et son heure.</p>
+                <p>Les produits doivent être retournés à LuziApi, {{ contact.adresse }}, {{ contact.cp_ville }}, au plus tard quatorze jours après l’envoi de la décision de rétractation. Les frais directs de retour sont supportés par le client. Il est demandé de prendre contact avec LuziApi avant tout retour afin d’en organiser les modalités.</p>
+                <div class="legal-callout"><strong>État des pots retournés :</strong> pour des raisons d’hygiène et de protection de la santé, le droit de rétractation ne peut pas être exercé pour un pot descellé après sa remise. Seuls les pots en bon état, non ouverts et dont le scellement est intact peuvent être repris.</div>
+                <p>LuziApi rembourse les sommes dues au plus tard quatorze jours après avoir été informé de la décision. Le remboursement peut être différé jusqu’à récupération des produits ou jusqu’à la fourniture d’une preuve d’expédition, la date retenue étant celle du premier de ces faits. Il est effectué par le même moyen de paiement, sauf accord exprès pour un autre moyen sans frais pour le client.</p>
+            </section>
+
+            <section id="garanties">
+                <h2>9. Garanties légales</h2>
+                <p>LuziApi répond des défauts de conformité et des vices cachés dans les conditions prévues par la loi. Pour toute demande, le client peut écrire à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a> en décrivant le problème et, si possible, en joignant une photographie. La cristallisation ou une variation naturelle de couleur, de goût ou de texture ne constitue pas à elle seule un défaut.</p>
+                <div class="legal-guarantee">
+                    <p><strong>Garantie légale de conformité — encadré prévu par l’annexe à l’article D. 211-2 du Code de la consommation</strong></p>
+                    <p>Le consommateur dispose d’un délai de deux ans à compter de la délivrance du bien pour obtenir la mise en œuvre de la garantie légale de conformité en cas d’apparition d’un défaut de conformité. Durant ce délai, le consommateur n’est tenu d’établir que l’existence du défaut de conformité et non la date d’apparition de celui-ci.</p>
+                    <p>Lorsque le contrat de vente du bien prévoit la fourniture d’un contenu numérique ou d’un service numérique de manière continue pendant une durée supérieure à deux ans, la garantie légale est applicable à ce contenu numérique ou ce service numérique tout au long de la période de fourniture prévue. Durant ce délai, le consommateur n’est tenu d’établir que l’existence du défaut de conformité affectant le contenu numérique ou le service numérique et non la date d’apparition de celui-ci.</p>
+                    <p>La garantie légale de conformité emporte obligation pour le professionnel, le cas échéant, de fournir toutes les mises à jour nécessaires au maintien de la conformité du bien.</p>
+                    <p>La garantie légale de conformité donne au consommateur droit à la réparation ou au remplacement du bien dans un délai de trente jours suivant sa demande, sans frais et sans inconvénient majeur pour lui.</p>
+                    <p>Si le bien est réparé dans le cadre de la garantie légale de conformité, le consommateur bénéficie d’une extension de six mois de la garantie initiale.</p>
+                    <p>Si le consommateur demande la réparation du bien, mais que le vendeur impose le remplacement, la garantie légale de conformité est renouvelée pour une période de deux ans à compter de la date de remplacement du bien.</p>
+                    <p>Le consommateur peut obtenir une réduction du prix d’achat en conservant le bien ou mettre fin au contrat en se faisant rembourser intégralement contre restitution du bien, si :</p>
+                    <ol>
+                        <li>le professionnel refuse de réparer ou de remplacer le bien ;</li>
+                        <li>la réparation ou le remplacement intervient après un délai de trente jours ;</li>
+                        <li>la réparation ou le remplacement occasionne un inconvénient majeur pour le consommateur, notamment lorsque le consommateur supporte définitivement les frais de reprise ou d’enlèvement du bien non conforme, ou s’il supporte les frais d’installation du bien réparé ou de remplacement ;</li>
+                        <li>la non-conformité du bien persiste en dépit de la tentative de mise en conformité du vendeur restée infructueuse.</li>
+                    </ol>
+                    <p>Le consommateur a également droit à une réduction du prix du bien ou à la résolution du contrat lorsque le défaut de conformité est si grave qu’il justifie que la réduction du prix ou la résolution du contrat soit immédiate. Le consommateur n’est alors pas tenu de demander la réparation ou le remplacement du bien au préalable.</p>
+                    <p>Le consommateur n’a pas droit à la résolution de la vente si le défaut de conformité est mineur.</p>
+                    <p>Toute période d’immobilisation du bien en vue de sa réparation ou de son remplacement suspend la garantie qui restait à courir jusqu’à la délivrance du bien remis en état.</p>
+                    <p>Les droits mentionnés ci-dessus résultent de l’application des articles L. 217-1 à L. 217-32 du Code de la consommation.</p>
+                    <p>Le vendeur qui fait obstacle de mauvaise foi à la mise en œuvre de la garantie légale de conformité encourt une amende civile d’un montant maximal de 300 000 euros, qui peut être porté jusqu’à 10 % du chiffre d’affaires moyen annuel (article L. 241-5 du Code de la consommation).</p>
+                    <p>Le consommateur bénéficie également de la garantie légale des vices cachés en application des articles 1641 à 1649 du Code civil, pendant une durée de deux ans à compter de la découverte du défaut. Cette garantie donne droit à une réduction de prix si le bien est conservé ou à un remboursement intégral contre restitution du bien.</p>
+                </div>
+            </section>
+
+            <section id="responsabilite">
+                <h2>10. Conservation, responsabilité et force majeure</h2>
+                <p>Le miel doit être conservé entre 15 et 20 °C, à l’abri de la lumière. LuziApi ne peut être tenu responsable d’une altération provoquée par une mauvaise conservation après la remise.</p>
+                <p>LuziApi ne peut être tenu responsable d’un retard ou d’une inexécution résultant d’un événement de force majeure au sens de la réglementation française. Le client est informé dans les meilleurs délais ; les obligations affectées sont suspendues pendant la durée de cet événement.</p>
+            </section>
+
+            <section id="donnees">
+                <h2>11. Données personnelles</h2>
+                <p>Les données recueillies sont utilisées pour traiter la commande, le paiement, la prise de rendez-vous, l’exercice des droits du consommateur et le suivi de la relation client. Les inscriptions à la newsletter et aux alertes SMS reposent sur des consentements distincts et facultatifs.</p>
+                <p>Les droits d’accès, de rectification, d’effacement et d’opposition sont détaillés dans la <a href="{{ home }}politique-de-confidentialite/">politique de confidentialité</a>.</p>
+            </section>
+
+            <section id="mediation">
+                <h2>12. Réclamations et médiation de la consommation</h2>
+                <p>Toute réclamation doit d’abord être adressée par écrit à LuziApi, par e-mail à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a> ou par courrier à {{ contact.adresse }}, {{ contact.cp_ville }}.</p>
+                <p>Après une réclamation écrite préalable auprès de LuziApi restée sans solution, le consommateur peut saisir gratuitement le médiateur de la consommation dont relève LuziApi :</p>
+                <address class="legal-mediator">
+                    <strong>Centre de la Médiation de la Consommation de Conciliateurs de Justice — CM2C</strong><br>
+                    49 rue de Ponthieu, 75008 Paris<br>
+                    Téléphone : 01 89 47 00 14<br>
+                    Site : <a href="https://www.cm2c.net/" target="_blank" rel="noopener">www.cm2c.net</a>
+                </address>
+                <p>Le consommateur reste libre d’accepter ou de refuser la solution proposée par le médiateur.</p>
+            </section>
+
+            <section id="droit">
+                <h2>13. Droit applicable et règlement des litiges</h2>
+                <p>Les présentes CGV sont soumises au droit français. En l’absence d’accord amiable ou de solution acceptée à l’issue de la médiation, le litige relève des juridictions compétentes selon les règles de droit commun.</p>
+            </section>
+
+            <section id="formulaire">
+                <h2>Annexe — modèle de formulaire de rétractation</h2>
+                <p>À compléter et à adresser uniquement si le consommateur souhaite se rétracter :</p>
+                <blockquote class="withdrawal-model">
+                    <p>À l’attention de LuziApi — {{ contact.nom }}, {{ contact.adresse }}, {{ contact.cp_ville }} — {{ contact.email }} :</p>
+                    <p>Je vous notifie par la présente ma rétractation du contrat portant sur la vente du ou des produits suivants :</p>
+                    <p>Commandés le / reçus le :<br>
+                    Numéro de commande :<br>
+                    Nom du consommateur :<br>
+                    Adresse du consommateur :<br>
+                    Date :<br>
+                    Signature, uniquement en cas d’envoi sur papier :</p>
+                </blockquote>
+                {% if withdrawal_url %}<p class="no-print"><a class="btn btn-primary" href="{{ withdrawal_url }}">Exercer ma rétractation en ligne</a></p>{% endif %}
+            </section>
+        </div>
+    </div>
+</article>
+{% endblock %}

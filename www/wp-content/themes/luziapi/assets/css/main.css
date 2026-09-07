@@ -316,9 +316,13 @@ body.admin-bar .site-header{top:32px}
 /* ---------- PAGES / LEGAL ---------- */
 article.page{padding:28px 0 56px}
 .page-narrow{max-width:780px}
+.page-legal{max-width:960px}
 .page h1{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:1rem}
 .prose{color:var(--ink)}
 .prose h2{font-size:1.5rem;margin:2rem 0 .6rem;color:var(--bark)}
+.prose h3{font-family:var(--sans);font-size:1.05rem;margin:1.35rem 0 .35rem;color:var(--bark)}
+.prose ul,.prose ol{margin:0 0 1rem;padding-left:1.4rem}
+.prose li{margin:.35rem 0}
 .prose p{margin-bottom:1rem}
 .prose a{color:var(--honey-deep);text-decoration:underline}
 /* Boutons dans le contenu (.prose) : pas de soulignement, texte blanc + effet au survol */
@@ -327,6 +331,55 @@ article.page{padding:28px 0 56px}
 .prose a.btn-sos:hover{color:#fff;transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(176,47,36,.7)}
 .btn .btn-ic{width:1.05em;height:1.05em;flex:none}
 .btn .btn-emoji{font-size:1.05em;line-height:1;flex:none}
+.legal-head{max-width:780px;margin-bottom:2rem}
+.legal-version{display:inline-block;padding:.35em .75em;border-radius:999px;background:var(--cream-2);color:var(--bark);font-size:.82rem;font-weight:700}
+.legal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.4rem}
+.legal-actions .btn-ghost,.withdrawal-confirm .btn-ghost{color:var(--bark);border-color:var(--line)}
+.legal-summary{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--honey);border-radius:14px;padding:20px 24px;margin-bottom:2rem}
+.legal-summary strong{font-family:var(--serif);font-size:1.15rem;color:var(--bark)}
+.legal-summary ol{columns:2;column-gap:40px;margin:.7rem 0 0;padding-left:1.4rem}
+.legal-summary li{break-inside:avoid;margin:.3rem 0;color:var(--muted)}
+.legal-summary a{color:var(--bark);text-decoration:none}
+.legal-summary a:hover{color:var(--honey-deep);text-decoration:underline}
+.legal-prose section{scroll-margin-top:100px}
+.legal-callout{background:#fff7df;border:1px solid #efd79b;border-left:5px solid var(--honey);border-radius:12px;padding:1rem 1.2rem;margin:1.2rem 0;color:var(--bark)}
+.legal-guarantee{border:2px solid var(--bark);border-radius:12px;padding:1.1rem 1.25rem;margin-top:1.2rem;background:#fff;font-size:.9rem}
+.legal-guarantee p,.legal-guarantee ol{margin-bottom:.75rem}
+.legal-mediator{background:var(--cream-2);border-radius:12px;padding:1rem 1.2rem;margin:1rem 0;font-style:normal}
+.withdrawal-model{border-left:4px solid var(--honey);background:var(--paper);margin:1rem 0;padding:1rem 1.25rem}
+.withdrawal-form,.withdrawal-review,.withdrawal-success{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;margin:1.5rem 0}
+.withdrawal-field{border:0;margin:0 0 18px;padding:0}
+.withdrawal-field>label,.withdrawal-field>legend{display:block;font-size:.88rem;font-weight:700;color:var(--bark);margin-bottom:.45rem}
+.withdrawal-field input[type=text],.withdrawal-field input[type=email],.withdrawal-field textarea{display:block;width:100%;border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:.8em 1em;font:inherit;color:var(--ink)}
+.withdrawal-field input:focus,.withdrawal-field textarea:focus{outline:2px solid var(--honey);outline-offset:1px}
+.withdrawal-choice{display:block;margin:.5rem 0;font-weight:500!important}
+.withdrawal-choice input{margin-right:.45rem}
+.withdrawal-review dl{margin:1rem 0}
+.withdrawal-review dl div{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.withdrawal-review dt{font-weight:700;color:var(--bark)}
+.withdrawal-review dd{margin:0;overflow-wrap:anywhere}
+.withdrawal-confirm{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.25rem}
+.withdrawal-success{border-left:5px solid #3f7b48;background:#f2f9f1}
+.withdrawal-success h2{margin-top:0;color:#2f6538}
+.withdrawal-errors p{margin:0 0 .4rem}
+.withdrawal-errors p:last-child{margin-bottom:0}
+.withdrawal-help{font-size:.9rem;color:var(--muted)}
+.withdrawal-help a{color:var(--honey-deep)}
+.luziapi-order-legal{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);font-size:.9rem}
+.luziapi-order-legal a{color:var(--honey-deep)}
+.lz-hp{position:absolute!important;left:-9999px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
+@media(max-width:680px){.legal-summary ol{columns:1}.withdrawal-review dl div{grid-template-columns:1fr;gap:2px}}
+@media print{
+  .no-print,.site-header,.site-footer,.sticky-actions,.lang-fab{display:none!important}
+  article.page{padding:0}
+  .page-legal{max-width:none}
+  .legal-head{max-width:none}
+  .legal-prose{font-size:10pt;color:#000}
+  .legal-prose h2{break-after:avoid;color:#000}
+  .legal-prose section{break-inside:auto}
+  .legal-guarantee,.legal-callout,.legal-mediator{break-inside:avoid;color:#000;background:#fff;border-color:#555}
+  a{color:#000!important;text-decoration:none!important}
+}
 
 /* ---------- FOOTER ---------- */
 .site-footer{background:var(--espresso);color:#e8d9bf;padding:64px 0 34px}

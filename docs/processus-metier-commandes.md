@@ -1,8 +1,9 @@
 # Processus métier — vente et traitement des commandes de miel
 
 > **État de la production relevé et mis à jour le 6 septembre 2026.** Ce document décrit le
-> fonctionnement réellement configuré à cette date. Il distingue les automatismes WooCommerce
-> des opérations manuelles et signale les décisions qui restent à prendre.
+> fonctionnement réellement configuré à cette date. Les fonctions CGV et rétractation décrites
+> comme « préparées en local » correspondent au rendu du 7 septembre 2026 et ne sont pas encore
+> publiées. Le document distingue les automatismes WooCommerce des opérations manuelles.
 
 ## 1. Périmètre et socle
 
@@ -19,8 +20,9 @@ La production utilise :
 - uniquement des paiements hors ligne ;
 - les e-mails transactionnels natifs de WordPress/o2switch, pas Brevo.
 
-L'intervention n'a lu aucune commande ni donnée client. Elle a activé et vérifié le processus de
-livraison/retrait décrit ci-dessous sans créer de commande et sans envoyer d'e-mail.
+La mise en service du processus de livraison/retrait n'a lu aucune commande ni donnée client et
+n'a envoyé aucun e-mail. Les fonctions légales ajoutées ensuite ont été vérifiées uniquement en
+local avec une commande entièrement fictive et un dispositif bloquant tout e-mail sortant.
 
 ## 2. Vue d'ensemble
 
@@ -41,7 +43,8 @@ flowchart TD
     E1 --> F
 
     F --> G["Commande sans compte obligatoire<br/>Vente limitée à la France"]
-    G --> S{"Mode de remise choisi"}
+    G --> CGV["Acceptation obligatoire des CGV<br/>Bouton avec obligation de paiement"]
+    CGV --> S{"Mode de remise choisi"}
     S -->|"Retrait au domicile LuziApi<br/>à Luzillé sur RDV"| SR["Retrait disponible<br/>quelle que soit la commune"]
     S -->|"Livraison gratuite sur RDV"| SL{"Adresse à Bléré ou Luzillé<br/>37150, France ?"}
     SL -->|"Non"| SX["Livraison masquée<br/>retrait uniquement"]
@@ -50,7 +53,7 @@ flowchart TD
     SR --> P{"Paiement choisi"}
     SD --> P
 
-    P -->|"Virement / WERO ou chèque"| H["Statut En attente<br/>Stock décrémenté"]
+    P -->|"Virement / WERO avant la remise"| H["Statut En attente<br/>Stock décrémenté"]
     H -.-> HN["Client : e-mail Commande en attente<br/>LuziApi : e-mail Nouvelle commande"]
     H -->|"Paiement constaté manuellement"| I["Statut En cours<br/>préparation"]
     H -->|"Commande abandonnée"| K["Statut Annulée<br/>Stock restauré"]
@@ -177,20 +180,15 @@ choisi pour une livraison comme pour un retrait.
 
 | Moyen affiché au client | Statut initial normal | Effet métier |
 |---|---|---|
-| Virement bancaire / WERO | En attente | Attendre et vérifier le règlement manuellement |
-| Paiements par chèque | En attente | Attendre et vérifier le chèque manuellement |
-| Espèces ou chèque à la remise | En cours | Préparer la commande ; le statut ne signifie pas que l'argent a déjà été encaissé |
+| Virement bancaire ou WERO avant la remise | En attente | Attendre et vérifier le règlement manuellement |
+| Paiement lors du retrait ou de la livraison — espèces ou chèque | En cours | Préparer la commande ; le statut ne signifie pas que l'argent a déjà été encaissé |
 
 Un compte bancaire BACS est configuré, sans que ses coordonnées soient reproduites dans ce dépôt.
 Aucune passerelle ne prend un paiement en ligne et aucune ne sait exécuter un remboursement par API.
 
-Le chèque est proposé deux fois sous des logiques différentes :
-
-- « Paiements par chèque » place la commande en attente du règlement ;
-- « Espèces ou chèque à la remise » place immédiatement la commande en cours.
-
-Ce doublon est fonctionnel mais peut être ambigu pour le client. Il ne faut pas retirer l'une des
-options sans décision explicite.
+Le moyen WooCommerce natif « Paiements par chèque » est désactivé : LuziApi n'accepte aucun envoi
+de chèque. Le chèque reste proposé uniquement dans « Paiement lors du retrait ou de la livraison »,
+au même titre que les espèces, et place immédiatement la commande en cours.
 
 ## 9. Cycle de vie des commandes
 
@@ -364,11 +362,6 @@ reproduite ici. Seuil de stock faible : 2 ; seuil de rupture : 0.
 8. Si le règlement n'arrive pas, informer le client si nécessaire puis passer en **Annulée** pour
    restaurer le stock. Le délai de 60 minutes ne s'applique pas au statut En attente.
 
-### Chèque envoyé ou reçu avant remise
-
-Le flux est identique au virement : **En attente → En cours → En cours de livraison / Prête au
-retrait → Terminée** après vérification du chèque.
-
 ### Espèces ou chèque à la remise
 
 1. La commande passe directement en **En cours** et le stock est décrémenté.
@@ -377,6 +370,37 @@ retrait → Terminée** après vérification du chèque.
    choix enregistré au checkout.
 4. Prendre contact pour fixer le jour et l'heure, remettre les pots et encaisser.
 5. Passer en **Terminée** uniquement après la remise et l'encaissement.
+
+La mise au panier ne réserve aucun pot. Le stock est réservé et décrémenté uniquement lorsque le
+client valide effectivement sa commande. Ce point est affiché dans le panier et au checkout, et
+doit être repris dans les CGV.
+
+### Acceptation des CGV
+
+La case d'acceptation des CGV est obligatoire et décochée par défaut. Le bouton final indique
+« Commander avec obligation de paiement ». Lors de la validation, la commande conserve la version
+des CGV acceptée et l'heure UTC de l'acceptation. Le premier e-mail client de confirmation contient
+les liens légaux et joint le PDF immuable correspondant à cette version.
+
+### Rétractation
+
+La page `/retractation/` permet au client d'identifier sa commande par son numéro et l'adresse
+e-mail utilisée, de vérifier sa déclaration puis de la confirmer. La demande est horodatée, ajoutée
+aux métadonnées et aux notes privées de la commande ; elle envoie un accusé au client et une alerte
+à LuziApi. Aucun statut, remboursement ni mouvement de stock n'est automatisé.
+
+```mermaid
+flowchart LR
+    A["Numéro de commande<br/>+ e-mail associé"] --> B{"Informations valides ?"}
+    B -->|"Non"| C["Message neutre<br/>aucune commande exposée"]
+    B -->|"Oui"| D["Récapitulatif de la demande"]
+    D --> E["Confirmation explicite"]
+    E --> F["Référence unique<br/>+ date et heure de Paris"]
+    F --> G["Trace privée dans la commande"]
+    F --> H["Accusé de réception au client"]
+    F --> I["Alerte envoyée à LuziApi"]
+    F -.-> J["Aucun changement automatique<br/>de statut, stock ou remboursement"]
+```
 
 ### Annulation
 
@@ -400,6 +424,8 @@ retrait → Terminée** après vérification du chèque.
 - Une note au client est historisée et déclenche un e-mail.
 - Les statuts métier **En cours de livraison** et **Prête au retrait** sont conservés dans
   l'historique HPOS et déclenchent chacun un e-mail au client.
+- La version des CGV et leur date d'acceptation sont conservées dans les métadonnées de la commande.
+- Chaque rétractation en ligne reçoit une référence et est historisée dans la commande.
 - Il n'existe pas d'automatisation de créneau, de suivi de colis ou d'encaissement : la prise de
   contact et la saisie des statuts restent manuelles.
 - Les commandes directes hors boutique ne sont pas tracées automatiquement.
@@ -410,12 +436,9 @@ Ces points restent ouverts après la mise en place du workflow de remise.
 
 | Priorité | Constat | Risque / conséquence | Décision possible |
 |---|---|---|---|
-| Haute | Aucune page CGV associée | Pas d'acceptation explicite des CGV au checkout | Créer/valider les CGV puis les associer |
 | Moyenne | Annulation client désactivée | Le client n'est pas prévenu automatiquement | Activer l'e-mail ou formaliser l'usage d'une note client |
 | Moyenne | Choix du statut de remise manuel | Risque de sélectionner « livraison » pour un retrait, ou inversement | Toujours vérifier la méthode enregistrée dans la commande |
-| Moyenne | Alertes de stock envoyées ailleurs | Risque de surveillance fragmentée | Confirmer ou aligner le destinataire |
 | Moyenne | Fuseau WordPress UTC et formats de date anglo-saxons | Horaires d'administration décalés ou ambigus | Régler Europe/Paris et des formats français |
-| Moyenne | Deux choix de paiement par chèque | Différence « avant remise » / « à la remise » peu évidente | Clarifier les libellés sans retirer une option sans accord |
 | Faible | Coupons autorisés mais inutilisés | Champ promo visible sans campagne | Conserver en prévision ou désactiver après décision |
 | Faible | Page Mon compte sans inscription publique | Utilité limitée pour les nouveaux clients | Assumer le parcours invité ou revoir la politique de compte |
 

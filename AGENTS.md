@@ -99,6 +99,21 @@ ancienne que les sources. Quand un de ces PDF change :
 Seul le **thème** `www/wp-content/themes/luziapi/` est versionné : cœur WordPress, plugins et
 médias sont fournis par l'hébergeur ou par Docker.
 
+### Versionner les CGV sans perdre la preuve client
+
+Le texte public des CGV vit dans `templates/page-conditions-generales-de-vente.twig`. Sa version
+est déclarée dans `inc/commerce-legal.php` et possède un PDF immuable du même millésime dans
+`assets/docs/` (par exemple `LuziApi-CGV-2026-09-07.pdf`). Lors d'une évolution :
+
+1. changer la constante de version et créer un **nouveau** nom de PDF ;
+2. ne jamais écraser ni supprimer un PDF déjà accepté par des clients ;
+3. vérifier que le premier e-mail de confirmation joint la nouvelle version ;
+4. conserver dans la commande la version et l'horodatage d'acceptation ;
+5. déployer le nouveau PDF avec les fichiers PHP/Twig correspondants, puis vider l'OPcache.
+
+Les conventions et attestations du médiateur sont confidentielles et restent hors du dépôt. Seules
+ses coordonnées publiques nécessaires aux CGV sont versionnées.
+
 ### Nommage des fichiers destinés à un imprimeur
 
 Pour une variante préparée pour un site d'impression, mettre uniquement le nom du site en

@@ -11,6 +11,9 @@
  * @var \Luziapi_Order_Status_Email $email
  * @var list<string>                $message_lines
  * @var string                      $newsletter_url
+ * @var string                      $cgv_url
+ * @var string                      $cgv_version
+ * @var string                      $withdrawal_url
  */
 
 defined('ABSPATH') || exit;
@@ -30,6 +33,16 @@ if ($newsletter_url) {
     echo "Pour être informé(e) des actualités de LuziApi et notamment des prochaines récoltes de miel,\n";
     echo "vous pouvez vous inscrire gratuitement à la newsletter et/ou aux alertes SMS :\n";
     echo esc_url($newsletter_url) . "\n\n";
+}
+
+if ($cgv_url) {
+    echo 'Conditions générales de vente' . ($cgv_version ? ' (version ' . esc_html($cgv_version) . ')' : '') . " :\n";
+    echo esc_url($cgv_url) . "\n\n";
+}
+
+if ($withdrawal_url) {
+    echo "Renoncer au contrat ici :\n";
+    echo esc_url($withdrawal_url) . "\n\n";
 }
 
 do_action('woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email);

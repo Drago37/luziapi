@@ -42,6 +42,45 @@ update_option('woocommerce_price_num_decimals', 0);
 update_option('woocommerce_price_thousand_sep', ' ');
 
 /* ------------------------------------------------------------------ */
+/*  Pages légales de la boutique                                     */
+/* ------------------------------------------------------------------ */
+$legalPages = [
+    'conditions-generales-de-vente' => [
+        'title'   => 'Conditions générales de vente',
+        'content' => 'Conditions générales de vente de la boutique LuziApi.',
+    ],
+    'retractation' => [
+        'title'   => 'Exercer mon droit de rétractation',
+        'content' => 'Fonctionnalité en ligne de rétractation des commandes LuziApi.',
+    ],
+];
+
+WP_CLI::log('→ Pages légales…');
+foreach ($legalPages as $slug => $legalPage) {
+    $existing = get_page_by_path($slug, OBJECT, 'page');
+    $data = [
+        'post_type'    => 'page',
+        'post_status'  => 'publish',
+        'post_name'    => $slug,
+        'post_title'   => $legalPage['title'],
+        'post_content' => $legalPage['content'],
+    ];
+
+    if ($existing instanceof WP_Post) {
+        $data['ID'] = $existing->ID;
+        $pageId     = (int) wp_update_post($data);
+        WP_CLI::log("  ↻ {$legalPage['title']} (#{$pageId})");
+    } else {
+        $pageId = (int) wp_insert_post($data);
+        WP_CLI::log("  + {$legalPage['title']} (#{$pageId})");
+    }
+
+    if ('conditions-generales-de-vente' === $slug) {
+        update_option('woocommerce_terms_page_id', $pageId);
+    }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Les 4 miels                                                       */
 /* ------------------------------------------------------------------ */
 if (! class_exists('WC_Product_Simple')) {
@@ -114,4 +153,4 @@ if ($hello) {
     WP_CLI::log('  − « Hello world! » mis à la corbeille');
 }
 
-WP_CLI::success('Fixtures LuziApi en place : 4 miels + 3 actualités.');
+WP_CLI::success('Fixtures LuziApi en place : pages légales + 4 miels + 3 actualités.');

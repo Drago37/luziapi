@@ -37,6 +37,22 @@ add_filter('document_title_parts', static function (array $parts): array {
 });
 
 /**
+ * Relie explicitement l'accueil français et sa présentation anglaise.
+ */
+add_action('wp_head', static function (): void {
+    if (! is_front_page() && ! is_page('en')) {
+        return;
+    }
+
+    $homeUrl    = home_url('/');
+    $englishUrl = home_url('/en/');
+
+    printf('<link rel="alternate" hreflang="fr" href="%s">' . "\n", esc_url($homeUrl));
+    printf('<link rel="alternate" hreflang="en" href="%s">' . "\n", esc_url($englishUrl));
+    printf('<link rel="alternate" hreflang="x-default" href="%s">' . "\n", esc_url($homeUrl));
+}, 2);
+
+/**
  * Préchargement de l'image hero sur l'accueil (améliore le LCP / Core Web Vitals).
  */
 add_action('wp_head', static function (): void {
@@ -235,6 +251,7 @@ add_filter('wp_sitemaps_posts_query_args', static function (array $args, string 
             wc_get_page_id('cart'),
             wc_get_page_id('checkout'),
             wc_get_page_id('myaccount'),
+            get_page_by_path('retractation')?->ID,
         ], static fn ($id) => (int) $id > 0);
 
         if ($exclude) {
@@ -244,6 +261,18 @@ add_filter('wp_sitemaps_posts_query_args', static function (array $args, string 
 
     return $args;
 }, 10, 2);
+
+// Le formulaire de rétractation doit rester directement accessible, mais ne
+// constitue pas une page éditoriale à indexer dans les moteurs de recherche.
+add_filter('wp_robots', static function (array $robots): array {
+    if (is_page('retractation')) {
+        unset($robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow']  = true;
+    }
+
+    return $robots;
+});
 
 /**
  * Sitemap natif WordPress : désactive le sitemap des utilisateurs/auteurs

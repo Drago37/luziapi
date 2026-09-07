@@ -1,0 +1,85 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<article class="page legal withdrawal-page">
+    <div class="wrap page-narrow">
+        <span class="eyebrow">Boutique LuziApi</span>
+        <h1>Exercer mon droit de rétractation</h1>
+
+        {% if withdrawal.step == 'success' %}
+            <div class="withdrawal-success" role="status">
+                <h2>Votre demande est enregistrée</h2>
+                <p>Référence : <strong>{{ withdrawal.result.reference }}</strong></p>
+                <p>Elle a été reçue le {{ withdrawal.result.submitted_at }}. Aucun retour ne doit être effectué avant la prise de contact de LuziApi.</p>
+                {% if not withdrawal.result.customer_email_sent %}
+                    <p><strong>L’accusé de réception n’a pas pu être envoyé automatiquement.</strong> Conservez cette référence et contactez LuziApi si nécessaire.</p>
+                {% else %}
+                    <p>Un accusé de réception comprenant le contenu, la date et l’heure de votre demande vient de vous être envoyé par e-mail.</p>
+                {% endif %}
+            </div>
+            <p><a class="btn btn-primary" href="{{ home }}">Retour à l’accueil</a></p>
+        {% else %}
+            <div class="prose">
+                <p>Cette fonctionnalité permet de notifier gratuitement votre décision de vous rétracter. Munissez-vous du numéro de commande et de l’adresse e-mail utilisée lors de l’achat.</p>
+                <div class="legal-callout">Les pots retournés doivent être en bon état, non ouverts et toujours scellés. N’effectuez aucun retour avant d’avoir échangé avec LuziApi.</div>
+            </div>
+
+            {% if withdrawal.errors %}
+                <div class="woocommerce-error withdrawal-errors" role="alert">
+                    {% for error in withdrawal.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+
+            {% if withdrawal.step == 'review' %}
+                <section class="withdrawal-review">
+                    <h2>Vérifiez votre demande</h2>
+                    <dl>
+                        <div><dt>Commande</dt><dd>n°{{ withdrawal.values.order_number }}</dd></div>
+                        <div><dt>Adresse e-mail</dt><dd>{{ withdrawal.values.email }}</dd></div>
+                        <div><dt>Produits concernés</dt><dd>{{ withdrawal.values.scope == 'part' ? withdrawal.values.details : 'Toute la commande' }}</dd></div>
+                    </dl>
+                    <p>En confirmant, votre déclaration sera enregistrée, datée et transmise à LuziApi. Un accusé de réception vous sera envoyé.</p>
+                    <form method="post" class="withdrawal-confirm">
+                        {{ function('wp_nonce_field', 'luziapi_withdrawal', 'luziapi_withdrawal_nonce', true, false)|raw }}
+                        <input type="hidden" name="withdrawal_action" value="confirm">
+                        <input type="hidden" name="order_number" value="{{ withdrawal.values.order_number }}">
+                        <input type="hidden" name="email" value="{{ withdrawal.values.email }}">
+                        <input type="hidden" name="scope" value="{{ withdrawal.values.scope }}">
+                        <input type="hidden" name="details" value="{{ withdrawal.values.details }}">
+                        <button type="submit" class="btn btn-primary">Confirmer la rétractation</button>
+                        <button type="button" class="btn btn-ghost" onclick="history.back()">Modifier</button>
+                    </form>
+                </section>
+            {% else %}
+                <form method="post" class="withdrawal-form">
+                    {{ function('wp_nonce_field', 'luziapi_withdrawal', 'luziapi_withdrawal_nonce', true, false)|raw }}
+                    <input type="hidden" name="withdrawal_action" value="review">
+                    <div class="lz-hp" aria-hidden="true">
+                        <label>Site internet <input type="text" name="website" value="" tabindex="-1" autocomplete="off"></label>
+                    </div>
+                    <div class="withdrawal-field">
+                        <label for="withdrawal-order">Numéro de commande</label>
+                        <input id="withdrawal-order" name="order_number" type="text" inputmode="numeric" autocomplete="off" required value="{{ withdrawal.values.order_number }}" placeholder="Ex. 123">
+                    </div>
+                    <div class="withdrawal-field">
+                        <label for="withdrawal-email">Adresse e-mail de la commande</label>
+                        <input id="withdrawal-email" name="email" type="email" autocomplete="email" required value="{{ withdrawal.values.email }}">
+                    </div>
+                    <fieldset class="withdrawal-field">
+                        <legend>Produits concernés</legend>
+                        <label class="withdrawal-choice"><input type="radio" name="scope" value="all"{{ withdrawal.values.scope == 'all' ? ' checked' : '' }}> Toute la commande</label>
+                        <label class="withdrawal-choice"><input type="radio" name="scope" value="part"{{ withdrawal.values.scope == 'part' ? ' checked' : '' }}> Une partie de la commande</label>
+                    </fieldset>
+                    <div class="withdrawal-field">
+                        <label for="withdrawal-details">Si la demande est partielle, précisez les produits concernés</label>
+                        <textarea id="withdrawal-details" name="details" rows="4">{{ withdrawal.values.details }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Vérifier ma demande</button>
+                </form>
+            {% endif %}
+
+            <p class="withdrawal-help">Une difficulté ? Contactez LuziApi à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a> ou au <a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a>.</p>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}

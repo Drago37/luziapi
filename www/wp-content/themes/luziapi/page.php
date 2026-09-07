@@ -21,6 +21,21 @@ if ($post && $post->post_name === 'mentions-legales') {
     array_unshift($templates, 'page-mentions-legales.twig');
 }
 
+// Pages contractuelles de la boutique, versionnées dans le thème.
+if ($post && $post->post_name === 'conditions-generales-de-vente') {
+    array_unshift($templates, 'page-conditions-generales-de-vente.twig');
+    $context['cgv_version']        = defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '';
+    $context['cgv_pdf_url']        = function_exists('luziapi_cgv_pdf_url') ? luziapi_cgv_pdf_url() : '';
+    $context['withdrawal_url']     = function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '';
+}
+
+if ($post && $post->post_name === 'retractation') {
+    array_unshift($templates, 'page-retractation.twig');
+    $context['withdrawal'] = function_exists('luziapi_withdrawal_page_context')
+        ? luziapi_withdrawal_page_context()
+        : [];
+}
+
 // Gabarit dédié pour la page anglaise (présentation pour les touristes).
 if ($post && $post->post_name === 'en') {
     array_unshift($templates, 'page-en.twig');

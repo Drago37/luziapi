@@ -64,6 +64,10 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   « Liquide à onctueuse » et sa description explique la cristallisation naturelle, la texture
   parfois plus ferme et l'influence possible d'une floraison tardive du colza.
 - Encart d'offre « −1 €/pot dès 2 pots » sur fiche, boutique et panier.
+- Le panier et le checkout rappellent que la mise au panier ne réserve pas les pots : le stock est
+  réservé seulement à la validation effective de la commande.
+- Les alertes de stock faible sont activées à 5 pots et les alertes de rupture à 0, à destination
+  de l'adresse LuziApi.
 - La documentation détaillée du parcours est dans
   [`processus-metier-commandes.md`](processus-metier-commandes.md).
 - **Livraison activée**, limitée aux pays de vente — actuellement la France. Deux choix sont
@@ -76,8 +80,26 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   retrait**. Ils déclenchent leurs e-mails clients respectifs. Les e-mails **En attente**, **En
   cours** et **Terminée** ont également été remplacés par les formulations LuziApi validées ;
   « Terminée » ne dit plus que la commande est en chemin.
-- Paiements hors ligne actifs : virement bancaire / WERO, chèque, espèces ou chèque à la remise.
+- Paiements hors ligne : « Virement bancaire ou WERO avant la remise » et « Paiement lors du
+  retrait ou de la livraison — espèces ou chèque ». Le moyen « Chèque » séparé est désactivé :
+  aucun chèque n'est envoyé, il est accepté uniquement au moment de la remise.
   PayPal : plugin désactivé **puis fichiers supprimés**.
+- Aucune page CGV n'est encore publiée ni associée au checkout en production. La version du
+  7 septembre 2026 est préparée et testée uniquement en local dans [`projet-cgv.md`](projet-cgv.md),
+  avec l'adhésion CM2C, mais attend encore la validation visuelle de l'utilisateur avant publication.
+
+### CGV et rétractation préparées en local — non déployées
+
+- page `/conditions-generales-de-vente/` dans le design du thème et PDF immuable associé ;
+- lien dans le footer français et anglais, le checkout, les e-mails et les détails de commande ;
+- case d'acceptation WooCommerce obligatoire et décochée, avec le bouton
+  « Commander avec obligation de paiement » ;
+- version et horodatage des CGV conservés dans chaque commande ;
+- copie PDF jointe au premier e-mail de confirmation client ;
+- fonctionnalité `/retractation/` en deux étapes, avec accusé de réception, alerte LuziApi et trace
+  privée dans la commande, sans annulation ni remboursement automatique ;
+- médiateur : CM2C, adhésion valable jusqu'au 7 septembre 2029. Les documents contractuels restent
+  hors du dépôt ; seules les coordonnées publiques nécessaires figurent dans les CGV.
 
 ## Newsletter (Brevo)
 
@@ -110,7 +132,8 @@ future→publish, garde-fou anti-doublon par post_meta `_luziapi_nl_sent`, **jam
 modification), il crée puis envoie une campagne e-mail Brevo (`POST /emailCampaigns` puis
 `/sendNow`) à la liste, en HTML aux couleurs du site.
 
-Personnalisation par article, via metabox :
+Personnalisation par article, via metabox. Sur un nouvel article, e-mail et SMS sont décochés par
+défaut : cocher un canal constitue le choix explicite de déclencher son envoi après publication :
 
 - **Objet de l'e-mail** — meta `_luziapi_nl_email_subject` ; vide = défaut
   « Du nouveau au rucher : {titre} » (`luziapi_nl_email_subject()`).
@@ -174,7 +197,7 @@ Les plugins de traduction qui interceptent le rendu **plantent** avec ce thème 
   `sticky-actions.twig` ;
 - **formulaire de contact EN** = un second formulaire CF7 (« Contact (English) », id **91**,
   dupliqué du FR #21, libellés traduits). Son id est stocké dans l'option `luziapi_cf7_en_id` et
-  `page.php` l'injecte sur `/en/`. Le thème force sa locale à `en_US`, y compris lors des requêtes
+  `page.php` l'injecte sur `/en/`. Le thème force sa locale à `en_GB`, y compris lors des requêtes
   REST, afin que ses messages système et de validation restent en anglais ;
 - Contenus rédigés à la première personne (I / my), comme l'accueil FR.
 - Le gabarit, son SEO, le header, le mini-panier, les boutons flottants et le footer sont traduits
@@ -184,6 +207,7 @@ Les plugins de traduction qui interceptent le rendu **plantent** avec ce thème 
 - Les informations métier reflètent les règles de la boutique : retrait au domicile à Luzillé
   sur rendez-vous, livraison gratuite uniquement à Luzillé ou Bléré sur rendez-vous, et
   conservation du miel entre 15 et 20 °C à l'abri de la lumière.
+- L'accueil et `/en/` publient les liens alternatifs `hreflang` français, anglais et `x-default`.
 
 ## Bandeau cookies (CookieAdmin / cookieadmin-pro)
 

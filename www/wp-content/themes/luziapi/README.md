@@ -28,7 +28,9 @@ Puis dans l'admin WordPress : **Apparence → Thèmes → Activer « LuziApi »*
 
 1. **Page d'accueil** : créer une page vide « Accueil », puis **Réglages → Lecture → La page d'accueil affiche → Une page statique → Accueil**. Le thème utilise automatiquement `front-page.php` (la one-page).
 2. **Mentions légales** : créer une page intitulée « Mentions légales » avec le **slug `mentions-legales`**. Laissée vide, elle affiche le gabarit pré-rempli (éditeur, SIRET, hébergeur o2switch, RGPD…). Vérifier/ajuster le texte si besoin.
-3. **Permaliens** : **Réglages → Permaliens → Nom de l'article** (jolies URLs).
+3. **CGV** : créer « Conditions générales de vente » avec le slug `conditions-generales-de-vente`, puis l'associer dans **WooCommerce → Réglages → Avancé → Mise en page**. Le contenu, sa version et son PDF sont fournis par le thème.
+4. **Rétractation** : créer « Exercer mon droit de rétractation » avec le slug `retractation`. Le thème fournit le formulaire sécurisé en deux étapes et les notifications.
+5. **Permaliens** : **Réglages → Permaliens → Nom de l'article** (jolies URLs).
 
 ## 4. Configuration WooCommerce
 
@@ -207,7 +209,8 @@ luziapi/
 │   ├── setup.php         supports, menus, styles & scripts
 │   ├── timber.php        contexte global Twig (coordonnées…)
 │   ├── shop.php          miels, état « À venir », remise 2 pots, réglages admin
-│   └── woocommerce.php    habillage des pages boutique
+│   ├── woocommerce.php    habillage des pages boutique
+│   └── commerce-legal.php CGV, acceptation et rétractation
 ├── templates/           Twig (rendu via Timber uniquement)
 │   ├── base.twig
 │   ├── front-page.twig   la one-page (toutes les sections + actualités)
@@ -215,6 +218,8 @@ luziapi/
 │   ├── single.twig       article détaillé
 │   ├── page.twig
 │   ├── page-mentions-legales.twig
+│   ├── page-conditions-generales-de-vente.twig
+│   ├── page-retractation.twig
 │   ├── woocommerce.twig
 │   ├── index.twig
 │   └── partials/{header,footer,sticky-actions}.twig
