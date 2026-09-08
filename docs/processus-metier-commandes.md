@@ -256,11 +256,11 @@ explicitement ce comportement.
 | En cours de livraison         | Toute entrée dans **En cours de livraison**                                     | `Organisons la livraison de votre commande LuziApi n°{order_number}`              | Activé — modèle LuziApi                                                          |
 | Prête au retrait              | Toute entrée dans **Prête au retrait**                                          | `Votre commande LuziApi n°{order_number} est prête au retrait`                    | Activé — modèle LuziApi                                                          |
 | Commande terminée             | Toute entrée dans le statut **Terminée**                                        | `Votre commande LuziApi n°{order_number} a bien été remise`                       | Activé — modèle LuziApi ; invitation newsletter/SMS avec lien vers le formulaire |
-| Commande échouée              | Toute entrée dans le statut **Échouée**                                         | `Votre commande {site_title} n’a pas abouti`                                      | Activé                                                                           |
-| Commande remboursée — total   | Remboursement total réellement saisi dans WooCommerce                           | `Votre commande n°{order_number} sur {site_title} a été remboursée`               | Activé                                                                           |
-| Commande remboursée — partiel | Remboursement partiel réellement saisi dans WooCommerce                         | `Votre commande n°{order_number} sur {site_title} a été partiellement remboursée` | Activé                                                                           |
-| Note client                   | Ajout d'une note avec l'option **Note au client**                               | `Une note a été ajoutée à votre commande depuis {site_title}`                     | Activé                                                                           |
-| Commande annulée              | **En attente** ou **En cours** → **Annulée**                                    | `[{site_title}] : Votre commande nº {order_number} a été annulée.`                | **Désactivé**                                                                    |
+| Commande échouée              | Toute entrée dans le statut **Échouée**                                         | `Votre commande {site_title} n’a pas abouti`                                      | Activé — modèle LuziApi                                                          |
+| Commande remboursée — total   | Remboursement total réellement saisi dans WooCommerce                           | `Votre commande n°{order_number} sur {site_title} a été remboursée`               | Activé — modèle LuziApi                                                          |
+| Commande remboursée — partiel | Remboursement partiel réellement saisi dans WooCommerce                         | `Votre commande n°{order_number} sur {site_title} a été partiellement remboursée` | Activé — modèle LuziApi                                                          |
+| Note client                   | Ajout d'une note avec l'option **Note au client**                               | `Une note a été ajoutée à votre commande depuis {site_title}`                     | Activé — modèle LuziApi                                                          |
+| Commande annulée              | **En attente** ou **En cours** → **Annulée**, avec motif obligatoire            | `Votre commande LuziApi n°{order_number} a été annulée`                           | Activé — modèle LuziApi ; bloqué sans motif                                      |
 
 Une note privée n'envoie pas l'e-mail « Note client ». Seule une note explicitement marquée
 **Note au client** le déclenche.
@@ -421,6 +421,9 @@ flowchart LR
 - Chaque changement de statut ajoute une note système à la commande.
 - Une note privée documente une action interne sans prévenir le client.
 - Une note au client est historisée et déclenche un e-mail.
+- Chaque tentative d'e-mail client liée à une commande ajoute une note privée avec son objet et
+  le résultat du transport. Cette trace ne contient pas l'adresse du destinataire et ne garantit
+  pas que sa boîte de réception a accepté le message.
 - Les statuts métier **En cours de livraison** et **Prête au retrait** sont conservés dans
   l'historique HPOS et déclenchent chacun un e-mail au client.
 - La version des CGV et leur date d'acceptation sont conservées dans les métadonnées de la commande.

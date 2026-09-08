@@ -190,6 +190,14 @@ achetés (le champ SMS est donc actif).
   mode de remise, paiement, note client, coordonnées et bouton d'accès direct à la commande. Elles
   n'affichent volontairement ni newsletter ni mentions légales destinées au client. Le test E2E
   réel a validé les gabarits « Nouvelle commande » et « Commande annulée ».
+- Les quatre e-mails client WooCommerce encore natifs — paiement échoué, remboursement, note au
+  client et détails/demande de paiement — utilisent depuis le 8 septembre 2026 le même gabarit
+  LuziApi complet, en HTML et texte brut. La demande de paiement reste une action strictement
+  manuelle, utile notamment pour une commande prise par téléphone. Chaque e-mail client lié à une
+  commande ajoute désormais une note privée avec son objet et le résultat du transport, sans
+  recopier le destinataire. « Transmis au service de messagerie » confirme la remise à `mail()`,
+  pas la réception finale. Les empreintes des huit fichiers déployés correspondent au dépôt,
+  l'OPcache a été vidé et le test E2E production sans envoi valide **37/37 assertions**.
 - Expéditeur : `LuziApi <no-reply@luziapi.fr>` (mu-plugin `luziapi-mail-from.php`).
 - `activate_email=no` côté plugin Brevo → les mails transactionnels du site restent natifs ; Brevo
   ne sert qu'aux campagnes.

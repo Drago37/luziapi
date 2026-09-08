@@ -28,11 +28,12 @@ un beau template **à la charte du site**, avec :
   administrateur « Nouvelle commande », « Commande annulée » et « Paiement échoué ». Il reprend
   la charte, met en avant le mode de remise et le paiement, conserve la note client et propose un
   accès direct à la commande, sans newsletter ni mentions légales destinées au client.
-- Un troisième lot est **prêt localement mais pas encore déployé** : les e-mails client WooCommerce
+- Un troisième lot est **déployé en production depuis le 8 septembre 2026** : les e-mails client WooCommerce
   encore natifs (paiement échoué, remboursement, note au client et détails/demande de paiement)
   réutilisent le gabarit LuziApi en HTML et texte brut. Chaque e-mail client lié à une commande
   ajoute également une note privée indiquant sa transmission au service de messagerie ou l'échec
-  du transport, sans recopier le destinataire. Le test E2E local valide **37/37 assertions**.
+  du transport, sans recopier le destinataire. Les empreintes distantes ont été vérifiées,
+  l'OPcache vidé et le test E2E production sans envoi valide **37/37 assertions**.
 - Maquette de référence (rendu) : **`docs/maquettes/email-commande-confirmee.html`**
   (ouvrir dans un navigateur). Scénario illustré : **« Commande confirmée »**.
   Publiée aussi en artifact privé : https://claude.ai/code/artifact/666004cb-a59a-41a1-8d1e-ec7a21fd6c94
@@ -226,7 +227,6 @@ bout en bout en prod (12 e-mails reçus, garde-fous OK).
 
 ## 10. Prochaines étapes
 
-1. Contrôler le rendu local des quatre e-mails client natifs nouvellement harmonisés.
-2. Après validation, déployer le troisième lot puis vérifier en production la trace privée et les
-   rendus sans envoyer de message réel avant accord explicite.
-3. Traiter ensuite le suivi de commande sans compte comme un lot séparé.
+1. Au besoin, contrôler un exemplaire réellement reçu d'une note client ou d'une demande de
+   paiement ; tout envoi réel reste soumis à un accord explicite.
+2. Traiter ensuite le suivi de commande sans compte comme un lot séparé.
