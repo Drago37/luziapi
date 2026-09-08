@@ -95,6 +95,12 @@ Elles s'appuient sur [`scripts/e2e-prod.sh`](../scripts/e2e-prod.sh), qui lit le
 identifiants FTPS dans `.env.local` et l'identité dans `tools/.e2e-identity.json`.
 Compter **~12 e-mails** par run complet avec `--send`.
 
+Le parcours vérifie aussi, sans expédier de messages supplémentaires, que les quatre e-mails
+client WooCommerce conservés (paiement échoué, remboursement, note et détails/demande de paiement)
+rendent bien le gabarit LuziApi. Il contrôle également qu'un e-mail client déclenché laisse une
+trace privée dans la commande. Un retour positif du transport signifie que WordPress a accepté
+l'envoi ; il ne constitue pas un accusé de réception de la boîte destinataire.
+
 Sous le capot (utile si l'accès o2switch change), l'accès prod se fait sans SSH par
 script à jeton (voir [prod-o2switch.md](prod-o2switch.md) et [AGENTS.md](../AGENTS.md)
 § 4). Le compte FTP est chrooté sur le thème, sans dossier `tools/`, et o2switch filtre

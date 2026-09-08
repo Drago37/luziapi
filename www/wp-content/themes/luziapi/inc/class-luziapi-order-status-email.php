@@ -128,21 +128,6 @@ final class Luziapi_Order_Status_Email extends \WC_Email
                 luziapi_mark_cgv_copy_sent($this->object);
             }
 
-            if (in_array($this->message, ['payment_reminder', 'cancelled'], true)
-                && $this->object instanceof \WC_Order) {
-                $labels = [
-                    'payment_reminder' => 'de rappel de règlement',
-                    'cancelled'        => 'd’annulation',
-                ];
-                $this->object->add_order_note(
-                    sprintf(
-                        'E-mail client %s %s.',
-                        $labels[$this->message],
-                        $sent ? 'envoyé' : 'non envoyé — échec du transport'
-                    ),
-                    0
-                );
-            }
         }
 
         $this->restore_locale();
@@ -307,9 +292,9 @@ final class Luziapi_Order_Status_Email extends \WC_Email
      */
     private function get_template_data(bool $plainText): array
     {
-        $cgvUrl = function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '';
+        $order = $this->object instanceof \WC_Order ? $this->object : null;
 
-        return [
+        return array_merge([
             'order'              => $this->object,
             'email_heading'      => $this->get_heading(),
             'email_label'        => $this->get_email_label(),
@@ -319,16 +304,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
             'email'              => $this,
             'message_lines'      => $this->get_message_lines(),
             'closing_line'       => $this->get_closing_line(),
-            'newsletter_url'     => home_url('/#newsletter'),
-            'site_url'           => home_url('/'),
-            'logo_url'           => LUZIAPI_URI . '/assets/img/logo-email.png',
-            'contact'            => luziapi_contact_details(),
-            'cgv_url'            => $cgvUrl,
-            'cgv_version'        => $this->get_order_cgv_version(),
-            'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
-            'mediation_url'      => '' !== $cgvUrl ? $cgvUrl . '#mediation' : '',
-            'mediator_url'       => 'https://www.cm2c.net/',
-        ];
+        ], luziapi_customer_email_common_data($order));
     }
 
     private function get_email_label(): string
@@ -357,17 +333,6 @@ final class Luziapi_Order_Status_Email extends \WC_Email
         ][$this->message] ?? 'Merci pour votre confiance.';
     }
 
-    private function get_order_cgv_version(): string
-    {
-        if ($this->object instanceof \WC_Order) {
-            $version = trim((string) $this->object->get_meta('_luziapi_cgv_version'));
-            if ('' !== $version) {
-                return $version;
-            }
-        }
-
-        return defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '';
-    }
 }
 
 /**

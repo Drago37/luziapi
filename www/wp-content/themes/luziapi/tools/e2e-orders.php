@@ -215,6 +215,76 @@ $assertAdminEmailTemplate = static function (string $label) use ($assert, $custo
     );
 };
 
+$assertNativeCustomerEmailTemplates = static function (\WC_Order $order) use ($assert): void {
+    $emails = WC()->mailer()->get_emails();
+    $definitions = [
+        'WC_Email_Customer_Failed_Order' => ['Paiement non abouti', null],
+        'WC_Email_Customer_Refunded_Order' => ['Commande remboursée', null],
+        'WC_Email_Customer_Note' => ['Nouveau message', 'Note de test E2E'],
+        'WC_Email_Customer_Invoice' => ['Détails de la commande', null],
+    ];
+
+    foreach ($definitions as $className => [$expectedLabel, $customerNote]) {
+        $email = $emails[$className] ?? null;
+        if (! $email instanceof \WC_Email) {
+            $assert('E-mail natif ' . $className . ' disponible', false);
+            continue;
+        }
+
+        $email->object = $order;
+        if ($email instanceof \WC_Email_Customer_Note) {
+            $email->customer_note = (string) $customerNote;
+        }
+        if ($email instanceof \WC_Email_Customer_Refunded_Order) {
+            $email->partial_refund = false;
+            $email->refund         = false;
+        }
+
+        $message      = $email->get_content_html();
+        $plainMessage = $email->get_content_plain();
+        $expected = [
+            'id="luziapi-email-card"',
+            'logo-email.png',
+            'par e-mail et/ou SMS',
+            'CM2C',
+            'TVA non applicable',
+            $expectedLabel,
+        ];
+        if (is_string($customerNote)) {
+            $expected[] = $customerNote;
+        }
+        $missing = array_values(array_filter(
+            $expected,
+            static fn (string $needle): bool => false === mb_stripos($message, $needle)
+        ));
+        $plainExpected = [
+            'LUZIAPI — MIEL ARTISANAL',
+            'ACTUALITÉS LUZIAPI',
+            'CM2C',
+            'TVA non applicable',
+            $expectedLabel,
+        ];
+        if (is_string($customerNote)) {
+            $plainExpected[] = $customerNote;
+        }
+        $plainMissing = array_values(array_filter(
+            $plainExpected,
+            static fn (string $needle): bool => false === mb_stripos($plainMessage, $needle)
+        ));
+
+        $assert(
+            sprintf('E-mail natif %s — gabarits HTML et texte LuziApi complets', $email->id),
+            'emails/luziapi-customer-order.php' === $email->template_html
+                && 'emails/plain/luziapi-customer-order.php' === $email->template_plain
+                && [] === $missing
+                && [] === $plainMissing,
+            [] !== $missing
+                ? 'éléments HTML absents : ' . implode(', ', $missing)
+                : ([] !== $plainMissing ? 'éléments texte absents : ' . implode(', ', $plainMissing) : '')
+        );
+    }
+};
+
 $orderHasNote = static function (int $orderId, string $needle): bool {
     $notes = wc_get_order_notes(['order_id' => $orderId, 'limit' => 50]);
     foreach ($notes as $note) {
@@ -399,6 +469,12 @@ try {
         $order->update_status('out-for-delivery');
         $assert('Livraison — e-mail « en cours de livraison » envoyé', $mailSent('livraison'));
         $assertEmailTemplate('Livraison — e-mail « en cours de livraison »', 'livraison');
+        $assert(
+            'Livraison — trace privée de l’e-mail ajoutée',
+            $orderHasNote($id, 'E-mail client « Organisons la livraison')
+        );
+
+        $assertNativeCustomerEmailTemplates($order);
 
         $resetMail();
         $order->update_status('ready-for-pickup');

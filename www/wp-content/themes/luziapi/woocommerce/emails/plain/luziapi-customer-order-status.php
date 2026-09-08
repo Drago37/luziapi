@@ -36,6 +36,20 @@ foreach ($message_lines as $line) {
     echo wp_strip_all_tags($line) . "\n\n";
 }
 
+$highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
+$action_url     = isset($action_url) ? trim((string) $action_url) : '';
+$action_label   = isset($action_label) ? trim((string) $action_label) : '';
+
+if ('' !== $highlight_text) {
+    echo "MESSAGE\n";
+    echo "-------\n";
+    echo wp_strip_all_tags($highlight_text) . "\n\n";
+}
+
+if ('' !== $action_url && '' !== $action_label) {
+    echo wp_strip_all_tags($action_label) . ' : ' . esc_url($action_url) . "\n\n";
+}
+
 do_action('woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email);

@@ -28,6 +28,11 @@ un beau template **à la charte du site**, avec :
   administrateur « Nouvelle commande », « Commande annulée » et « Paiement échoué ». Il reprend
   la charte, met en avant le mode de remise et le paiement, conserve la note client et propose un
   accès direct à la commande, sans newsletter ni mentions légales destinées au client.
+- Un troisième lot est **prêt localement mais pas encore déployé** : les e-mails client WooCommerce
+  encore natifs (paiement échoué, remboursement, note au client et détails/demande de paiement)
+  réutilisent le gabarit LuziApi en HTML et texte brut. Chaque e-mail client lié à une commande
+  ajoute également une note privée indiquant sa transmission au service de messagerie ou l'échec
+  du transport, sans recopier le destinataire. Le test E2E local valide **37/37 assertions**.
 - Maquette de référence (rendu) : **`docs/maquettes/email-commande-confirmee.html`**
   (ouvrir dans un navigateur). Scénario illustré : **« Commande confirmée »**.
   Publiée aussi en artifact privé : https://claude.ai/code/artifact/666004cb-a59a-41a1-8d1e-ec7a21fd6c94
@@ -35,6 +40,9 @@ un beau template **à la charte du site**, avec :
   de **référence visuelle**, pas de code à copier tel quel (voir § 6).
 - Capture du vrai HTML généré et stylé par WooCommerce :
   **`docs/maquettes/email-commande-confirmee-rendu.png`**.
+- Captures locales du troisième lot, générées avec le vrai moteur WooCommerce :
+  **`docs/maquettes/email-note-client-rendu.png`** et
+  **`docs/maquettes/email-demande-paiement-rendu.png`**.
 - Le suivi de commande sans compte est reporté en **phase 2** : aucun bouton ni lien de suivi
   n'est présent dans ce premier lot.
 
@@ -188,13 +196,14 @@ Contrôles locaux du premier lot déjà réalisés :
 - PHP-CS-Fixer : aucun écart ;
 - PHPStan avec 1 Go : aucune erreur ;
 - PHPUnit : 56 tests, 73 assertions ;
-- test e2e local en dry-run : 30/30 assertions, dont le gabarit complet sur les sept e-mails ;
+- test e2e local en dry-run : 37/37 assertions, dont le gabarit complet des e-mails métier, des
+  quatre derniers e-mails client natifs et la trace privée de transport ;
 - rendu HTML réellement généré et stylé par WooCommerce contrôlé dans un navigateur.
 
 - **Local (logique)** : `make e2e-local` (dry-run, aucun envoi).
 - **Prod, e-mails RÉELS** : `make e2e-prod-send` → envoie tous les e-mails de test à l'adresse de
-  `www/wp-content/themes/luziapi/tools/.e2e-identity.json` (aujourd'hui `anthony.graule@gmail.com`),
-  crée puis **supprime** des commandes de test. Idéal pour **voir le nouveau rendu de bout en bout**.
+  `www/wp-content/themes/luziapi/tools/.e2e-identity.json` (fichier local ignoré par Git), crée puis
+  **supprime** des commandes de test. Idéal pour **voir le nouveau rendu de bout en bout**.
   Détails : `docs/tests-e2e-commandes.md`.
 - Déploiement des templates modifiés : **FTPS ciblé** (voir `AGENTS.md` § 3) ; templates PHP
   → **vider l'OPcache** ensuite (`AGENTS.md` § 4). `tools/` n'est pas déployé (exclu).
@@ -217,7 +226,7 @@ bout en bout en prod (12 e-mails reçus, garde-fous OK).
 
 ## 10. Prochaines étapes
 
-1. Contrôler visuellement dans les boîtes de réception les notifications administrateur reçues et
-   la pièce jointe CGV v3.
-2. Intégrer les éventuels derniers retours visuels sur les e-mails.
+1. Contrôler le rendu local des quatre e-mails client natifs nouvellement harmonisés.
+2. Après validation, déployer le troisième lot puis vérifier en production la trace privée et les
+   rendus sans envoyer de message réel avant accord explicite.
 3. Traiter ensuite le suivi de commande sans compte comme un lot séparé.

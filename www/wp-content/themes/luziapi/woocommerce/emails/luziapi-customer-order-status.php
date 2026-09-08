@@ -26,6 +26,9 @@
 defined('ABSPATH') || exit;
 
 $firstName = trim((string) $order->get_billing_first_name());
+$highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
+$action_url     = isset($action_url) ? trim((string) $action_url) : '';
+$action_label   = isset($action_label) ? trim((string) $action_label) : '';
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -69,6 +72,25 @@ $firstName = trim((string) $order->get_billing_first_name());
                         <?php endforeach; ?>
                     </td>
                 </tr>
+                <?php if ('' !== $highlight_text) : ?>
+                    <tr>
+                        <td class="luziapi-email-callout-wrap">
+                            <div class="luziapi-email-callout">
+                                <?php
+                                $safeNote = wc_wptexturize_order_note($highlight_text);
+                                echo wp_kses_post(wpautop(make_clickable($safeNote)));
+                                ?>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ('' !== $action_url && '' !== $action_label) : ?>
+                    <tr>
+                        <td class="luziapi-email-action" align="center">
+                            <a class="luziapi-email-button" href="<?php echo esc_url($action_url); ?>"><?php echo esc_html($action_label); ?></a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
                 <tr>
                     <td>
                         <div class="luziapi-email-summary">

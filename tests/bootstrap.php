@@ -33,6 +33,13 @@ if (!function_exists('sanitize_text_field')) {
     }
 }
 
+if (!function_exists('wp_strip_all_tags')) {
+    function wp_strip_all_tags(string $value): string
+    {
+        return strip_tags($value);
+    }
+}
+
 if (!function_exists('remove_accents')) {
     function remove_accents(string $value): string
     {
@@ -70,6 +77,9 @@ require __DIR__ . '/../www/wp-content/themes/luziapi/inc/payment-deadline.php';
 if (!class_exists('WC_Order')) {
     class WC_Order
     {
+        /** @var list<string> */
+        private array $notes = [];
+
         /** @param list<Luziapi_Test_Shipping_Method> $shippingMethods */
         public function __construct(
             private string $paymentMethod = '',
@@ -87,6 +97,47 @@ if (!class_exists('WC_Order')) {
         {
             return $this->shippingMethods;
         }
+
+        public function add_order_note(string $note, int $isCustomerNote = 0): void
+        {
+            if (0 === $isCustomerNote) {
+                $this->notes[] = $note;
+            }
+        }
+
+        /** @return list<string> */
+        public function get_test_notes(): array
+        {
+            return $this->notes;
+        }
+    }
+}
+
+if (!class_exists('WC_Email')) {
+    class WC_Email
+    {
+        public string $id;
+
+        /** @var object|bool */
+        public $object;
+
+        public function __construct(
+            string $id = '',
+            private bool $customerEmail = false,
+            private string $subject = ''
+        ) {
+            $this->id = $id;
+        }
+
+        public function is_customer_email(): bool
+        {
+            return $this->customerEmail;
+        }
+
+        public function get_subject(): string
+        {
+            return $this->subject;
+        }
     }
 }
 
@@ -103,3 +154,5 @@ if (!class_exists('Luziapi_Test_Shipping_Method')) {
         }
     }
 }
+
+require __DIR__ . '/../www/wp-content/themes/luziapi/inc/customer-emails.php';
