@@ -45,7 +45,7 @@ fi
 
 TOKEN="$(openssl rand -hex 16)"
 SEND_PY="$($SEND && echo True || echo False)"
-PAYLOAD="$(python3 -c "import json; d=json.load(open('$IDENTITY')); d.setdefault('options',{})['send_emails']=$SEND_PY; print(json.dumps(d))")"
+PAYLOAD="$(python3 -c "import json; d=json.load(open('$IDENTITY')); d.setdefault('options',{})['send_emails']=$SEND_PY; d['options'].pop('scenarios', None) if '${LUZIAPI_E2E_ALL_SCENARIOS:-false}' == 'true' else None; print(json.dumps(d))")"
 B64="$(printf '%s' "$PAYLOAD" | base64 -w0)"
 
 WORK="$(mktemp -d)"

@@ -93,6 +93,10 @@ make e2e-prod        # dry-run : aucun e-mail expédié, auto-nettoyé
 make e2e-prod-send   # e-mails RÉELS vers l'adresse de tools/.e2e-identity.json
 ```
 
+Si le fichier d'identité contient encore une liste explicite de scénarios plus ancienne, lancer
+`LUZIAPI_E2E_ALL_SCENARIOS=true make e2e-prod` pour utiliser la liste complète définie par le
+moteur de test.
+
 Elles s'appuient sur [`scripts/e2e-prod.sh`](../scripts/e2e-prod.sh), qui lit les
 identifiants FTPS dans `.env.local` et l'identité dans `tools/.e2e-identity.json`.
 Compter **~12 e-mails** par run complet avec `--send`.

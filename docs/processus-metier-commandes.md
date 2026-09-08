@@ -1,6 +1,6 @@
 # Processus métier — vente et traitement des commandes de miel
 
-> **État de la production relevé et mis à jour le 7 septembre 2026.** Ce document décrit le
+> **État de la production relevé et mis à jour le 8 septembre 2026.** Ce document décrit le
 > fonctionnement réellement configuré à cette date. Il distingue les automatismes WooCommerce
 > des opérations manuelles.
 
@@ -12,7 +12,7 @@ demandes reçues directement par téléphone, e-mail ou formulaire de contact.
 
 La production utilise :
 
-- WordPress 7.1 en français, avec le fuseau horaire réglé sur UTC ;
+- WordPress 7.1 en français, avec le fuseau horaire réglé sur Europe/Paris ;
 - WooCommerce 10.8.1 avec HPOS activé pour le stockage des commandes ;
 - le thème LuziApi 1.0.0 ;
 - des pages Panier et Commander fondées sur les shortcodes WooCommerce classiques ;
@@ -68,7 +68,7 @@ flowchart TD
 
     H -->|"Échec"| M["Statut Échouée"]
     I -->|"Annulation"| K
-    K -.-> KN["LuziApi prévenu<br/>Client non prévenu automatiquement"]
+    K -.-> KN["LuziApi et client prévenus<br/>motif obligatoire"]
     L -->|"Remboursement saisi"| R["Remboursée<br/>Règlement rendu manuellement"]
     R -.-> RN["Client : e-mail de remboursement"]
 ```
@@ -91,8 +91,16 @@ Le site invite aussi à commander par téléphone, e-mail ou formulaire Contact 
 sont envoyées à la boîte de contact, mais **ne créent pas automatiquement une commande
 WooCommerce** et **ne mettent pas le stock à jour**.
 
-Pour conserver une trace homogène, une commande directe doit donc être ressaisie manuellement dans
-WooCommerce, ou le stock doit être corrigé séparément.
+Pour conserver une trace homogène et faire évoluer le stock normalement, une commande directe est
+ressaisie dans WooCommerce. La fiche permet alors de renseigner **Source commande** (Téléphone,
+Marché / événement, E-mail / formulaire, Réseaux sociaux ou Autre), le mode de remise et, si
+nécessaire, **Ne pas envoyer d'e-mails pour cette commande**. Cette dernière option conserve le
+cycle des statuts et les mouvements de stock, mais bloque les messages au client comme à LuziApi.
+
+La source commerciale reste distincte de l'attribution marketing native de WooCommerce. Une
+commande du site reçoit automatiquement « Boutique en ligne » ; une saisie manuelle sans
+attribution reçoit « Administration web ». Les données d'attribution du navigateur ne sont
+collectées qu'après le consentement global ou Marketing de CookieAdmin.
 
 ## 4. Catalogue et disponibilité actuels
 
@@ -201,7 +209,7 @@ au même titre que les espèces, et place immédiatement la commande en cours.
 | Prête au retrait      | Commande prête au domicile de LuziApi                            | Déjà décrémenté                              | Prendre contact pour fixer uniquement le jour et l'heure du retrait       |
 | Terminée              | Commande effectivement livrée ou retirée                         | Déjà décrémenté                              | Plus d'action normale                                                     |
 | Échouée               | Paiement déclaré en échec                                        | Voir avertissement ci-dessous                | Examiner puis annuler si la commande ne sera pas reprise                  |
-| Annulée               | Commande abandonnée                                              | Restauré si le stock avait été décrémenté    | Informer le client si nécessaire, puis archiver                           |
+| Annulée               | Commande abandonnée                                              | Restauré si le stock avait été décrémenté    | Renseigner le motif communiqué au client, puis archiver                   |
 | Remboursée            | Remboursement total saisi                                        | Selon l'option choisie lors du remboursement | Vérifier que l'argent a réellement été rendu                              |
 
 ### Points de vigilance sur le stock
@@ -263,7 +271,10 @@ explicitement ce comportement.
 | Commande annulée              | **En attente** ou **En cours** → **Annulée**, avec motif obligatoire            | `Votre commande LuziApi n°{order_number} a été annulée`                           | Activé — modèle LuziApi ; bloqué sans motif                                      |
 
 Une note privée n'envoie pas l'e-mail « Note client ». Seule une note explicitement marquée
-**Note au client** le déclenche.
+**Note au client** le déclenche. Dans la fiche d'administration, ces choix sont nommés sans
+ambiguïté, les anciennes notes portent un badge d'historique interne ou de note client et une
+confirmation précède l'envoi. Si les e-mails sont désactivés pour la commande, la note reste
+historisée mais aucun message ne part.
 
 ### E-mail de commande envoyé uniquement à la demande
 
@@ -289,12 +300,13 @@ finaliser le paiement.
 | Commande prête pour une livraison : **En cours → En cours de livraison**  | 1 : prise de contact pour le jour et l'heure de livraison                                    |
 | Commande prête au retrait : **En cours → Prête au retrait**               | 1 : adresse fixe de retrait + prise de contact pour le jour et l'heure                       |
 | Commande remise : **En cours de livraison / Prête au retrait → Terminée** | 1 : confirmation de remise et remerciement au client                                         |
-| **En attente / En cours → Annulée**                                       | 1 : « Commande annulée » à LuziApi ; **aucun e-mail au client**                              |
+| **En attente / En cours → Annulée**, avec motif                           | 2 : « Commande annulée » à LuziApi et au client                                              |
 | **Attente paiement / En attente → Échouée**                               | 2 : « Commande échouée » à LuziApi + « Commande échouée » au client                          |
 | Autre statut → **Échouée**                                                | 1 : « Commande échouée » au client ; pas de notification administrateur prévue par le modèle |
 | Remboursement partiel ou total saisi                                      | 1 : e-mail de remboursement correspondant au client                                          |
 | Note privée ajoutée                                                       | Aucun e-mail                                                                                 |
 | Note au client ajoutée                                                    | 1 : « Note client » au client                                                                |
+| Toute action sur une commande avec l'option sans e-mail                   | Aucun e-mail client ni administrateur ; statuts et stock inchangés                           |
 | Commande mise à la corbeille ou supprimée                                 | Aucun e-mail dédié                                                                           |
 | Statut enregistré sans changement                                         | Aucun e-mail de changement de statut                                                         |
 
@@ -323,10 +335,8 @@ rupture : 0.
   correspondant ;
 - passer en **Terminée** confirme que la commande a bien été remise et ne dit plus qu'elle est en
   chemin ;
-- changer une commande en **Annulée** avertit LuziApi uniquement si elle était **En attente** ou
-  **En cours**, mais n'avertit jamais automatiquement le client avec le réglage actuel ;
-- pour informer le client d'une annulation ou donner une explication libre, ajouter une **Note au
-  client** avant de changer le statut ;
+- changer une commande en **Annulée** exige le motif communiqué au client ; ce motif est repris
+  dans son e-mail d'annulation. Sans motif, l'e-mail client est bloqué ;
 - les détails de commande et le lien de paiement peuvent être renvoyés manuellement depuis les
   actions de la commande.
 
@@ -358,8 +368,9 @@ rupture : 0.
 
 7. Après livraison ou retrait effectif, passer en **Terminée** ; le client reçoit la confirmation
    de remise et le remerciement.
-8. Si le règlement n'arrive pas, informer le client si nécessaire puis passer en **Annulée** pour
-   restaurer le stock. Le délai de 60 minutes ne s'applique pas au statut En attente.
+8. Si le règlement n'arrive pas, renseigner le motif communiqué au client puis passer en
+   **Annulée** pour restaurer le stock. Le délai de 60 minutes ne s'applique pas au statut En
+   attente.
 
 ### Espèces ou chèque à la remise
 
@@ -403,8 +414,8 @@ flowchart LR
 
 ### Annulation
 
-1. Si une explication doit être envoyée, ajouter d'abord une note au client.
-2. Passer en **Annulée** afin de restaurer le stock.
+1. Renseigner le champ **Motif d'annulation communiqué au client**.
+2. Passer en **Annulée** afin d'envoyer ce motif et de restaurer le stock.
 3. Vérifier la note système de restauration du stock.
 4. Mettre à la corbeille seulement si la conservation de la commande n'est pas nécessaire.
 
@@ -430,7 +441,8 @@ flowchart LR
 - Chaque rétractation en ligne reçoit une référence et est historisée dans la commande.
 - Il n'existe pas d'automatisation de créneau, de suivi de colis ou d'encaissement : la prise de
   contact et la saisie des statuts restent manuelles.
-- Les commandes directes hors boutique ne sont pas tracées automatiquement.
+- Les demandes directes hors boutique ne créent pas automatiquement de commande, mais leur saisie
+  manuelle permet désormais de tracer leur source et de suivre le même processus métier.
 
 ## 13. Écarts et décisions à prendre
 
@@ -438,9 +450,7 @@ Ces points restent ouverts après la mise en place du workflow de remise.
 
 | Priorité | Constat                                              | Risque / conséquence                                                 | Décision possible                                           |
 | -------- | ---------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Moyenne  | Annulation client désactivée                         | Le client n'est pas prévenu automatiquement                          | Activer l'e-mail ou formaliser l'usage d'une note client    |
-| Moyenne  | Choix du statut de remise manuel                     | Risque de sélectionner « livraison » pour un retrait, ou inversement | Toujours vérifier la méthode enregistrée dans la commande   |
-| Moyenne  | Fuseau WordPress UTC et formats de date anglo-saxons | Horaires d'administration décalés ou ambigus                         | Régler Europe/Paris et des formats français                 |
+| Moyenne  | Choix du statut de remise manuel                     | Risque résiduel de sélectionner une étape incohérente                 | Les options incompatibles sont désactivées selon le mode    |
 | Faible   | Coupons autorisés mais inutilisés                    | Champ promo visible sans campagne                                    | Conserver en prévision ou désactiver après décision         |
 | Faible   | Page Mon compte sans inscription publique            | Utilité limitée pour les nouveaux clients                            | Assumer le parcours invité ou revoir la politique de compte |
 
@@ -490,8 +500,14 @@ Contrôles réalisés lors de la mise en service, sans créer de commande ni env
 - empreintes SHA-256 locales et serveur identiques ;
 - OPcache vidé ; accueil et boutique servis en HTTP 200.
 
-Une commande de bout en bout et la réception réelle des cinq e-mails devront encore être vérifiées
-avec une commande de test dédiée si l'on veut valider la chaîne de délivrabilité complète.
+Le 8 septembre 2026, le lot de gestion des commandes en administration a également été contrôlé
+en production sans expédition réelle : **46/46 assertions**, dont une commande manuelle Téléphone
+menée jusqu'à Terminée sans aucun e-mail, avec décrément de stock unique. Les six commandes et le
+produit de test ont été supprimés automatiquement après le contrôle.
+
+La chaîne d'envoi réelle a également été vérifiée le 8 septembre 2026 vers l'adresse de test
+autorisée. Tout nouveau contrôle avec expédition doit rester explicitement confirmé, contrairement
+au dry-run qui bloque le transport des messages.
 
 ## 15. Références et maintien de la documentation
 

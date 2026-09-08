@@ -45,6 +45,19 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   contournement dans `inc/woocommerce.php` du problème de clic sur les cases de la liste des
   commandes. Il couvre l'écran HPOS et l'écran historique sans retirer l'ouverture d'une commande
   par clic sur le reste de sa ligne.
+- **Gestion des commandes enrichie depuis le 8 septembre 2026** : la fiche HPOS affiche une
+  **Source commande** distincte de l'attribution marketing, permet de choisir ou corriger le mode
+  de remise avant l'étape de livraison/retrait et propose une option par commande pour bloquer
+  tous les e-mails WooCommerce, client comme administrateur, sans interrompre les statuts ni le
+  stock. Les notes privées et les notes client sont explicitement distinguées et une confirmation
+  précède tout e-mail de note au client. La date et l'heure de création sont présentées en
+  `JJ/MM/AAAA` et `HH:MM`, tout en conservant les valeurs techniques attendues par WooCommerce.
+- Les sources proposées sont Boutique en ligne, Téléphone, Marché / événement, E-mail /
+  formulaire, Réseaux sociaux et Autre. La boutique renseigne automatiquement sa source ; une
+  commande saisie dans l'administration reçoit l'attribution native « Administration web » si
+  WooCommerce n'en possède aucune. L'absence de donnée marketing est libellée « Attribution
+  marketing indisponible » plutôt que « Inconnue ». La collecte d'attribution au checkout est
+  conditionnée au consentement global ou Marketing de CookieAdmin.
 - **Navigation boutique déployée le 7 septembre 2026** : bouton « Boutique » avec icône de
   magasin et panier toujours visible dans le header (« Vide », puis nombre d'articles). Le
   mini-panier s'ouvre au survol sur ordinateur et au toucher sur mobile/tablette ; son contenu est
@@ -198,6 +211,11 @@ achetés (le champ SMS est donc actif).
   recopier le destinataire. « Transmis au service de messagerie » confirme la remise à `mail()`,
   pas la réception finale. Les empreintes des huit fichiers déployés correspondent au dépôt,
   l'OPcache a été vidé et le test E2E production sans envoi valide **37/37 assertions**.
+- Le lot d'administration des commandes déployé le 8 septembre 2026 a été vérifié par empreintes
+  SHA-256 et vidage d'OPcache. Le test E2E complet de production, sans expédition réelle, valide
+  **46/46 assertions**, dont la saisie d'une commande Téléphone, l'ajout du retrait, son traitement
+  jusqu'à Terminée, le mouvement de stock unique et le blocage de tous ses e-mails. Les six
+  commandes et le produit temporaires ont été supprimés automatiquement.
 - Expéditeur : `LuziApi <no-reply@luziapi.fr>` (mu-plugin `luziapi-mail-from.php`).
 - `activate_email=no` côté plugin Brevo → les mails transactionnels du site restent natifs ; Brevo
   ne sert qu'aux campagnes.

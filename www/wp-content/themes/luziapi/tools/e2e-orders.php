@@ -585,6 +585,19 @@ try {
         $id = $order->get_id();
 
         $stockBefore = (int) wc_get_product($productId)->get_stock_quantity();
+        $previousUserId = get_current_user_id();
+        if (! current_user_can('edit_shop_orders')) {
+            $workflowUsers = get_users([
+                'capability' => 'edit_shop_orders',
+                'number'     => 1,
+                'fields'     => 'ids',
+            ]);
+            if ([] === $workflowUsers) {
+                throw new \RuntimeException('Aucun utilisateur autorisé à modifier les commandes pour le scénario manuel.');
+            }
+            wp_set_current_user((int) $workflowUsers[0]);
+        }
+
         $previousPost = $_POST;
         $_POST = [
             'luziapi_order_workflow_nonce' => wp_create_nonce('luziapi_save_order_workflow'),
@@ -594,6 +607,7 @@ try {
         ];
         luziapi_save_admin_order_workflow($id, $order);
         $_POST = $previousPost;
+        wp_set_current_user($previousUserId);
         $order = wc_get_order($id);
 
         $assert('Commande manuelle — source « Téléphone » enregistrée depuis la fiche', $order instanceof \WC_Order && 'phone' === luziapi_order_source($order));
