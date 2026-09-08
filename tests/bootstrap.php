@@ -198,3 +198,4 @@ if (!class_exists('Luziapi_Test_Shipping_Method')) {
 }
 
 require __DIR__ . '/../www/wp-content/themes/luziapi/inc/customer-emails.php';
+require __DIR__ . '/../www/wp-content/themes/luziapi/inc/customer-directory.php';

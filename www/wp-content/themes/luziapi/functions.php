@@ -47,6 +47,7 @@ require_once LUZIAPI_DIR . '/inc/shop.php';
 require_once LUZIAPI_DIR . '/inc/woocommerce.php';
 require_once LUZIAPI_DIR . '/inc/commerce-legal.php';
 require_once LUZIAPI_DIR . '/inc/order-workflow.php';
+require_once LUZIAPI_DIR . '/inc/customer-directory.php';
 require_once LUZIAPI_DIR . '/inc/customer-emails.php';
 require_once LUZIAPI_DIR . '/inc/admin-emails.php';
 require_once LUZIAPI_DIR . '/inc/payment-deadline.php';
