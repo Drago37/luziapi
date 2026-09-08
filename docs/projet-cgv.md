@@ -1,7 +1,7 @@
 # Conditions générales de vente — source de travail LuziApi
 
-> Révision 3 en préparation le 8 septembre 2026 : contenu juridique inchangé, nouvelle mise en
-> page PDF à la charte LuziApi. Après validation, le rendu public versionné se trouvera dans
+> Révision 3 publiée le 8 septembre 2026 : contenu juridique inchangé, nouvelle mise en page PDF
+> à la charte LuziApi. Le rendu public versionné se trouve dans
 > `templates/page-conditions-generales-de-vente.twig` et sa copie durable dans
 > `assets/docs/LuziApi-CGV-2026-09-08-v3.pdf`. Les versions déjà publiées restent conservées dans
 > `assets/docs/LuziApi-CGV-2026-09-07.pdf` et `assets/docs/LuziApi-CGV-2026-09-07-v2.pdf`. Toute

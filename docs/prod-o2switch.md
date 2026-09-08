@@ -84,10 +84,10 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   retrait ou de la livraison — espèces ou chèque ». Le moyen « Chèque » séparé est désactivé :
   aucun chèque n'est envoyé, il est accepté uniquement au moment de la remise.
   PayPal : plugin désactivé **puis fichiers supprimés**.
-- Les CGV versionnées du 7 septembre 2026 sont publiées, associées au checkout et documentées dans
+- Les CGV versionnées du 8 septembre 2026 sont publiées, associées au checkout et documentées dans
   [`projet-cgv.md`](projet-cgv.md). L'adhésion CM2C est active.
 
-### CGV et rétractation — déployées le 7 septembre 2026
+### CGV et rétractation — déployées les 7 et 8 septembre 2026
 
 - page **Conditions générales de vente (#108)** à `/conditions-generales-de-vente/`, dans le design
   du thème, et PDF immuable associé ;
@@ -106,6 +106,11 @@ La **révision 2 est en production depuis le 7 septembre 2026** : nouvelle infor
 téléphone et la prospection, délai de règlement de 10 jours ouvrés avec rappel puis annulation,
 e-mail d'annulation conditionné à un motif, contrôle du statut selon le mode de remise, fuseau
 Europe/Paris, politique de confidentialité enrichie et champ coupon masqué sans coupon utilisable.
+
+La **révision 3 est en production depuis le 8 septembre 2026**, sans changement juridique : le
+PDF de cinq pages reprend la charte LuziApi, embarque le logo pour garantir son affichage et place
+le formulaire de rétractation entier sur sa propre page. Les PDF des révisions précédentes restent
+accessibles pour conserver la copie exacte acceptée par chaque client.
 
 > **Délai de règlement porté à 10 jours ouvrés** (rappel toujours à 5) le 7 septembre 2026, sur
 > toute la chaîne : traitement, e-mails, **texte public des CGV** et **PDF** `2026-09-07-v2`
@@ -178,9 +183,13 @@ achetés (le champ SMS est donc actif).
   d'inscription aux actualités par e-mail et/ou SMS. Le bouton « Suivre ma commande » n'est pas
   affiché tant que le suivi invité prévu en phase 2 n'existe pas. Les fichiers ont été vérifiés
   par empreinte après déploiement et l'OPcache a été réinitialisé. Le test E2E en production du
-  8 septembre 2026 a réellement expédié la série d'e-mails et validé **30/30 assertions** ; ses
-  cinq commandes et son produit temporaires ont été supprimés. Le rendu reçu reste à contrôler
-  visuellement dans la boîte de test.
+  8 septembre 2026 a réellement expédié la série d'e-mails et validé **32/32 assertions** ; ses
+  cinq commandes et son produit temporaires ont été supprimés.
+- Les notifications internes « Nouvelle commande », « Commande annulée » et « Paiement échoué »
+  utilisent également depuis le 8 septembre 2026 un gabarit LuziApi compact : récapitulatif,
+  mode de remise, paiement, note client, coordonnées et bouton d'accès direct à la commande. Elles
+  n'affichent volontairement ni newsletter ni mentions légales destinées au client. Le test E2E
+  réel a validé les gabarits « Nouvelle commande » et « Commande annulée ».
 - Expéditeur : `LuziApi <no-reply@luziapi.fr>` (mu-plugin `luziapi-mail-from.php`).
 - `activate_email=no` côté plugin Brevo → les mails transactionnels du site restent natifs ; Brevo
   ne sert qu'aux campagnes.

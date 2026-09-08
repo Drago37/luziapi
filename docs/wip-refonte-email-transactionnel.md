@@ -22,9 +22,9 @@ un beau template **à la charte du site**, avec :
 
 - Le nouveau gabarit est **implémenté pour les sept e-mails et déployé en production depuis le
   8 septembre 2026**. Le test E2E en production a ensuite réellement expédié la série d'e-mails :
-  **30/30 assertions** sont passées et les cinq commandes ainsi que le produit temporaires ont
-  été supprimés. Le contrôle visuel des messages reçus reste à faire dans la boîte de test.
-- Une seconde étape est validée visuellement en local : gabarit interne compact pour les notifications
+  **32/32 assertions** sont passées et les cinq commandes ainsi que le produit temporaires ont
+  été supprimés.
+- Une seconde étape est déployée en production : gabarit interne compact pour les notifications
   administrateur « Nouvelle commande », « Commande annulée » et « Paiement échoué ». Il reprend
   la charte, met en avant le mode de remise et le paiement, conserve la note client et propose un
   accès direct à la commande, sans newsletter ni mentions légales destinées au client.
@@ -217,9 +217,7 @@ bout en bout en prod (12 e-mails reçus, garde-fous OK).
 
 ## 10. Prochaines étapes
 
-1. Faire valider le PDF CGV révision 3 : logo embarqué et formulaire de rétractation conservé en
-   entier sur sa propre page.
-2. Déployer ensemble le gabarit administrateur validé et la nouvelle version immuable des CGV,
-   puis les tester en boîte.
-3. Intégrer les éventuels derniers retours visuels sur les e-mails clients.
-4. Traiter ensuite le suivi de commande sans compte comme un lot séparé.
+1. Contrôler visuellement dans les boîtes de réception les notifications administrateur reçues et
+   la pièce jointe CGV v3.
+2. Intégrer les éventuels derniers retours visuels sur les e-mails.
+3. Traiter ensuite le suivi de commande sans compte comme un lot séparé.
