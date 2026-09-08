@@ -21,7 +21,9 @@ un beau template **à la charte du site**, avec :
 ## 2. État d'avancement
 
 - Le nouveau gabarit est **implémenté pour les sept e-mails et déployé en production depuis le
-  8 septembre 2026**. Aucun e-mail réel n'a encore été déclenché avec ce nouveau rendu.
+  8 septembre 2026**. Le test E2E en production a ensuite réellement expédié la série d'e-mails :
+  **30/30 assertions** sont passées et les cinq commandes ainsi que le produit temporaires ont
+  été supprimés. Le contrôle visuel des messages reçus reste à faire dans la boîte de test.
 - Maquette de référence (rendu) : **`docs/maquettes/email-commande-confirmee.html`**
   (ouvrir dans un navigateur). Scénario illustré : **« Commande confirmée »**.
   Publiée aussi en artifact privé : https://claude.ai/code/artifact/666004cb-a59a-41a1-8d1e-ec7a21fd6c94
@@ -211,7 +213,6 @@ bout en bout en prod (12 e-mails reçus, garde-fous OK).
 
 ## 10. Prochaines étapes
 
-1. Sur accord explicite : lancer les e-mails réels de test vers l'identité e2e et contrôler le
-   rendu reçu sur mobile et ordinateur.
+1. Contrôler le rendu reçu dans la boîte de test sur mobile et ordinateur.
 2. Intégrer les éventuels derniers retours visuels, puis redéployer les seuls fichiers concernés.
 3. Traiter ensuite le suivi de commande sans compte comme un lot séparé.

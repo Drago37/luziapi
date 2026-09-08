@@ -177,8 +177,10 @@ achetés (le champ SMS est donc actif).
   coordonnées et informations légales, médiation CM2C, réseaux sociaux et rappel discret
   d'inscription aux actualités par e-mail et/ou SMS. Le bouton « Suivre ma commande » n'est pas
   affiché tant que le suivi invité prévu en phase 2 n'existe pas. Les fichiers ont été vérifiés
-  par empreinte après déploiement et l'OPcache a été réinitialisé ; le premier contrôle en boîte
-  réelle reste à effectuer.
+  par empreinte après déploiement et l'OPcache a été réinitialisé. Le test E2E en production du
+  8 septembre 2026 a réellement expédié la série d'e-mails et validé **30/30 assertions** ; ses
+  cinq commandes et son produit temporaires ont été supprimés. Le rendu reçu reste à contrôler
+  visuellement dans la boîte de test.
 - Expéditeur : `LuziApi <no-reply@luziapi.fr>` (mu-plugin `luziapi-mail-from.php`).
 - `activate_email=no` côté plugin Brevo → les mails transactionnels du site restent natifs ; Brevo
   ne sert qu'aux campagnes.
