@@ -83,36 +83,34 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
 
 ## Lancer en prod (FTPS + jeton HTTPS)
 
-L'accès prod se fait sans SSH, par script à jeton (voir
-[prod-o2switch.md](prod-o2switch.md) et [AGENTS.md](../AGENTS.md) § 4). En prod, mettre
-`send_emails: true` pour **recevoir réellement** les e-mails de test (~12 par run complet).
+Le plus simple — deux cibles qui déposent le script à jeton à la racine du thème,
+l'exécutent, affichent le résumé, puis le suppriment automatiquement :
 
-Le compte FTP est chrooté sur le thème, sans dossier `tools/` en prod, et o2switch
-filtre les POST vers un PHP du thème (404). On dépose donc le script **à la racine du
-thème** et on **embarque le payload en base64** dans le script (aucune donnée
-personnelle dans l'URL ni les logs d'accès), puis on appelle en **GET** :
+```bash
+make e2e-prod        # dry-run : aucun e-mail expédié, auto-nettoyé
+make e2e-prod-send   # e-mails RÉELS vers l'adresse de tools/.e2e-identity.json
+```
 
-1. Injecter, dans une copie du script, le jeton à usage unique (à la place de
-   `REPLACE_WITH_TOKEN`) et le payload encodé (à la place de `B64PAYLOAD_PLACEHOLDER`),
-   par exemple :
+Elles s'appuient sur [`scripts/e2e-prod.sh`](../scripts/e2e-prod.sh), qui lit les
+identifiants FTPS dans `.env.local` et l'identité dans `tools/.e2e-identity.json`.
+Compter **~12 e-mails** par run complet avec `--send`.
 
-   ```bash
-   TOKEN=$(openssl rand -hex 16)
-   B64=$(base64 -w0 tools/.e2e-identity.json)
-   sed -e "s/REPLACE_WITH_TOKEN/$TOKEN/" -e "s#B64PAYLOAD_PLACEHOLDER#$B64#" \
-       tools/e2e-orders.php > /tmp/_e2e-orders.php
-   ```
+Sous le capot (utile si l'accès o2switch change), l'accès prod se fait sans SSH par
+script à jeton (voir [prod-o2switch.md](prod-o2switch.md) et [AGENTS.md](../AGENTS.md)
+§ 4). Le compte FTP est chrooté sur le thème, sans dossier `tools/`, et o2switch filtre
+les POST vers un PHP du thème (404). Le script est donc **déposé à la racine du thème**
+avec le jeton **et** le payload **embarqués en base64** (aucune donnée personnelle dans
+l'URL ni les logs), puis appelé en **GET** :
 
-2. Déposer `/tmp/_e2e-orders.php` en FTPS à la racine du thème (`put -O .`), puis
-   appeler en HTTPS :
+```bash
+TOKEN=$(openssl rand -hex 16)
+B64=$(base64 -w0 tools/.e2e-identity.json)
+sed -e "s/REPLACE_WITH_TOKEN/$TOKEN/" -e "s#B64PAYLOAD_PLACEHOLDER#$B64#" \
+    tools/e2e-orders.php > /tmp/_e2e-orders.php
+# puis : dépôt FTPS « put -O . /tmp/_e2e-orders.php », appel, puis suppression FTPS.
+curl -sS "https://www.luziapi.fr/wp-content/themes/luziapi/_e2e-orders.php?k=$TOKEN"
+```
 
-   ```bash
-   curl -sS "https://www.luziapi.fr/wp-content/themes/luziapi/_e2e-orders.php?k=$TOKEN"
-   ```
+> À défaut de payload embarqué, le script lit aussi le corps d'une requête POST.
 
-   > À défaut de payload embarqué, le script lit aussi le corps d'une requête POST.
-
-3. Lire le JSON de résultat (`summary`, `results`, `mails_logged`, `cleanup`).
-4. **Supprimer le script** déposé (`rm` FTPS) et vérifier qu'il renvoie 404.
-
-En cas de doute sur un résidu, relancer avec `options.cleanup_only: true`.
+En cas de doute sur un résidu, relancer avec `options.cleanup_only: true` dans l'identité.
