@@ -4,9 +4,10 @@
 <article class="page legal legal-cgv">
     <div class="wrap page-legal">
         <header class="legal-head">
+            <img class="legal-print-logo" src="{{ theme_uri }}/assets/img/logo-email.png" width="90" height="90" alt="LuziApi">
             <span class="eyebrow">Boutique LuziApi</span>
             <h1>Conditions générales de vente</h1>
-            <p class="legal-version">Version du 7 septembre 2026 — révision 2</p>
+            <p class="legal-version">{{ cgv_label }}</p>
             <p>Ces conditions encadrent les commandes de miel passées par des consommateurs sur la boutique LuziApi.</p>
             <div class="legal-actions no-print">
                 {% if cgv_pdf_url %}<a class="btn btn-primary" href="{{ cgv_pdf_url }}" download>Télécharger les CGV en PDF</a>{% endif %}
@@ -140,7 +141,7 @@
                 <h2>11. Données personnelles</h2>
                 <p>Les données recueillies sont utilisées pour traiter la commande, le paiement, la prise de rendez-vous, l’exercice des droits du consommateur et le suivi de la relation client. Les inscriptions à la newsletter et aux alertes SMS reposent sur des consentements distincts et facultatifs.</p>
                 <p>Le numéro de téléphone renseigné lors de la commande sert à son traitement et à l’organisation du retrait ou de la livraison. Conformément à l’article L. 223-2 du Code de la consommation, il est interdit de démarcher un consommateur par téléphone sans son consentement préalable, sauf sollicitation directement liée à l’exécution du contrat en cours.</p>
-                <p>Les droits d’accès, de rectification, d’effacement et d’opposition sont détaillés dans la <a href="{{ home }}politique-de-confidentialite/">politique de confidentialité</a>.</p>
+                <p>Les droits d’accès, de rectification, d’effacement et d’opposition sont détaillés dans la <a href="{{ function('home_url', '/politique-de-confidentialite/') }}">politique de confidentialité</a>.</p>
             </section>
 
             <section id="mediation">
@@ -176,6 +177,10 @@
                 </blockquote>
                 {% if withdrawal_url %}<p class="no-print"><a class="btn btn-primary" href="{{ withdrawal_url }}">Exercer ma rétractation en ligne</a></p>{% endif %}
             </section>
+        </div>
+        <div class="legal-print-end" aria-hidden="true">
+            <span>LuziApi · Miel artisanal à Luzillé</span>
+            <span>{{ cgv_label }}</span>
         </div>
     </div>
 </article>

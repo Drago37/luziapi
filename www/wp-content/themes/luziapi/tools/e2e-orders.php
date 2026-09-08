@@ -180,6 +180,41 @@ $assertEmailTemplate = static function (string $label, string $subjectNeedle) us
     );
 };
 
+$assertAdminEmailTemplate = static function (string $label) use ($assert, $customerEmail): void {
+    $message = '';
+    foreach ($GLOBALS['e2e_mails'] as $mail) {
+        if ('' !== $customerEmail && false !== mb_stripos($mail['to'], $customerEmail)) {
+            continue;
+        }
+        if (false !== mb_stripos($mail['message'], 'luziapi-admin-internal')) {
+            $message = $mail['message'];
+            break;
+        }
+    }
+
+    $expected = [
+        'id="luziapi-email-card"',
+        'Notification interne',
+        'Ouvrir la commande',
+        'Mode de remise',
+        'logo-email.png',
+    ];
+    $missing = array_values(array_filter(
+        $expected,
+        static fn (string $needle): bool => false === mb_stripos($message, $needle)
+    ));
+    $hasCustomerMarketing = false !== mb_stripos($message, 'actualités LuziApi')
+        || false !== mb_stripos($message, 'CM2C');
+
+    $assert(
+        $label . ' — gabarit administrateur complet',
+        '' !== $message && [] === $missing && ! $hasCustomerMarketing,
+        [] !== $missing
+            ? 'éléments absents : ' . implode(', ', $missing)
+            : ($hasCustomerMarketing ? 'contenu client inutile présent dans la notification interne' : '')
+    );
+};
+
 $orderHasNote = static function (int $orderId, string $needle): bool {
     $notes = wc_get_order_notes(['order_id' => $orderId, 'limit' => 50]);
     foreach ($notes as $note) {
@@ -347,6 +382,7 @@ try {
         $order->update_status('processing');
         $assert('Livraison — e-mail « confirmée » envoyé', $mailSent('confirmée'));
         $assertEmailTemplate('Livraison — e-mail « confirmée »', 'confirmée');
+        $assertAdminEmailTemplate('Livraison — e-mail administrateur « nouvelle commande »');
         // La version CGV est figée au checkout (hors périmètre programmatique) ;
         // ici on vérifie ce que l'e-mail déclenche : le PDF CGV en pièce jointe.
         $cgvAttached = false;
@@ -423,6 +459,7 @@ try {
         $assert('Annulation — commande passée à « annulée »', 'cancelled' === $order->get_status());
         $assert('Annulation — e-mail d’annulation envoyé (motif présent)', $mailSent('annulée'));
         $assertEmailTemplate('Annulation — e-mail d’annulation', 'annulée');
+        $assertAdminEmailTemplate('Annulation — e-mail administrateur « commande annulée »');
         $assert('Annulation — motif enregistré sur la commande', '' !== trim((string) $order->get_meta('_luziapi_cancellation_reason')));
 
         $stockAfter = (int) wc_get_product($productId)->get_stock_quantity();

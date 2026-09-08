@@ -346,6 +346,7 @@ article.page{padding:28px 0 56px}
 .legal-guarantee{border:2px solid var(--bark);border-radius:12px;padding:1.1rem 1.25rem;margin-top:1.2rem;background:#fff;font-size:.9rem}
 .legal-guarantee p,.legal-guarantee ol{margin-bottom:.75rem}
 .legal-mediator{background:var(--cream-2);border-radius:12px;padding:1rem 1.2rem;margin:1rem 0;font-style:normal}
+.legal-print-logo,.legal-print-end{display:none}
 .withdrawal-model{border-left:4px solid var(--honey);background:var(--paper);margin:1rem 0;padding:1rem 1.25rem}
 .withdrawal-form,.withdrawal-review,.withdrawal-success{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;margin:1.5rem 0}
 .withdrawal-field{border:0;margin:0 0 18px;padding:0}
@@ -371,18 +372,34 @@ article.page{padding:28px 0 56px}
 .lz-hp{position:absolute!important;left:-9999px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
 @media(max-width:680px){.legal-summary ol{columns:1}.withdrawal-review dl div{grid-template-columns:1fr;gap:2px}}
 @media print{
-  @page{margin:16mm 14mm}
+  @page{size:A4;margin:15mm 14mm}
+  html,body{background:#fff!important}
+  body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   .no-print,.site-header,.site-footer,.sticky-actions,.lang-fab,.fab-group,.fab{display:none!important}
   /* Bandeau de consentement cookies (CookieAdmin) : jamais imprimé. */
   [class*="cookieadmin" i],[id*="cookieadmin" i],[class*="cky" i],[id*="cky" i]{display:none!important}
   article.page{padding:0}
   .page-legal{max-width:none}
-  .legal-head{max-width:none}
-  .legal-prose{font-size:10pt;color:#000}
-  .legal-prose h2{break-after:avoid;color:#000}
+  .legal-head{position:relative;max-width:none;margin:0 0 7mm;padding:6mm 34mm 6mm 7mm;background:var(--cream);border-left:4pt solid var(--honey);border-radius:3mm}
+  .legal-print-logo{display:block!important;position:absolute;top:6mm;right:7mm;width:23mm;height:23mm}
+  .legal-head .eyebrow{color:var(--honey-deep)!important;font-size:8pt;letter-spacing:.11em}
+  .legal-head h1{margin:.8mm 0 2mm;color:var(--espresso)!important;font-family:var(--serif);font-size:24pt;line-height:1.1}
+  .legal-head>p:last-child{margin-bottom:0;color:var(--bark)}
+  .legal-version{background:var(--cream-2)!important;color:var(--bark)!important;font-size:8pt}
+  .legal-prose{font-size:9pt;line-height:1.42;color:var(--ink);orphans:3;widows:3}
+  .legal-prose h2{break-after:avoid-page;page-break-after:avoid;margin:5mm 0 2.2mm;padding-bottom:1.2mm;border-bottom:1pt solid var(--line);color:var(--bark)!important;font-family:var(--serif);font-size:14pt;line-height:1.2}
+  .legal-prose h3{break-after:avoid-page;page-break-after:avoid;margin:3.5mm 0 1.3mm;color:var(--honey-deep)!important;font-family:var(--serif);font-size:11pt}
+  .legal-prose p,.legal-prose ul,.legal-prose ol{margin-top:0;margin-bottom:2.8mm}
   .legal-prose section{break-inside:auto}
-  .legal-guarantee,.legal-callout,.legal-mediator{break-inside:avoid;color:#000;background:#fff;border-color:#555}
-  a{color:#000!important;text-decoration:none!important}
+  .legal-guarantee,.legal-callout,.legal-mediator{color:var(--ink)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .legal-callout{background:#fff7df!important;border-color:#efd79b!important;border-left-color:var(--honey)!important;border-radius:2.5mm}
+  .legal-callout,.legal-mediator{break-inside:avoid-page;page-break-inside:avoid}
+  .legal-guarantee{break-inside:auto;page-break-inside:auto;background:#fffdf7!important;border-color:var(--bark)!important;border-radius:2.5mm;font-size:8.2pt;line-height:1.38}
+  .legal-mediator{background:var(--cream-2)!important;border-left:3pt solid var(--honey);border-radius:2.5mm}
+  .withdrawal-model{background:#fffaf0!important;border-left:3pt solid var(--wood);padding:4mm 5mm}
+  #formulaire{break-before:page;page-break-before:always;break-inside:avoid-page;page-break-inside:avoid}
+  .legal-print-end{display:flex!important;align-items:center;justify-content:space-between;margin-top:7mm;padding-top:3mm;border-top:1.5pt solid var(--honey);color:var(--muted);font-family:var(--sans);font-size:7.5pt}
+  a{color:var(--bark)!important;text-decoration:none!important}
 }
 
 /* ---------- FOOTER ---------- */

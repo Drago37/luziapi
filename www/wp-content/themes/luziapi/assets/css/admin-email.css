@@ -1,0 +1,157 @@
+.luziapi-admin-header {
+    padding-bottom: 14px;
+}
+
+.luziapi-admin-header .luziapi-email-logo {
+    max-width: 112px;
+    width: 112px;
+}
+
+.luziapi-admin-internal {
+    color: #f7dd9b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    margin: 8px 0 0;
+    text-transform: uppercase;
+}
+
+.luziapi-admin-hero {
+    border-bottom: 4px solid #e0a124;
+    padding-bottom: 24px;
+}
+
+.luziapi-admin-tone-cancelled,
+.luziapi-admin-tone-failed {
+    border-bottom-color: #a84b3a;
+}
+
+.luziapi-admin-tone-cancelled .luziapi-email-eyebrow,
+.luziapi-admin-tone-failed .luziapi-email-eyebrow {
+    color: #8d3024;
+}
+
+.luziapi-admin-intro {
+    color: #3a2917;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 14px 0 0;
+}
+
+.luziapi-admin-facts-wrap {
+    background-color: #fffaf0;
+    padding: 24px 34px 8px;
+}
+
+.luziapi-admin-facts {
+    border: 1px solid #e6d2a8;
+    border-collapse: separate;
+    border-radius: 10px;
+    overflow: hidden;
+    table-layout: fixed;
+}
+
+.luziapi-admin-facts td {
+    background-color: #fbf1da;
+    border-bottom: 1px solid #e6d2a8;
+    color: #3a2917;
+    padding: 13px 16px;
+    vertical-align: top;
+    width: 50%;
+}
+
+.luziapi-admin-facts td + td {
+    border-left: 1px solid #e6d2a8;
+}
+
+.luziapi-admin-facts tr:last-child td {
+    border-bottom: 0;
+}
+
+.luziapi-admin-facts span {
+    color: #7d6038;
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.luziapi-admin-facts strong {
+    color: #2b1d10;
+    display: block;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.luziapi-admin-facts tr:first-child td:last-child strong {
+    white-space: nowrap;
+}
+
+.luziapi-admin-action-wrap {
+    background-color: #fffaf0;
+    padding: 14px 34px 4px;
+}
+
+.luziapi-admin-action {
+    background-color: #e0a124;
+    border-radius: 8px;
+    color: #2b1d10 !important;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 22px;
+    text-decoration: none;
+}
+
+.luziapi-admin-summary {
+    margin-top: 20px;
+}
+
+.luziapi-admin-summary a {
+    color: #8a5410 !important;
+}
+
+.luziapi-admin-customer {
+    padding-top: 8px;
+}
+
+.luziapi-admin-footer {
+    padding-bottom: 25px;
+    padding-top: 25px;
+}
+
+.luziapi-admin-footer p {
+    color: #c9b594;
+    font-size: 11px;
+    line-height: 1.55;
+    margin: 7px 0;
+}
+
+.luziapi-admin-footer .luziapi-email-footer-brand {
+    color: #fffaf0;
+    font-size: 21px;
+}
+
+.luziapi-admin-footer a {
+    color: #f2c75a !important;
+}
+
+@media only screen and (max-width: 620px) {
+    .luziapi-admin-facts-wrap,
+    .luziapi-admin-action-wrap {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .luziapi-admin-facts td {
+        display: block !important;
+        width: auto !important;
+    }
+
+    .luziapi-admin-facts td + td {
+        border-left: 0 !important;
+        border-top: 1px solid #e6d2a8 !important;
+    }
+}
