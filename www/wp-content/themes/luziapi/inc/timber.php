@@ -10,6 +10,36 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Coordonnées publiques de LuziApi, partagées par le site et les e-mails.
+ *
+ * @return array{
+ *     nom: string,
+ *     marque: string,
+ *     adresse: string,
+ *     cp_ville: string,
+ *     tel: string,
+ *     tel_lien: string,
+ *     email: string,
+ *     facebook: string,
+ *     instagram: string
+ * }
+ */
+function luziapi_contact_details(): array
+{
+    return [
+        'nom'       => 'Anthony Graule',
+        'marque'    => 'LuziApi',
+        'adresse'   => '1 rue des Trois Cheminées',
+        'cp_ville'  => '37150 Luzillé',
+        'tel'       => '06 32 85 34 93',
+        'tel_lien'  => '+33632853493',
+        'email'     => 'luziapi37150@gmail.com',
+        'facebook'  => 'https://www.facebook.com/luziapi',
+        'instagram' => 'https://www.instagram.com/antho.luziapi/',
+    ];
+}
+
 add_filter('timber/context', static function (array $context): array {
     $context['site_name'] = get_bloginfo('name');
     $context['theme_uri'] = LUZIAPI_URI;
@@ -35,17 +65,7 @@ add_filter('timber/context', static function (array $context): array {
         : '';
 
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
-    $context['contact'] = [
-        'nom'       => 'Anthony Graule',
-        'marque'    => 'LuziApi',
-        'adresse'   => '1 rue des Trois Cheminées',
-        'cp_ville'  => '37150 Luzillé',
-        'tel'       => '06 32 85 34 93',
-        'tel_lien'  => '+33632853493',
-        'email'     => 'luziapi37150@gmail.com',
-        'facebook'  => 'https://www.facebook.com/luziapi',
-        'instagram' => 'https://www.instagram.com/antho.luziapi/',
-    ];
+    $context['contact'] = luziapi_contact_details();
 
     // Crédit photo affiché en pied de page.
     $context['credit_photo'] = 'Thomas Bourdilleau';

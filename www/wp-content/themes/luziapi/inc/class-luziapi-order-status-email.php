@@ -58,6 +58,8 @@ final class Luziapi_Order_Status_Email extends \WC_Email
         }
 
         parent::__construct();
+
+        add_filter('woocommerce_email_styles', [$this, 'append_luziapi_styles'], 20, 2);
     }
 
     public function get_default_subject(): string
@@ -227,46 +229,132 @@ final class Luziapi_Order_Status_Email extends \WC_Email
 
     public function get_content_html(): string
     {
-        return wc_get_template_html(
-            $this->template_html,
-            [
-                'order'              => $this->object,
-                'email_heading'      => $this->get_heading(),
-                'additional_content' => $this->get_additional_content(),
-                'sent_to_admin'      => false,
-                'plain_text'         => false,
-                'email'              => $this,
-                'message_lines'      => $this->get_message_lines(),
-                'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
-                'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
-                'cgv_version'        => $this->get_order_cgv_version(),
-                'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
-            ],
-            '',
-            $this->template_base
-        );
+        add_filter('woocommerce_get_order_item_totals', [$this, 'format_email_order_totals'], 20, 2);
+
+        try {
+            return wc_get_template_html(
+                $this->template_html,
+                $this->get_template_data(false),
+                '',
+                $this->template_base
+            );
+        } finally {
+            remove_filter('woocommerce_get_order_item_totals', [$this, 'format_email_order_totals'], 20);
+        }
     }
 
     public function get_content_plain(): string
     {
-        return wc_get_template_html(
-            $this->template_plain,
-            [
-                'order'              => $this->object,
-                'email_heading'      => $this->get_heading(),
-                'additional_content' => $this->get_additional_content(),
-                'sent_to_admin'      => false,
-                'plain_text'         => true,
-                'email'              => $this,
-                'message_lines'      => $this->get_message_lines(),
-                'newsletter_url'     => 'completed' === $this->message ? home_url('/#newsletter') : '',
-                'cgv_url'            => function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '',
-                'cgv_version'        => $this->get_order_cgv_version(),
-                'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
-            ],
-            '',
-            $this->template_base
-        );
+        add_filter('woocommerce_get_order_item_totals', [$this, 'format_email_order_totals'], 20, 2);
+
+        try {
+            return wc_get_template_html(
+                $this->template_plain,
+                $this->get_template_data(true),
+                '',
+                $this->template_base
+            );
+        } finally {
+            remove_filter('woocommerce_get_order_item_totals', [$this, 'format_email_order_totals'], 20);
+        }
+    }
+
+    /**
+     * Évite que WooCommerce répète le mode de remise dans les e-mails lorsque
+     * son nouveau gabarit affiche à la fois la valeur et la méta d'expédition.
+     *
+     * @param array<string, array<string, mixed>> $totals
+     * @param mixed                               $order
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function format_email_order_totals(array $totals, $order): array
+    {
+        if ($order !== $this->object || ! isset($totals['shipping'])) {
+            return $totals;
+        }
+
+        $totals['shipping']['label'] = 'Mode de remise :';
+        unset($totals['shipping']['meta']);
+
+        return $totals;
+    }
+
+    /**
+     * Ajoute la charte LuziApi au CSS que WooCommerce passe à son moteur
+     * d'inlining. Les règles ne s'appliquent qu'à cette instance d'e-mail.
+     *
+     * @param mixed $email
+     */
+    public function append_luziapi_styles(string $css, $email): string
+    {
+        if ($email !== $this) {
+            return $css;
+        }
+
+        $path = LUZIAPI_DIR . '/assets/css/email.css';
+        if (! is_readable($path)) {
+            return $css;
+        }
+
+        $luziapiCss = file_get_contents($path);
+
+        return is_string($luziapiCss) ? $css . "\n" . $luziapiCss : $css;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function get_template_data(bool $plainText): array
+    {
+        $cgvUrl = function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '';
+
+        return [
+            'order'              => $this->object,
+            'email_heading'      => $this->get_heading(),
+            'email_label'        => $this->get_email_label(),
+            'additional_content' => $this->get_additional_content(),
+            'sent_to_admin'      => false,
+            'plain_text'         => $plainText,
+            'email'              => $this,
+            'message_lines'      => $this->get_message_lines(),
+            'closing_line'       => $this->get_closing_line(),
+            'newsletter_url'     => home_url('/#newsletter'),
+            'site_url'           => home_url('/'),
+            'logo_url'           => LUZIAPI_URI . '/assets/img/logo-email.png',
+            'contact'            => luziapi_contact_details(),
+            'cgv_url'            => $cgvUrl,
+            'cgv_version'        => $this->get_order_cgv_version(),
+            'withdrawal_url'     => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
+            'mediation_url'      => '' !== $cgvUrl ? $cgvUrl . '#mediation' : '',
+            'mediator_url'       => 'https://www.cm2c.net/',
+        ];
+    }
+
+    private function get_email_label(): string
+    {
+        return [
+            'on_hold'           => 'Règlement en attente',
+            'processing'        => 'Commande confirmée',
+            'out_for_delivery'  => 'En cours de livraison',
+            'ready_for_pickup'  => 'Prête au retrait',
+            'completed'         => 'Commande terminée',
+            'payment_reminder'  => 'Rappel de règlement',
+            'cancelled'         => 'Commande annulée',
+        ][$this->message] ?? 'Votre commande';
+    }
+
+    private function get_closing_line(): string
+    {
+        return [
+            'on_hold'           => 'Je reste disponible si vous avez une question sur votre règlement.',
+            'processing'        => 'Merci pour votre confiance et pour votre soutien à l’apiculture locale.',
+            'out_for_delivery'  => 'À très bientôt pour la remise de votre commande.',
+            'ready_for_pickup'  => 'À très bientôt pour la remise de votre commande.',
+            'completed'         => 'Merci pour votre confiance et pour votre soutien à l’apiculture locale.',
+            'payment_reminder'  => 'Si votre règlement a déjà été effectué, vous pouvez ignorer ce rappel.',
+            'cancelled'         => 'Je reste disponible si vous souhaitez un renseignement.',
+        ][$this->message] ?? 'Merci pour votre confiance.';
     }
 
     private function get_order_cgv_version(): string

@@ -96,6 +96,7 @@ add_filter('wp_mail', static function (array $args): array {
     $GLOBALS['e2e_mails'][] = [
         'to'      => is_array($args['to'] ?? '') ? implode(',', $args['to']) : (string) ($args['to'] ?? ''),
         'subject' => (string) ($args['subject'] ?? ''),
+        'message' => (string) ($args['message'] ?? ''),
     ];
 
     return $args;
@@ -143,6 +144,40 @@ $mailSent = static function (string $needle) use ($customerEmail): bool {
     }
 
     return false;
+};
+
+$assertEmailTemplate = static function (string $label, string $subjectNeedle) use ($assert, $customerEmail): void {
+    $message = '';
+    foreach ($GLOBALS['e2e_mails'] as $mail) {
+        if ('' !== $customerEmail && false === mb_stripos($mail['to'], $customerEmail)) {
+            continue;
+        }
+        if (false !== mb_stripos($mail['subject'], $subjectNeedle)) {
+            $message = $mail['message'];
+            break;
+        }
+    }
+
+    $expected = [
+        'id="luziapi-email-card"',
+        'logo-email.png',
+        'par e-mail et/ou SMS',
+        'CM2C',
+        'TVA non applicable',
+    ];
+    $missing = array_values(array_filter(
+        $expected,
+        static fn (string $needle): bool => false === mb_stripos($message, $needle)
+    ));
+    $hasUnexpectedTracking = false !== mb_stripos($message, 'Suivre ma commande');
+
+    $assert(
+        $label . ' — gabarit LuziApi complet',
+        '' !== $message && [] === $missing && ! $hasUnexpectedTracking,
+        [] !== $missing
+            ? 'éléments absents : ' . implode(', ', $missing)
+            : ($hasUnexpectedTracking ? 'lien de suivi présent alors que la fonctionnalité est reportée' : '')
+    );
 };
 
 $orderHasNote = static function (int $orderId, string $needle): bool {
@@ -311,6 +346,7 @@ try {
         $resetMail();
         $order->update_status('processing');
         $assert('Livraison — e-mail « confirmée » envoyé', $mailSent('confirmée'));
+        $assertEmailTemplate('Livraison — e-mail « confirmée »', 'confirmée');
         // La version CGV est figée au checkout (hors périmètre programmatique) ;
         // ici on vérifie ce que l'e-mail déclenche : le PDF CGV en pièce jointe.
         $cgvAttached = false;
@@ -326,6 +362,7 @@ try {
         $resetMail();
         $order->update_status('out-for-delivery');
         $assert('Livraison — e-mail « en cours de livraison » envoyé', $mailSent('livraison'));
+        $assertEmailTemplate('Livraison — e-mail « en cours de livraison »', 'livraison');
 
         $resetMail();
         $order->update_status('ready-for-pickup');
@@ -335,6 +372,7 @@ try {
         $resetMail();
         $order->update_status('completed');
         $assert('Livraison — e-mail « terminée » envoyé', $mailSent('remise'));
+        $assertEmailTemplate('Livraison — e-mail « terminée »', 'remise');
     }
 
     /* ---- Scénario : commande avec retrait ------------------------------ */
@@ -349,6 +387,7 @@ try {
         $order->update_status('processing');
         $order->update_status('ready-for-pickup');
         $assert('Retrait — e-mail « prête au retrait » envoyé', $mailSent('prête au retrait'));
+        $assertEmailTemplate('Retrait — e-mail « prête au retrait »', 'prête au retrait');
 
         $resetMail();
         $order->update_status('out-for-delivery');
@@ -369,18 +408,21 @@ try {
         $resetMail();
         $order->update_status('on-hold');
         $assert('Annulation — e-mail « en attente » envoyé', $mailSent('en attente'));
+        $assertEmailTemplate('Annulation — e-mail « en attente »', 'en attente');
         $assert('Annulation — rappel planifié (1 action)', 1 === $pendingDeadlineActions($id, 'luziapi_bacs_payment_reminder'));
         $assert('Annulation — expiration planifiée (1 action)', 1 === $pendingDeadlineActions($id, 'luziapi_bacs_payment_expiry'));
 
         $resetMail();
         do_action('luziapi_bacs_payment_reminder', $id);
         $assert('Annulation — e-mail de rappel envoyé', $mailSent('Rappel'));
+        $assertEmailTemplate('Annulation — e-mail de rappel', 'Rappel');
 
         $resetMail();
         do_action('luziapi_bacs_payment_expiry', $id);
         $order = wc_get_order($id);
         $assert('Annulation — commande passée à « annulée »', 'cancelled' === $order->get_status());
         $assert('Annulation — e-mail d’annulation envoyé (motif présent)', $mailSent('annulée'));
+        $assertEmailTemplate('Annulation — e-mail d’annulation', 'annulée');
         $assert('Annulation — motif enregistré sur la commande', '' !== trim((string) $order->get_meta('_luziapi_cancellation_reason')));
 
         $stockAfter = (int) wc_get_product($productId)->get_stock_quantity();
@@ -435,6 +477,9 @@ echo json_encode([
     'all_passed'   => $fatal === null && $passed === $total,
     'fatal_error'  => $fatal,
     'results'      => $results,
-    'mails_logged' => $GLOBALS['e2e_mails'],
+    'mails_logged' => array_map(
+        static fn (array $mail): array => ['to' => $mail['to'], 'subject' => $mail['subject']],
+        $GLOBALS['e2e_mails']
+    ),
     'cleanup'      => $removed,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), "\n";
