@@ -172,6 +172,13 @@ achetés (le champ SMS est donc actif).
 
 - Envoi **natif `mail()`** : o2switch signe en DKIM, les messages arrivent en boîte de réception
   Gmail. Le SMTP authentifié `mail.luziapi.fr:465` **ne marche pas** (voir AGENTS.md § 5).
+- Les sept e-mails transactionnels de statut de commande utilisent depuis le **8 septembre 2026**
+  le gabarit LuziApi complet : logo et charte espresso/miel, récapitulatif WooCommerce conservé,
+  coordonnées et informations légales, médiation CM2C, réseaux sociaux et rappel discret
+  d'inscription aux actualités par e-mail et/ou SMS. Le bouton « Suivre ma commande » n'est pas
+  affiché tant que le suivi invité prévu en phase 2 n'existe pas. Les fichiers ont été vérifiés
+  par empreinte après déploiement et l'OPcache a été réinitialisé ; le premier contrôle en boîte
+  réelle reste à effectuer.
 - Expéditeur : `LuziApi <no-reply@luziapi.fr>` (mu-plugin `luziapi-mail-from.php`).
 - `activate_email=no` côté plugin Brevo → les mails transactionnels du site restent natifs ; Brevo
   ne sert qu'aux campagnes.
