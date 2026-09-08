@@ -127,4 +127,97 @@ final class OrderWorkflowTest extends TestCase
         // Tout autre statut passe quel que soit le mode.
         self::assertTrue(luziapi_order_status_matches_fulfillment($delivery, 'completed'));
     }
+
+    public function testOrderSourceRecognizesOnlineCheckoutAndExplicitManualSource(): void
+    {
+        $checkoutOrder = new WC_Order('', [], 'checkout');
+        $manualOrder   = new WC_Order('', [], 'admin');
+        $manualOrder->update_meta_data(LUZIAPI_ORDER_SOURCE_META, 'phone');
+
+        self::assertSame('online', luziapi_order_source($checkoutOrder));
+        self::assertSame('phone', luziapi_order_source($manualOrder));
+        self::assertSame('', luziapi_order_source(new WC_Order('', [], 'admin')));
+    }
+
+    public function testOrderEmailSuppressionIsStoredPerOrder(): void
+    {
+        $order = new WC_Order();
+
+        self::assertFalse(luziapi_order_emails_disabled($order));
+
+        $order->update_meta_data(LUZIAPI_ORDER_EMAILS_DISABLED_META, 'yes');
+
+        self::assertTrue(luziapi_order_emails_disabled($order));
+    }
+
+    public function testFulfillmentModeIsLockedOnlyOnceHandoverStarts(): void
+    {
+        self::assertFalse(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'processing')));
+        self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'ready-for-pickup')));
+        self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'out-for-delivery')));
+        self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'completed')));
+    }
+
+    public function testManualOrderGetsNativeAdminAttributionWithoutOverwritingExistingData(): void
+    {
+        $manualOrder = new WC_Order('', [], 'admin');
+
+        self::assertTrue(luziapi_maybe_set_admin_order_attribution($manualOrder));
+        self::assertSame('admin', $manualOrder->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META));
+        self::assertFalse(luziapi_maybe_set_admin_order_attribution($manualOrder));
+
+        $attributedOrder = new WC_Order('', [], 'admin');
+        $attributedOrder->update_meta_data(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META, 'organic');
+
+        self::assertFalse(luziapi_maybe_set_admin_order_attribution($attributedOrder));
+        self::assertSame('organic', $attributedOrder->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META));
+    }
+
+    public function testOnlineOrderWithoutMarketingDataRemainsUnattributed(): void
+    {
+        $order = new WC_Order('', [], 'checkout');
+        $order->update_meta_data(LUZIAPI_ORDER_SOURCE_META, 'online');
+
+        self::assertFalse(luziapi_maybe_set_admin_order_attribution($order));
+        self::assertSame('', $order->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META));
+    }
+
+    public function testUnknownNativeAttributionGetsAnExplicitHonestLabel(): void
+    {
+        self::assertSame(
+            'Attribution marketing indisponible',
+            luziapi_format_unknown_order_attribution('Unknown', 'Unknown')
+        );
+        self::assertSame(
+            'Administration web',
+            luziapi_format_unknown_order_attribution('Web admin', 'Web admin')
+        );
+        self::assertSame(
+            'Google',
+            luziapi_format_unknown_order_attribution('Google', 'google')
+        );
+    }
+
+    /**
+     * @param mixed $cookie
+     */
+    #[DataProvider('cookieadminConsentProvider')]
+    public function testCookieadminMarketingConsent(string $cookie, bool $expected): void
+    {
+        self::assertSame($expected, luziapi_cookieadmin_allows_order_attribution($cookie));
+    }
+
+    /** @return array<string, array{string, bool}> */
+    public static function cookieadminConsentProvider(): array
+    {
+        return [
+            'aucun choix'                => ['', false],
+            'cookie invalide'            => ['not-json', false],
+            'refus global'               => ['{"reject":"true"}', false],
+            'acceptation globale'        => ['{"accept":"true"}', true],
+            'marketing seul'             => ['{"marketing":"true"}', true],
+            'statistiques sans marketing' => ['{"analytics":"true"}', false],
+            'cookie encodé'              => [rawurlencode('{"marketing":true}'), true],
+        ];
+    }
 }

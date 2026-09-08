@@ -211,13 +211,39 @@ function luziapi_record_customer_email_delivery(bool $sent, string $emailId, $em
         $subject = '' !== trim($emailId) ? $emailId : 'Objet indisponible';
     }
 
+    $deliveryStatus = luziapi_order_emails_disabled($email->object)
+        ? 'non envoyé — désactivé pour cette commande'
+        : ($sent ? 'transmis au service de messagerie' : 'non transmis — échec du transport');
+
     $email->object->add_order_note(
         sprintf(
             'E-mail client « %s » %s.',
             $subject,
-            $sent ? 'transmis au service de messagerie' : 'non transmis — échec du transport'
+            $deliveryStatus
         ),
         0
     );
 }
 add_action('woocommerce_email_sent', 'luziapi_record_customer_email_delivery', 10, 3);
+
+/**
+ * Bloque au dernier moment tous les e-mails WooCommerce associés à une
+ * commande désactivée, y compris les notifications administrateur et les
+ * envois manuels qui ne consultent pas toujours WC_Email::is_enabled().
+ *
+ * @param callable|string|mixed $callback
+ * @param mixed                 $email
+ *
+ * @return callable|string|mixed
+ */
+function luziapi_maybe_disable_order_mail_callback($callback, $email)
+{
+    if ($email instanceof \WC_Email
+        && $email->object instanceof \WC_Order
+        && luziapi_order_emails_disabled($email->object)) {
+        return '__return_false';
+    }
+
+    return $callback;
+}
+add_filter('woocommerce_mail_callback', 'luziapi_maybe_disable_order_mail_callback', 100, 2);

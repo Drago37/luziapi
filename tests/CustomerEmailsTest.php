@@ -45,4 +45,40 @@ final class CustomerEmailsTest extends TestCase
 
         self::assertSame([], $order->get_test_notes());
     }
+
+    public function testDisabledOrderRecordsIntentionalSuppressionInsteadOfTransportFailure(): void
+    {
+        $order = new WC_Order();
+        $order->update_meta_data(LUZIAPI_ORDER_EMAILS_DISABLED_META, 'yes');
+        $email         = new WC_Email('customer_note', true, 'Information sur la commande');
+        $email->object = $order;
+
+        luziapi_record_customer_email_delivery(false, $email->id, $email);
+
+        self::assertSame(
+            ['E-mail client « Information sur la commande » non envoyé — désactivé pour cette commande.'],
+            $order->get_test_notes()
+        );
+    }
+
+    public function testMailCallbackIsDisabledForEveryEmailAttachedToDisabledOrder(): void
+    {
+        $order = new WC_Order();
+        $order->update_meta_data(LUZIAPI_ORDER_EMAILS_DISABLED_META, 'yes');
+        $email         = new WC_Email('new_order', false, 'Nouvelle commande');
+        $email->object = $order;
+
+        self::assertSame(
+            '__return_false',
+            luziapi_maybe_disable_order_mail_callback('wp_mail', $email)
+        );
+    }
+
+    public function testMailCallbackRemainsUnchangedForNormalOrder(): void
+    {
+        $email         = new WC_Email('new_order', false, 'Nouvelle commande');
+        $email->object = new WC_Order();
+
+        self::assertSame('wp_mail', luziapi_maybe_disable_order_mail_callback('wp_mail', $email));
+    }
 }

@@ -40,6 +40,13 @@ if (!function_exists('wp_strip_all_tags')) {
     }
 }
 
+if (!function_exists('__')) {
+    function __(string $text, string $domain = 'default'): string
+    {
+        return $text;
+    }
+}
+
 if (!function_exists('remove_accents')) {
     function remove_accents(string $value): string
     {
@@ -80,10 +87,15 @@ if (!class_exists('WC_Order')) {
         /** @var list<string> */
         private array $notes = [];
 
+        /** @var array<string, mixed> */
+        private array $meta = [];
+
         /** @param list<Luziapi_Test_Shipping_Method> $shippingMethods */
         public function __construct(
             private string $paymentMethod = '',
-            private array $shippingMethods = []
+            private array $shippingMethods = [],
+            private string $createdVia = '',
+            private string $status = 'pending'
         ) {
         }
 
@@ -96,6 +108,36 @@ if (!class_exists('WC_Order')) {
         public function get_shipping_methods(): array
         {
             return $this->shippingMethods;
+        }
+
+        public function get_created_via(): string
+        {
+            return $this->createdVia;
+        }
+
+        public function get_meta(string $key): mixed
+        {
+            return $this->meta[$key] ?? '';
+        }
+
+        public function update_meta_data(string $key, mixed $value): void
+        {
+            $this->meta[$key] = $value;
+        }
+
+        public function delete_meta_data(string $key): void
+        {
+            unset($this->meta[$key]);
+        }
+
+        public function save_meta_data(): void
+        {
+        }
+
+        /** @param string|list<string> $status */
+        public function has_status(string|array $status): bool
+        {
+            return in_array($this->status, (array) $status, true);
         }
 
         public function add_order_note(string $note, int $isCustomerNote = 0): void

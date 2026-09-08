@@ -30,6 +30,7 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
 | `cancel`           | **Annulation** pour non-paiement (virement/WERO `bacs`)        | e-mail « en attente » ; 2 actions planifiées (rappel + expiration) ; rappel envoyé ; expiration → commande annulée + **stock remis** + e-mail d'annulation |
 | `paid_on_time`     | Virement **payé à temps**                                      | échéance planifiée à la mise en attente, puis **déprogrammée** au paiement                                                                                 |
 | `cancel_no_reason` | **Annulation manuelle sans motif**                             | e-mail d'annulation **non envoyé** + note « motif obligatoire absent »                                                                                     |
+| `manual_no_email`  | **Commande manuelle sans e-mail**, source téléphone            | attribution « Administration web » ; ajout du retrait ; statuts jusqu'à « Terminée » ; stock décrémenté une fois ; aucun e-mail ; trace privée             |
 
 ## Identité et options (payload JSON)
 
@@ -54,7 +55,8 @@ Moteur unique : [`www/wp-content/themes/luziapi/tools/e2e-orders.php`](../www/wp
       "pickup",
       "cancel",
       "paid_on_time",
-      "cancel_no_reason"
+      "cancel_no_reason",
+      "manual_no_email"
     ]
   }
 }

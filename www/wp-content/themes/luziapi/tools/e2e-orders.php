@@ -83,7 +83,7 @@ $options = array_merge([
     'send_emails'  => false,
     'quantity'     => 2,
     'cleanup_only' => false,
-    'scenarios'    => ['delivery', 'pickup', 'cancel', 'paid_on_time', 'cancel_no_reason'],
+    'scenarios'    => ['delivery', 'pickup', 'cancel', 'paid_on_time', 'cancel_no_reason', 'manual_no_email'],
 ], is_array($payload['options'] ?? null) ? $payload['options'] : []);
 
 /* -------------------------------------------------------------------------- */
@@ -343,11 +343,13 @@ $makeOrder = static function (
 
     $order->add_product(wc_get_product($productId), $qty);
 
-    $shipping = new \WC_Order_Item_Shipping();
-    $shipping->set_method_id($shippingMethodId);
-    $shipping->set_method_title('local_pickup' === $shippingMethodId ? 'Retrait sur rendez-vous' : 'Livraison locale');
-    $shipping->set_total(0);
-    $order->add_item($shipping);
+    if ('' !== $shippingMethodId) {
+        $shipping = new \WC_Order_Item_Shipping();
+        $shipping->set_method_id($shippingMethodId);
+        $shipping->set_method_title('local_pickup' === $shippingMethodId ? 'Retrait sur rendez-vous' : 'Livraison locale');
+        $shipping->set_total(0);
+        $order->add_item($shipping);
+    }
 
     $order->set_payment_method($paymentMethod);
     $order->set_payment_method_title('bacs' === $paymentMethod ? 'Virement bancaire ou WERO' : 'À la remise');
@@ -574,6 +576,57 @@ try {
         $assert('Sans motif — e-mail d’annulation NON envoyé', ! $mailSent('annulée'));
         $order = wc_get_order($id);
         $assert('Sans motif — note « motif obligatoire absent » ajoutée', $orderHasNote($id, 'motif obligatoire est absent'));
+    }
+
+    /* ---- Scénario : commande manuelle suivie sans aucun e-mail -------- */
+    if (in_array('manual_no_email', $scenarios, true)) {
+        $order = $makeOrder($identity, 'cod', '', $productId, $qty);
+        $createdOrders[] = $order->get_id();
+        $id = $order->get_id();
+
+        $stockBefore = (int) wc_get_product($productId)->get_stock_quantity();
+        $previousPost = $_POST;
+        $_POST = [
+            'luziapi_order_workflow_nonce' => wp_create_nonce('luziapi_save_order_workflow'),
+            'luziapi_order_source'         => 'phone',
+            'luziapi_disable_order_emails' => 'yes',
+            'luziapi_fulfillment_mode'     => 'pickup',
+        ];
+        luziapi_save_admin_order_workflow($id, $order);
+        $_POST = $previousPost;
+        $order = wc_get_order($id);
+
+        $assert('Commande manuelle — source « Téléphone » enregistrée depuis la fiche', $order instanceof \WC_Order && 'phone' === luziapi_order_source($order));
+        $assert(
+            'Commande manuelle — attribution native « Administration web »',
+            $order instanceof \WC_Order && 'admin' === $order->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META)
+        );
+        $assert('Commande manuelle — retrait ajouté depuis la fiche à une commande sans expédition', $order instanceof \WC_Order && 'pickup' === luziapi_order_fulfillment_mode($order));
+        $assert('Commande manuelle — suppression des e-mails enregistrée depuis la fiche', $order instanceof \WC_Order && luziapi_order_emails_disabled($order));
+
+        $resetMail();
+        $order->update_status('processing');
+        $order->update_status('ready-for-pickup');
+        $order->update_status('completed');
+        $order = wc_get_order($id);
+
+        $assert('Commande manuelle — processus mené jusqu’à « Terminée »', $order instanceof \WC_Order && 'completed' === $order->get_status());
+        $assert('Commande manuelle — aucun e-mail client ni administrateur généré', [] === $GLOBALS['e2e_mails']);
+        $assert(
+            'Commande manuelle — stock décrémenté une seule fois',
+            $stockBefore - $qty === (int) wc_get_product($productId)->get_stock_quantity()
+        );
+        $assert(
+            'Commande manuelle — suppression intentionnelle tracée en note privée',
+            $orderHasNote($id, 'désactivé pour cette commande')
+        );
+
+        $resetMail();
+        $order->add_order_note('Message client de test sans envoi.', 1, true);
+        $assert(
+            'Commande manuelle — une note client reste sans e-mail lorsque la suppression est active',
+            [] === $GLOBALS['e2e_mails']
+        );
     }
 } catch (\Throwable $e) {
     $fatal = $e->getMessage();
