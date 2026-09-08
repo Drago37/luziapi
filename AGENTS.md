@@ -120,8 +120,11 @@ Pour une variante préparée pour un site d'impression, mettre uniquement le nom
 suffixe final : par exemple `LuziApi-carte-recto-saxoprint.pdf`. Ne pas ajouter au nom les
 détails techniques (`x4`, `vectorise`, etc.), qui se vérifient dans le fichier lui-même.
 
-Tests : `phpunit.xml.dist` + `tests/`. CI : PHPStan + CS-Fixer sur le thème
-(`.github/workflows/ci.yml`).
+Tests : `phpunit.xml.dist` + `tests/` (logique pure). CI : PHPStan + CS-Fixer sur le thème
+(`.github/workflows/ci.yml`). Test **de bout en bout** du process de commande (statuts,
+e-mails, échéance de règlement, annulation, stock) : `tools/e2e-orders.php` + doc
+[docs/tests-e2e-commandes.md](docs/tests-e2e-commandes.md) — à rejouer (local `make e2e-local`
+ou prod) à chaque changement du workflow des commandes.
 
 ---
 
