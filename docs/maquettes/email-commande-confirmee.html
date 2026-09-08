@@ -1,0 +1,238 @@
+<title>Confirmation de commande LuziApi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --espresso:#2b1d10; --bark:#432c16; --honey:#e0a124; --honey-deep:#8a5410;
+    --gold:#f2c75a; --gold-soft:#f7dd9b; --cream:#fbf1da; --cream2:#f5e6c4;
+    --paper:#fffaf0; --line:#e6d2a8; --ink:#3a2917; --muted:#7d6038;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#ece0c2;color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;padding:28px 16px 56px}
+  a{color:var(--honey-deep)}
+
+  /* ---- Chrome d'aperçu (barre expéditeur/objet) ---- */
+  .preview-wrap{max-width:600px;margin:0 auto}
+  .client-bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted);
+    box-shadow:0 6px 18px -14px rgba(43,29,16,.5)}
+  .client-bar .row{display:flex;gap:8px}
+  .client-bar .k{color:var(--honey-deep);font-weight:700;min-width:64px}
+  .client-bar .v{color:var(--ink)}
+  .client-bar .subject{font-weight:600}
+  .preview-note{max-width:600px;margin:0 auto 18px;font-size:12px;color:#8a734a;text-align:center;
+    letter-spacing:.02em}
+
+  /* ---- E-mail ---- */
+  .email{max-width:600px;margin:0 auto;background:var(--paper);border:1px solid var(--line);
+    border-radius:18px;overflow:hidden;box-shadow:0 24px 60px -30px rgba(43,29,16,.55)}
+
+  .head{background:var(--espresso);padding:30px 32px 26px;text-align:center;
+    background-image:radial-gradient(120% 90% at 50% -30%,rgba(242,199,90,.16),transparent 60%)}
+  .emblem{width:60px;height:60px;border-radius:50%;background:var(--gold-soft);
+    display:inline-flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 22px -10px rgba(0,0,0,.6);border:1px solid rgba(242,199,90,.6)}
+  .wordmark{margin:14px 0 4px;font-family:var(--serif);font-weight:600;font-size:30px;
+    letter-spacing:-.02em;color:#fff;line-height:1}
+  .wordmark b{color:var(--gold);font-weight:600}
+  .head .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;font-weight:700;
+    color:var(--gold-soft);opacity:.85}
+
+  .hero{padding:34px 34px 8px}
+  .hero .eyebrow{font-size:11px;letter-spacing:.26em;text-transform:uppercase;font-weight:700;
+    color:var(--honey-deep);margin:0 0 10px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:29px;line-height:1.08;
+    letter-spacing:-.015em;color:var(--espresso);margin:0;text-wrap:balance}
+  .hero .lead{margin:16px 0 0;font-size:15.5px}
+
+  .body{padding:8px 34px 4px}
+  .body p{margin:14px 0;font-size:15px;color:var(--ink)}
+
+  /* ---- Récapitulatif ---- */
+  .summary{margin:22px 34px 6px;border:1px solid var(--line);border-radius:14px;
+    background:linear-gradient(180deg,#fffdf7,var(--cream));overflow:hidden}
+  .summary .cap{display:flex;justify-content:space-between;align-items:baseline;
+    padding:14px 18px;border-bottom:1px solid var(--line)}
+  .summary .cap .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    font-weight:700;color:var(--honey-deep)}
+  .summary .cap .num{font-family:var(--serif);font-weight:600;color:var(--espresso);font-size:16px}
+  table.items{width:100%;border-collapse:collapse}
+  table.items td{padding:11px 18px;font-size:14.5px;vertical-align:top}
+  table.items .qty{color:var(--muted);font-variant-numeric:tabular-nums}
+  table.items .amt{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink)}
+  table.items tr+tr td{border-top:1px solid #efe1bf}
+  table.items .discount td{color:var(--honey-deep)}
+  table.items .total td{border-top:2px solid var(--line);font-weight:700;font-size:15.5px;
+    color:var(--espresso)}
+  table.items .total .amt{font-family:var(--serif)}
+  .meta{padding:12px 18px 16px;border-top:1px solid var(--line);display:grid;gap:7px}
+  .meta .r{display:flex;gap:10px;font-size:13.5px}
+  .meta .r .mk{color:var(--muted);min-width:96px}
+  .meta .r .mv{color:var(--ink);font-weight:500}
+
+  /* ---- CTA ---- */
+  .cta{padding:24px 34px 6px;text-align:center}
+  .btn{display:inline-block;background:var(--honey);color:var(--bark);text-decoration:none;
+    font-weight:700;font-size:15px;padding:14px 30px;border-radius:999px;
+    box-shadow:0 12px 26px -12px rgba(192,124,20,.9)}
+
+  /* ---- Rappel newsletter (discret) ---- */
+  .news{margin:26px 34px 0;padding:14px 18px;border:1px dashed #d9bd7e;border-radius:12px;
+    background:rgba(247,221,155,.28);display:flex;gap:12px;align-items:center}
+  .news .ic{flex:none;width:26px;height:26px}
+  .news p{margin:0;font-size:13px;color:var(--bark)}
+  .news a{font-weight:700;white-space:nowrap}
+
+  .signoff{padding:22px 34px 30px;font-size:15px}
+  .signoff .name{font-family:var(--serif);color:var(--espresso);font-size:17px}
+
+  /* ---- Pied de page ---- */
+  .foot{background:var(--espresso);color:#e8d9bf;padding:30px 34px 26px}
+  .foot .brand{font-family:var(--serif);font-size:20px;color:#fff;margin:0 0 3px}
+  .foot .brand b{color:var(--gold)}
+  .foot .tag{margin:0 0 16px;font-size:12.5px;color:#c9b594;max-width:34ch}
+  .foot .coords{font-size:13px;line-height:1.7;color:#ddc9a4;margin:0 0 12px}
+  .foot .coords a{color:#ddc9a4;text-decoration:none}
+  .foot .siret{font-size:11.5px;color:#a8946f;margin:0 0 18px;line-height:1.6}
+  .foot .links{display:flex;flex-wrap:wrap;gap:8px 16px;padding:16px 0;
+    border-top:1px solid #4a3620;border-bottom:1px solid #4a3620}
+  .foot .links a{color:var(--gold-soft);text-decoration:none;font-size:13px;font-weight:600}
+  .foot .med{font-size:11.5px;color:#a8946f;margin:14px 0 0;line-height:1.6}
+  .foot .med a{color:#c9b594}
+  .foot .social{display:flex;gap:10px;margin:16px 0 4px}
+  .foot .social a{width:34px;height:34px;border-radius:50%;border:1px solid #57411f;
+    display:inline-flex;align-items:center;justify-content:center;background:#38260f}
+  .foot .legal{font-size:11px;color:#8a7550;margin:16px 0 0;line-height:1.6}
+  .foot .legal a{color:#a8946f}
+
+  @media(max-width:520px){
+    .hero,.body,.cta,.signoff{padding-left:22px;padding-right:22px}
+    .summary,.news{margin-left:22px;margin-right:22px}
+    .foot{padding-left:22px;padding-right:22px}
+    .hero h1{font-size:25px}
+  }
+</style>
+
+<div class="preview-wrap">
+  <div class="client-bar">
+    <div class="row"><span class="k">De</span><span class="v">LuziApi &lt;no-reply@luziapi.fr&gt;</span></div>
+    <div class="row"><span class="k">À</span><span class="v">anthony.graule@gmail.com</span></div>
+    <div class="row"><span class="k">Objet</span><span class="v subject">Votre commande LuziApi n°1042 est confirmée</span></div>
+  </div>
+</div>
+<p class="preview-note">Aperçu — scénario « Commande confirmée ». Emblème provisoire (le vrai e-mail utilisera votre logo).</p>
+
+<div class="email">
+
+  <!-- En-tête -->
+  <div class="head">
+    <span class="emblem" aria-hidden="true">
+      <svg width="38" height="38" viewBox="0 0 64 64" role="img" aria-label="Abeille LuziApi">
+        <ellipse cx="18" cy="26" rx="15" ry="9" fill="#fffaf0" opacity="0.92" transform="rotate(-18 18 26)"/>
+        <ellipse cx="46" cy="26" rx="15" ry="9" fill="#fffaf0" opacity="0.92" transform="rotate(18 46 26)"/>
+        <ellipse cx="32" cy="40" rx="14" ry="18" fill="#e0a124"/>
+        <path d="M18 34h28M19 41h26M21 48h22" stroke="#2b1d10" stroke-width="4.4" stroke-linecap="round"/>
+        <circle cx="32" cy="17" r="9" fill="#2b1d10"/>
+        <path d="M28 10 24 4M36 10 40 4" stroke="#2b1d10" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="24" cy="4" r="2" fill="#2b1d10"/><circle cx="40" cy="4" r="2" fill="#2b1d10"/>
+      </svg>
+    </span>
+    <div class="wordmark">Luzi<b>Api</b></div>
+    <div class="eyebrow">Miel artisanal · Luzillé</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <p class="eyebrow">Commande confirmée</p>
+    <h1>Votre commande est confirmée</h1>
+    <p class="lead">Bonjour Anthony,</p>
+  </div>
+
+  <!-- Corps -->
+  <div class="body">
+    <p>J'ai bien reçu votre commande n°1042 : elle est confirmée et je vais la préparer avec soin.</p>
+    <p>Je vous recontacte très vite pour convenir ensemble du jour et de l'heure de la remise.</p>
+  </div>
+
+  <!-- Récapitulatif -->
+  <div class="summary">
+    <div class="cap">
+      <span class="lbl">Récapitulatif</span>
+      <span class="num">Commande n°1042 · 8 sept. 2026</span>
+    </div>
+    <table class="items">
+      <tr>
+        <td>Miel de Châtaignier — pot 500 g <span class="qty">× 2</span></td>
+        <td class="amt">18,00 €</td>
+      </tr>
+      <tr class="discount">
+        <td>Remise fidélité (à partir de 2 pots)</td>
+        <td class="amt">− 1,00 €</td>
+      </tr>
+      <tr class="total">
+        <td>Total</td>
+        <td class="amt">17,00 €</td>
+      </tr>
+    </table>
+    <div class="meta">
+      <div class="r"><span class="mk">Remise</span><span class="mv">Livraison gratuite à Luzillé, sur rendez-vous</span></div>
+      <div class="r"><span class="mk">Paiement</span><span class="mv">En espèces ou par chèque à la remise</span></div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <a class="btn" href="#">Suivre ma commande sur le site</a>
+  </div>
+
+  <!-- Rappel newsletter discret -->
+  <div class="news">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 8l8 5 8-5" stroke="#8a5410" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="3.2" y="5.5" width="17.6" height="13" rx="2.4" stroke="#8a5410" stroke-width="1.8"/>
+    </svg>
+    <p>Envie de suivre les prochaines récoltes&nbsp;? <a href="#">Inscrivez-vous à la newsletter</a> — c'est gratuit et sans engagement.</p>
+  </div>
+
+  <!-- Signature -->
+  <div class="signoff">
+    <p>Merci pour votre confiance, et pour votre soutien à une apiculture locale et patiente.</p>
+    <p class="name">Anthony — LuziApi 🐝</p>
+  </div>
+
+  <!-- Pied de page -->
+  <div class="foot">
+    <p class="brand">Luzi<b>Api</b></p>
+    <p class="tag">Miel artisanal récolté, extrait et mis en pot à Luzillé, au cœur de l'Indre-et-Loire.</p>
+    <p class="coords">
+      Anthony Graule — apiculteur<br>
+      1 rue des Trois Cheminées, 37150 Luzillé<br>
+      <a href="tel:+33632853493">06 32 85 34 93</a> · <a href="mailto:luziapi37150@gmail.com">luziapi37150@gmail.com</a>
+    </p>
+    <p class="siret">SIREN 811 203 314 · SIRET 811 203 314 00026 · TVA non applicable (art. 293 B du CGI)</p>
+
+    <div class="links">
+      <a href="#">Le site</a>
+      <a href="#">Conditions générales de vente</a>
+      <a href="#">Droit de rétractation</a>
+      <a href="#">Médiation de la consommation</a>
+    </div>
+    <p class="med">Médiateur de la consommation : CM2C — 49 rue de Ponthieu, 75008 Paris · <a href="#">cm2c.net</a></p>
+
+    <div class="social">
+      <a href="#" aria-label="Facebook">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f7dd9b"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5H17V3.6c-.29-.04-1.27-.12-2.41-.12-2.39 0-4.03 1.46-4.03 4.14V9.9H7.9V13h2.66v8h2.94z"/></svg>
+      </a>
+      <a href="#" aria-label="Instagram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f7dd9b" stroke-width="1.9"><rect x="3.5" y="3.5" width="17" height="17" rx="4.6"/><circle cx="12" cy="12" r="3.9"/><circle cx="17" cy="7" r="1.1" fill="#f7dd9b" stroke="none"/></svg>
+      </a>
+    </div>
+
+    <p class="legal">Vous recevez cet e-mail à la suite de votre commande sur luziapi.fr. Merci de ne pas répondre à <a href="mailto:no-reply@luziapi.fr">no-reply@luziapi.fr</a>.</p>
+  </div>
+
+</div>
