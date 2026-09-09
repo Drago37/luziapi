@@ -89,6 +89,10 @@ docker compose run --rm wpcli wp <commande>
 
 ## Qualité du code (thème)
 
+Avant de contribuer, lire **[CONTRIBUTING.md](CONTRIBUTING.md)**. Les nouveaux développements PHP
+métier doivent suivre l'architecture hexagonale et le DDD pragmatique décrits dans ce document,
+avec du code sous `src/` chargé par l'autoload PSR-4 de Composer.
+
 ```bash
 cd www/wp-content/themes/luziapi
 composer install

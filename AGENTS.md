@@ -6,6 +6,9 @@ n'importe quel assistant de code (Codex, Claude Code, etc.).
 
 > La documentation du dépôt est en **français** (README, DEPLOIEMENT, historique git) ; garder
 > cette langue pour les commits, la doc et les échanges. Le **code** reste en anglais.
+>
+> Avant de modifier le code, lire également **[`CONTRIBUTING.md`](CONTRIBUTING.md)** : il définit
+> l'architecture hexagonale, le DDD pragmatique et les conventions PHP/Composer attendues.
 
 ---
 
@@ -69,6 +72,8 @@ ne rien y dupliquer.
 ## 2. Carte du projet
 
 - **README.md** — structure du dépôt et installation locale (Docker, `make install`).
+- **CONTRIBUTING.md** — architecture cible, séparation hexagonale, DDD, Composer et conventions de
+  qualité. À lire avant toute modification du code.
 - **DEPLOIEMENT.md** — mise en ligne et mise à jour du thème (`make deploy`, FTPS).
 - **docs/prod-o2switch.md** — état de la prod, architecture fonctionnelle, pièges serveur.
   À lire avant toute intervention touchant la production.
