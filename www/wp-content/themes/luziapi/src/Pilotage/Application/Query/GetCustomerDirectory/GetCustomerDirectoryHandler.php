@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Application\Query\GetCustomerDirectory;
 
 use LuziApi\Pilotage\Application\Port\Clock;
+use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
+use LuziApi\Pilotage\Domain\Customer\CustomerCategoryRepository;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineRepository;
@@ -17,6 +19,7 @@ final readonly class GetCustomerDirectoryHandler
     public function __construct(
         private OrderRepository $orders,
         private CustomerHistoryProjector $projector,
+        private CustomerCategoryRepository $categories,
         private ReceiptRepository $receipts,
         private CustomerTimelineRepository $timeline,
         private Clock $clock,
@@ -34,6 +37,17 @@ final readonly class GetCustomerDirectoryHandler
             $orders,
             $this->receipts->netTotalsByOrderIds(array_map(static fn ($order): int => $order->id, $orders)),
         );
+        $identityIds = [];
+        foreach ($profiles as $profile) {
+            array_push($identityIds, ...$profile->identityIds);
+        }
+        $assignedCategories = $this->categories->forCustomerIds($identityIds);
+        $profiles = array_map(
+            static fn (CustomerProfile $profile): CustomerProfile => $profile->withCategory(
+                self::categoryFor($profile, $assignedCategories),
+            ),
+            $profiles,
+        );
         $selected = $this->findSelected($profiles, $query->selectedCustomerId);
         $search = $this->normalize($query->search);
 
@@ -41,6 +55,12 @@ final readonly class GetCustomerDirectoryHandler
             $profiles = array_values(array_filter(
                 $profiles,
                 fn (CustomerProfile $profile): bool => $this->matches($profile, $search),
+            ));
+        }
+        if ($query->category instanceof CustomerCategory) {
+            $profiles = array_values(array_filter(
+                $profiles,
+                static fn (CustomerProfile $profile): bool => $profile->category === $query->category,
             ));
         }
 
@@ -85,6 +105,7 @@ final readonly class GetCustomerDirectoryHandler
             implode(' ', $profile->emails),
             implode(' ', $profile->phones),
             implode(' ', $profile->sources),
+            $profile->category->label(),
         ]));
         if (str_contains($haystack, $search)) {
             return true;
@@ -114,5 +135,17 @@ final readonly class GetCustomerDirectoryHandler
             'ô' => 'o', 'ö' => 'o',
             'ù' => 'u', 'û' => 'u', 'ü' => 'u',
         ]);
+    }
+
+    /** @param array<string, CustomerCategory> $assignedCategories */
+    private static function categoryFor(CustomerProfile $profile, array $assignedCategories): CustomerCategory
+    {
+        foreach ($profile->identityIds as $identityId) {
+            if (isset($assignedCategories[$identityId])) {
+                return $assignedCategories[$identityId];
+            }
+        }
+
+        return CustomerCategory::Unspecified;
     }
 }

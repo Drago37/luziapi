@@ -20,6 +20,9 @@
         <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
+    {% if notice == 'category_updated' %}<div class="notice notice-success inline"><p>La catégorie du client a été enregistrée.</p></div>{% endif %}
+    {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p></div>{% endif %}
+
     {% if selected_customer %}
         <section class="luziapi-pilotage__customer-card">
             <div class="luziapi-pilotage__panel-header">
@@ -30,6 +33,14 @@
                 </div>
                 <a class="button" href="{{ page_url|e('html_attr') }}">Fermer la fiche</a>
             </div>
+            <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post">
+                <input type="hidden" name="action" value="luziapi_assign_customer_category">
+                <input type="hidden" name="_wpnonce" value="{{ category_nonce|e('html_attr') }}">
+                <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                <label for="luziapi-customer-category"><strong>Catégorie du client</strong></label>
+                <select id="luziapi-customer-category" name="category">{% for category in categories %}<option value="{{ category.value|e('html_attr') }}" {{ category.value == selected_customer.category_key ? 'selected' : '' }}>{{ category.label|e }}</option>{% endfor %}</select>
+                <button class="button button-primary" type="submit">Enregistrer la catégorie</button>
+            </form>
             <div class="luziapi-pilotage__customer-summary">
                 <div><span>Commandes validées</span><strong>{{ selected_customer.orders_count }}</strong></div>
                 <div><span>Total commandé</span><strong>{{ selected_customer.total|e }}</strong></div>
@@ -76,6 +87,8 @@
             <form class="luziapi-pilotage__search" action="{{ page_url|e('html_attr') }}" method="get">
                 <input type="hidden" name="page" value="luziapi-pilotage">
                 <input type="hidden" name="tab" value="customers">
+                <label class="screen-reader-text" for="luziapi-customer-category-filter">Filtrer par catégorie</label>
+                <select id="luziapi-customer-category-filter" name="category"><option value="">Toutes les catégories</option>{% for category in categories %}<option value="{{ category.value|e('html_attr') }}" {{ category.value == selected_category ? 'selected' : '' }}>{{ category.label|e }}</option>{% endfor %}</select>
                 <label class="screen-reader-text" for="luziapi-customer-search">Rechercher un client</label>
                 <input id="luziapi-customer-search" name="s" type="search" value="{{ search|e('html_attr') }}" placeholder="Nom, e-mail ou téléphone">
                 <button class="button" type="submit">Rechercher</button>
@@ -84,7 +97,7 @@
 
         <div class="luziapi-pilotage__table-wrap">
             <table class="widefat striped">
-                <thead><tr><th>Client</th><th>Coordonnées</th><th>Dernière commande</th><th>Commandes</th><th>Total</th></tr></thead>
+                <thead><tr><th>Client</th><th>Catégorie</th><th>Coordonnées</th><th>Dernière commande</th><th>Commandes</th><th>Total</th></tr></thead>
                 <tbody>
                 {% for customer in customers %}
                     <tr>
@@ -92,6 +105,7 @@
                             <a href="{{ customer.details_url|e('html_attr') }}"><strong>{{ customer.name|e }}</strong></a>
                             {% if customer.city %}<br>{{ customer.city|e }}{% endif %}
                         </td>
+                        <td><span class="luziapi-pilotage__badge is-customer-category">{{ customer.category|e }}</span></td>
                         <td>
                             {% for email in customer.emails %}<a href="mailto:{{ email|e('html_attr') }}">{{ email|e }}</a><br>{% endfor %}
                             {% for phone in customer.phones %}<a href="tel:{{ phone.href|e('html_attr') }}">{{ phone.label|e }}</a><br>{% endfor %}
@@ -101,7 +115,7 @@
                         <td>{{ customer.total|e }}</td>
                     </tr>
                 {% else %}
-                    <tr><td colspan="5">Aucun client trouvé.</td></tr>
+                    <tr><td colspan="6">Aucun client trouvé.</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\Application\Query\GetCustomerDirectory;
 
+use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
+
 final readonly class GetCustomerDirectoryQuery
 {
     public function __construct(
@@ -11,6 +13,7 @@ final readonly class GetCustomerDirectoryQuery
         public int $page = 1,
         public int $perPage = 50,
         public string $selectedCustomerId = '',
+        public ?CustomerCategory $category = null,
     ) {
     }
 }

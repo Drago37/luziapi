@@ -8,7 +8,7 @@ use wpdb;
 
 final readonly class PilotageSchemaManager
 {
-    public const VERSION = '6';
+    public const VERSION = '7';
     private const OPTION = 'luziapi_pilotage_receipts_schema_version';
 
     public function __construct(private wpdb $database)
@@ -107,6 +107,16 @@ final readonly class PilotageSchemaManager
             KEY object_lookup (object_type, object_id)
         ) {$charset};");
 
+        $customerCategoriesTable = $this->customerCategoriesTableName();
+        dbDelta("CREATE TABLE {$customerCategoriesTable} (
+            customer_key char(20) NOT NULL,
+            category varchar(30) NOT NULL DEFAULT 'unspecified',
+            updated_by bigint(20) unsigned NOT NULL DEFAULT 0,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (customer_key),
+            KEY category (category)
+        ) {$charset};");
+
         update_option(self::OPTION, self::VERSION, false);
     }
 
@@ -128,5 +138,10 @@ final readonly class PilotageSchemaManager
     public function activityTableName(): string
     {
         return $this->database->prefix . 'luziapi_activity_log';
+    }
+
+    public function customerCategoriesTableName(): string
+    {
+        return $this->database->prefix . 'luziapi_customer_categories';
     }
 }

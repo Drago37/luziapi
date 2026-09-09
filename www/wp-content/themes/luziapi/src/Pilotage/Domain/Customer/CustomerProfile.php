@@ -28,7 +28,29 @@ final readonly class CustomerProfile
         public Money $collectedTotal,
         /** @var list<string> */
         public array $favoriteProducts,
+        /** @var non-empty-list<string> */
+        public array $identityIds,
+        public CustomerCategory $category = CustomerCategory::Unspecified,
     ) {
+    }
+
+    public function withCategory(CustomerCategory $category): self
+    {
+        return new self(
+            $this->id,
+            $this->name,
+            $this->city,
+            $this->emails,
+            $this->phones,
+            $this->sources,
+            $this->orders,
+            $this->validOrdersCount,
+            $this->orderedTotal,
+            $this->collectedTotal,
+            $this->favoriteProducts,
+            $this->identityIds,
+            $category,
+        );
     }
 
     public function lastOrder(): OrderSnapshot

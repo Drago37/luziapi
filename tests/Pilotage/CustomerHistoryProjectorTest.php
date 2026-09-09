@@ -46,6 +46,22 @@ final class CustomerHistoryProjectorTest extends TestCase
         self::assertSame([], $profiles);
     }
 
+    public function testPhoneIdentityRemainsAnAliasAfterTheCustomerProvidesAnEmail(): void
+    {
+        $projector = new CustomerHistoryProjector();
+        $phoneOnly = $projector->project([
+            $this->order(1, '2026-01-10', '', '06 12 34 56 78'),
+        ])[0];
+
+        $withEmail = $projector->project([
+            $this->order(1, '2026-01-10', '', '06 12 34 56 78'),
+            $this->order(2, '2026-03-15', 'camille@example.test', '06 12 34 56 78'),
+        ])[0];
+
+        self::assertNotSame($phoneOnly->id, $withEmail->id);
+        self::assertContains($phoneOnly->id, $withEmail->identityIds);
+    }
+
     private function order(int $id, string $date, string $email, string $phone): OrderSnapshot
     {
         return new OrderSnapshot(

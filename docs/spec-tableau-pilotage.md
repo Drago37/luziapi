@@ -110,7 +110,7 @@ part pour faciliter les contrôles. Les calculs restent présentés comme une ai
 La vue Commandes permet de filtrer par période, statut, source, client, produit, remise,
 encaissement et moyen de règlement. Elle affiche la chronologie de chaque commande, ses notes
 privées et publiques clairement distinguées, les e-mails envoyés, les mouvements de stock et le
-rendez-vous éventuel.
+mode de remise prévu.
 
 ## 8. Historique client
 
@@ -135,6 +135,16 @@ La nouvelle fiche est implémentée : elle distingue total commandé et total en
 produits habituels, les sources, l'historique complet et une chronologie où chaque note est
 explicitement marquée « privée » ou « visible par le client ». L'ancien Répertoire clients reste
 volontairement présent jusqu'à validation explicite de son remplacement.
+
+Chaque fiche peut recevoir une catégorie commerciale unique, sans sous-catégorie : **Non
+renseigné**, **Particulier**, **Professionnel**, **Association**, **Collectivité** ou **Autre**. La
+catégorie peut être modifiée et filtrée depuis la vue Clients. Elle est conservée dans la table
+`luziapi_customer_categories` à partir de l'identifiant technique non nominatif de la fiche, afin
+de fonctionner aussi pour les clients sans compte WordPress. Les identifiants hachés de ses
+coordonnées connues permettent de conserver cette catégorie lorsqu'un client initialement connu
+seulement par téléphone fournit ensuite son e-mail, sans recopier ces coordonnées dans la table.
+« Marché », « téléphone » et « boutique en ligne » restent des sources de commande distinctes et
+ne sont pas des catégories de client.
 
 ## 9. Vente rapide
 
@@ -237,14 +247,16 @@ Réalisé et testé localement :
 7. vue Déclaration fiscale micro-BA fondée sur le registre ;
 8. prévention des doubles ventes rapides et rapprochement assisté des commandes ;
 9. lots de récolte et journal des mouvements de stock, reliés au stock WooCommerce ;
-10. reprise contrôlée du stock existant et journal général des activités.
+10. reprise contrôlée du stock existant et journal général des activités ;
+11. catégorisation simple des clients, sans sous-catégories et séparée des sources de commande.
 
 Contrôles réalisés sur ce lot :
 
-- 113 tests PHPUnit, 225 assertions ;
+- 117 tests PHPUnit, 234 assertions, incluant l'affectation et la validation des catégories
+  client ;
 - PHPStan sans erreur et PHP-CS-Fixer conforme ;
 - syntaxe JavaScript validée et parcours des écrans contrôlé dans un navigateur sans erreur ;
-- migration locale du schéma jusqu'à la version 6 ;
+- migration locale du schéma jusqu'à la version 7 ;
 - essais réversibles en base du journal (écriture, recherche et nettoyage) ;
 - essai réel du rattachement d'un pot déjà compté : lot et mouvement créés sans variation du stock
   WooCommerce, puis données de test supprimées.
@@ -253,9 +265,8 @@ Restent hors de ce lot :
 
 - le remplacement de l'ancien Répertoire clients, soumis à validation après comparaison ;
 - le futur suivi public des commandes sans compte ;
-- les éventuels rendez-vous datés et relances automatisées, qui demanderont une spécification
-  dédiée avant tout envoi au client ;
-- les catégories et étiquettes clients, dont la liste doit être validée avant développement ;
+- les rendez-vous datés et les relances automatisées sont explicitement hors périmètre et ne
+  doivent pas être ajoutés sans une nouvelle demande de LuziApi ;
 - l'intégration de PHPUnit à la CI, suivie dans l'issue GitHub n°2 ;
 - la stratégie de tests complète, suivie dans l'issue GitHub n°3.
 

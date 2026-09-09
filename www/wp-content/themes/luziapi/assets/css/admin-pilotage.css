@@ -158,6 +158,23 @@
     margin: 4px 0;
 }
 
+.luziapi-pilotage__customer-category-form {
+    align-items: center;
+    background: var(--luziapi-cream);
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 12px 14px;
+}
+
+.luziapi-pilotage__badge.is-customer-category {
+    background: #f5ead3;
+    color: #6f4e13;
+    white-space: nowrap;
+}
+
 .luziapi-pilotage__customer-summary > div {
     background: var(--luziapi-cream);
     border-radius: 8px;

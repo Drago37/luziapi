@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Bootstrap;
 
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
+use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
 use LuziApi\Pilotage\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
 use LuziApi\Pilotage\Application\Command\RecordOrderStockMovement\OrderStockMovementRecorder;
@@ -33,11 +34,13 @@ use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderStockSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceProductCatalog;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceStockLevelGateway;
+use LuziApi\Pilotage\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedInventoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressInventoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressTaxSettings;
@@ -81,6 +84,10 @@ final class PilotageServiceProvider
         $schema = new PilotageSchemaManager($wpdb);
         $activityRepository = new WordPressActivityRepository($wpdb, $schema, $clock->timezone());
         $activity = new ActivityRecorder($activityRepository, $clock);
+        $customerCategories = new AuditedCustomerCategoryRepository(
+            new WordPressCustomerCategoryRepository($wpdb, $schema),
+            $activity,
+        );
         $receipts = new AuditedReceiptRepository(
             new WordPressReceiptRepository($wpdb, $schema, $clock->timezone()),
             $activity,
@@ -104,6 +111,7 @@ final class PilotageServiceProvider
         $customerHandler = new GetCustomerDirectoryHandler(
             $orders,
             new CustomerHistoryProjector(),
+            $customerCategories,
             $receipts,
             new WooCommerceCustomerTimelineRepository($clock->timezone()),
             $clock,
@@ -146,9 +154,14 @@ final class PilotageServiceProvider
         );
         $taxController = new TaxDeclarationController($taxHandler, $handler, $taxSettings, $activity);
         $activityController = new ActivityController(new GetActivityLogHandler($activityRepository), $activity, $clock);
+        $customersController = new CustomersController(
+            $customerHandler,
+            new AssignCustomerCategoryHandler($customerCategories, $clock),
+            $activity,
+        );
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),
-            new CustomersController($customerHandler),
+            $customersController,
             $taxController,
             $receiptsController,
             new ProductsController(new GetProductDashboardHandler($products, $orders, new ProductPerformanceProjector(), $clock)),
@@ -159,6 +172,7 @@ final class PilotageServiceProvider
 
         add_action('init', [$schema, 'migrate'], 1);
         $receiptsController->register();
+        $customersController->register();
         $quickSaleController->register();
         $inventoryController->register();
         $taxController->register();

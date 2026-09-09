@@ -45,7 +45,7 @@ final class CustomerHistoryProjector
                 $customerOrders,
                 static fn (OrderSnapshot $left, OrderSnapshot $right): int => $right->createdAt <=> $left->createdAt,
             );
-            $profiles[] = $this->profile($key, $customerOrders, $receiptTotalsByOrder);
+            $profiles[] = $this->profile($key, $customerOrders, $receiptTotalsByOrder, $phoneEmails);
         }
 
         usort(
@@ -75,7 +75,7 @@ final class CustomerHistoryProjector
     /**
      * @param non-empty-list<OrderSnapshot> $orders
      */
-    private function profile(string $key, array $orders, array $receiptTotalsByOrder): CustomerProfile
+    private function profile(string $key, array $orders, array $receiptTotalsByOrder, array $phoneEmails): CustomerProfile
     {
         $latest = $orders[0];
         $emails = [];
@@ -109,8 +109,19 @@ final class CustomerHistoryProjector
         }
         arsort($products);
 
+        $identityKeys = [$key => true];
+        foreach (array_keys($emails) as $email) {
+            $identityKeys['email:' . $email] = true;
+        }
+        foreach (array_keys($phones) as $phone) {
+            if (str_starts_with($key, 'phone:') || 1 === count($phoneEmails[$phone] ?? [])) {
+                $identityKeys['phone:' . $phone] = true;
+            }
+        }
+        $identityIds = array_map($this->identityId(...), array_keys($identityKeys));
+
         return new CustomerProfile(
-            substr(hash('sha256', $key), 0, 20),
+            $this->identityId($key),
             $latest->customerName,
             $latest->city,
             array_values($emails),
@@ -121,6 +132,12 @@ final class CustomerHistoryProjector
             $orderedTotal,
             $collectedTotal,
             array_slice(array_keys($products), 0, 3),
+            $identityIds,
         );
+    }
+
+    private function identityId(string $identityKey): string
+    {
+        return substr(hash('sha256', $identityKey), 0, 20);
     }
 }
