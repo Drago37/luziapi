@@ -1,0 +1,10 @@
+{
+  "name": "luziapi-theme-assets",
+  "private": true,
+  "scripts": {
+    "vendor:chartjs": "mkdir -p assets/vendor/chartjs && cp node_modules/chart.js/dist/chart.umd.min.js assets/vendor/chartjs/chart.umd.min.js && cp node_modules/chart.js/LICENSE.md assets/vendor/chartjs/LICENSE.md"
+  },
+  "dependencies": {
+    "chart.js": "4.5.1"
+  }
+}

@@ -1,0 +1,127 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div>
+            <p class="luziapi-pilotage__eyebrow">LuziApi</p>
+            <h1>Tableau de pilotage</h1>
+            <p>Une vue annuelle des commandes enregistrées dans WooCommerce.</p>
+        </div>
+        <a class="page-title-action" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
+    </div>
+
+    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+        <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Vue d’ensemble</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
+        <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
+        <a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
+        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+    </nav>
+
+    <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+        <input type="hidden" name="page" value="luziapi-pilotage">
+        <label for="luziapi-pilotage-year">Année</label>
+        <select id="luziapi-pilotage-year" name="year" onchange="this.form.submit()">
+            {% for available_year in available_years %}
+                <option value="{{ available_year }}" {{ available_year == year ? 'selected' : '' }}>{{ available_year }}</option>
+            {% endfor %}
+        </select>
+        <noscript><button class="button" type="submit">Afficher</button></noscript>
+    </form>
+
+    <div class="notice notice-warning inline luziapi-pilotage__notice">
+        <p><strong>Montants commerciaux provisoires.</strong> Ils reposent sur les commandes validées, pas sur les dates réelles d’encaissement. Ils ne doivent pas encore être utilisés comme recettes fiscales.</p>
+    </div>
+
+    <section class="luziapi-pilotage__metrics" aria-label="Indicateurs de l’année {{ year }}">
+        {% for metric in metrics %}
+            <article class="luziapi-pilotage__metric">
+                <span>{{ metric.label|e }}</span>
+                <strong>{{ metric.value|e }}</strong>
+            </article>
+        {% endfor %}
+    </section>
+
+    {% if has_orders %}
+        <div class="luziapi-pilotage__grid">
+            <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+                <div class="luziapi-pilotage__panel-header">
+                    <div>
+                        <p class="luziapi-pilotage__eyebrow">Activité {{ year }}</p>
+                        <h2>Commandes validées par mois</h2>
+                    </div>
+                </div>
+                <div class="luziapi-pilotage__chart">
+                    <canvas
+                        id="luziapi-monthly-sales-chart"
+                        data-labels="{{ monthly_labels|json_encode|e('html_attr') }}"
+                        data-values="{{ monthly_values|json_encode|e('html_attr') }}"
+                        aria-label="Montant mensuel des commandes validées en {{ year }}"
+                        role="img"
+                    ></canvas>
+                </div>
+                <table class="screen-reader-text">
+                    <caption>Montant mensuel des commandes validées en {{ year }}</caption>
+                    <tbody>
+                    {% for label in monthly_labels %}
+                        <tr><th>{{ label|e }}</th><td>{{ monthly_values[loop.index0] }} €</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="luziapi-pilotage__panel">
+                <p class="luziapi-pilotage__eyebrow">À traiter</p>
+                <h2>Suivi des commandes</h2>
+                <ul class="luziapi-pilotage__status-list">
+                    {% for card in status_cards %}
+                        <li><span>{{ card.label|e }}</span><strong>{{ card.count }}</strong></li>
+                    {% endfor %}
+                </ul>
+                <a class="button" href="{{ orders_url|e('html_attr') }}">Voir les commandes</a>
+            </section>
+
+            <section class="luziapi-pilotage__panel">
+                <p class="luziapi-pilotage__eyebrow">Origine</p>
+                <h2>Sources de commande</h2>
+                <ul class="luziapi-pilotage__status-list">
+                    {% for source in sources %}
+                        <li><span>{{ source.label|e }}</span><strong>{{ source.total|e }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+                <div class="luziapi-pilotage__panel-header">
+                    <div>
+                        <p class="luziapi-pilotage__eyebrow">Carnet de commandes</p>
+                        <h2>Dernières commandes validées</h2>
+                    </div>
+                    <a href="{{ orders_url|e('html_attr') }}">Toutes les commandes</a>
+                </div>
+                <div class="luziapi-pilotage__table-wrap">
+                    <table class="widefat striped">
+                        <thead><tr><th>Commande</th><th>Date</th><th>Client</th><th>Statut</th><th>Total</th></tr></thead>
+                        <tbody>
+                        {% for order in recent_orders %}
+                            <tr>
+                                <td><a href="{{ order.url|e('html_attr') }}"><strong>n°{{ order.number|e }}</strong></a></td>
+                                <td>{{ order.date|e }}</td>
+                                <td>{{ order.customer|e }}</td>
+                                <td>{{ order.status|e }}</td>
+                                <td>{{ order.total|e }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    {% else %}
+        <section class="luziapi-pilotage__empty">
+            <h2>Aucune commande validée en {{ year }}</h2>
+            <p>Les commandes annulées, échouées ou encore au stade de brouillon ne sont pas comptabilisées.</p>
+            <a class="button button-primary" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
+        </section>
+    {% endif %}
+</div>

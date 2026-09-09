@@ -1,7 +1,7 @@
 <?php
 
 $finder = PhpCsFixer\Finder::create()
-    ->in([__DIR__ . '/inc'])
+    ->in([__DIR__ . '/inc', __DIR__ . '/src'])
     ->append([
         __DIR__ . '/functions.php',
         __DIR__ . '/front-page.php',

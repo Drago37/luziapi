@@ -21,6 +21,10 @@ tmp/
 /vendor/
 node_modules/
 
+# Bibliothèques front distribuées avec le thème (sans CDN).
+!/www/wp-content/themes/luziapi/assets/vendor/
+!/www/wp-content/themes/luziapi/assets/vendor/**
+
 # --- Tests ---
 /.phpunit.cache/
 

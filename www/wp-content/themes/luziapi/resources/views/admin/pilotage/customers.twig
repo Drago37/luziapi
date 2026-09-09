@@ -1,0 +1,100 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div>
+            <p class="luziapi-pilotage__eyebrow">Carnet client</p>
+            <h1>Clients et historique</h1>
+            <p>Historique construit depuis les commandes, sans créer de compte ni de consentement marketing.</p>
+        </div>
+        <a class="page-title-action" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
+    </div>
+
+    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+        <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
+        <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
+        <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Clients</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
+        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+    </nav>
+
+    {% if selected_customer %}
+        <section class="luziapi-pilotage__customer-card">
+            <div class="luziapi-pilotage__panel-header">
+                <div>
+                    <p class="luziapi-pilotage__eyebrow">Fiche client</p>
+                    <h2>{{ selected_customer.name|e }}</h2>
+                    {% if selected_customer.city %}<p>{{ selected_customer.city|e }}</p>{% endif %}
+                </div>
+                <a class="button" href="{{ page_url|e('html_attr') }}">Fermer la fiche</a>
+            </div>
+            <div class="luziapi-pilotage__customer-summary">
+                <div><span>Commandes validées</span><strong>{{ selected_customer.orders_count }}</strong></div>
+                <div><span>Total commandé</span><strong>{{ selected_customer.total|e }}</strong></div>
+                <div>
+                    <span>Coordonnées</span>
+                    {% for email in selected_customer.emails %}<a href="mailto:{{ email|e('html_attr') }}">{{ email|e }}</a>{% endfor %}
+                    {% for phone in selected_customer.phones %}<a href="tel:{{ phone.href|e('html_attr') }}">{{ phone.label|e }}</a>{% endfor %}
+                </div>
+            </div>
+            <h3>Historique complet</h3>
+            <div class="luziapi-pilotage__table-wrap">
+                <table class="widefat striped">
+                    <thead><tr><th>Commande</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead>
+                    <tbody>
+                    {% for order in selected_customer.orders %}
+                        <tr>
+                            <td><a href="{{ order.url|e('html_attr') }}"><strong>n°{{ order.number|e }}</strong></a></td>
+                            <td>{{ order.date|e }}</td>
+                            <td>{{ order.status|e }}</td>
+                            <td>{{ order.total|e }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="luziapi-pilotage__panel luziapi-pilotage__customers">
+        <div class="luziapi-pilotage__panel-header">
+            <div>
+                <p class="luziapi-pilotage__eyebrow">Répertoire commercial</p>
+                <h2>{{ total_customers }} client{{ total_customers > 1 ? 's' : '' }}</h2>
+            </div>
+            <form class="luziapi-pilotage__search" action="{{ page_url|e('html_attr') }}" method="get">
+                <input type="hidden" name="page" value="luziapi-pilotage">
+                <input type="hidden" name="tab" value="customers">
+                <label class="screen-reader-text" for="luziapi-customer-search">Rechercher un client</label>
+                <input id="luziapi-customer-search" name="s" type="search" value="{{ search|e('html_attr') }}" placeholder="Nom, e-mail ou téléphone">
+                <button class="button" type="submit">Rechercher</button>
+            </form>
+        </div>
+
+        <div class="luziapi-pilotage__table-wrap">
+            <table class="widefat striped">
+                <thead><tr><th>Client</th><th>Coordonnées</th><th>Dernière commande</th><th>Commandes</th><th>Total</th></tr></thead>
+                <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        <td>
+                            <a href="{{ customer.details_url|e('html_attr') }}"><strong>{{ customer.name|e }}</strong></a>
+                            {% if customer.city %}<br>{{ customer.city|e }}{% endif %}
+                        </td>
+                        <td>
+                            {% for email in customer.emails %}<a href="mailto:{{ email|e('html_attr') }}">{{ email|e }}</a><br>{% endfor %}
+                            {% for phone in customer.phones %}<a href="tel:{{ phone.href|e('html_attr') }}">{{ phone.label|e }}</a><br>{% endfor %}
+                        </td>
+                        <td><a href="{{ customer.last_order.url|e('html_attr') }}">n°{{ customer.last_order.number|e }}</a><br>{{ customer.last_order.date|e }}</td>
+                        <td>{{ customer.orders_count }}</td>
+                        <td>{{ customer.total|e }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5">Aucun client trouvé.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if pagination %}<div class="tablenav"><div class="tablenav-pages">{{ pagination|raw }}</div></div>{% endif %}
+    </section>
+</div>

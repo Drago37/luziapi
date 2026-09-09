@@ -15,6 +15,7 @@ parameters:
         - single.php
         - 404.php
         - inc
+        - src
     scanFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
     treatPhpDocTypesAsCertain: false

@@ -73,6 +73,8 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
+require __DIR__ . '/../www/wp-content/themes/luziapi/vendor/autoload.php';
+
 require __DIR__ . '/../prod-mu-plugins/luziapi-newsletter-autosend.php';
 require __DIR__ . '/../www/wp-content/themes/luziapi/inc/order-workflow.php';
 require __DIR__ . '/../www/wp-content/themes/luziapi/inc/payment-deadline.php';

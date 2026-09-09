@@ -52,3 +52,5 @@ require_once LUZIAPI_DIR . '/inc/customer-emails.php';
 require_once LUZIAPI_DIR . '/inc/admin-emails.php';
 require_once LUZIAPI_DIR . '/inc/payment-deadline.php';
 require_once LUZIAPI_DIR . '/inc/blog.php';
+
+LuziApi\Pilotage\Bootstrap\PilotageServiceProvider::boot(LUZIAPI_DIR, LUZIAPI_URI);

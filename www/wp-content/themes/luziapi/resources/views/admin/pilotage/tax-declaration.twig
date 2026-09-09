@@ -1,0 +1,74 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div>
+            <p class="luziapi-pilotage__eyebrow">Micro-BA</p>
+            <h1>Déclaration fiscale</h1>
+            <p>Préparer les recettes à déclarer et contrôler le calcul indicatif du bénéfice agricole.</p>
+        </div>
+        <a class="page-title-action" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
+    </div>
+
+    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+        <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Déclaration fiscale</a>
+        <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
+        <a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a>
+        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
+        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+    </nav>
+
+    <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+        <input type="hidden" name="page" value="luziapi-pilotage">
+        <input type="hidden" name="tab" value="tax-declaration">
+        <label for="luziapi-tax-year">Année de déclaration</label>
+        <select id="luziapi-tax-year" name="year" onchange="this.form.submit()">
+            {% for available_year in available_years %}
+                <option value="{{ available_year }}" {{ available_year == year ? 'selected' : '' }}>{{ available_year }}</option>
+            {% endfor %}
+        </select>
+        <noscript><button class="button" type="submit">Afficher</button></noscript>
+    </form>
+
+    <div class="notice notice-info inline luziapi-pilotage__notice">
+        <p><strong>Écran en préparation.</strong> Le montant fiscal sera calculé à partir du futur registre des encaissements, et non à partir du seul statut des commandes.</p>
+    </div>
+
+    <div class="luziapi-pilotage__grid">
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Montant à reporter</p>
+            <h2>Recettes brutes encaissées</h2>
+            <p>La déclaration porte sur les recettes réellement encaissées pendant l’année, avant application de l’abattement.</p>
+            <p><strong>À venir :</strong> total issu du registre chronologique, avec remboursements et corrections.</p>
+        </section>
+
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Calcul automatique</p>
+            <h2>Abattement micro-BA de 87 %</h2>
+            <p>La base imposable indicative correspond à 13 % de la moyenne des recettes de l’année et des deux années précédentes.</p>
+            <p>L’abattement ne peut pas être inférieur à 305 €. Les premières années d’activité demandent un calcul adapté aux années disponibles.</p>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <div class="luziapi-pilotage__panel-header">
+                <div>
+                    <p class="luziapi-pilotage__eyebrow">Contrôle commercial {{ year }}</p>
+                    <h2>{{ commercial_reference|e }} de commandes validées après remboursements</h2>
+                </div>
+            </div>
+            <p>Ce montant sert uniquement de point de comparaison. Il peut différer des recettes fiscales si une commande est payée une autre année, reste impayée ou est encaissée en plusieurs fois.</p>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <p class="luziapi-pilotage__eyebrow">Avant utilisation fiscale</p>
+            <h2>Données qui seront contrôlées</h2>
+            <ul class="luziapi-pilotage__check-list">
+                <li>date et montant de chaque encaissement ;</li>
+                <li>remboursements et corrections sans suppression d’historique ;</li>
+                <li>recettes des années antérieures absentes de WooCommerce ;</li>
+                <li>année réelle de début d’activité pour appliquer la bonne moyenne ;</li>
+                <li>export annuel détaillé servant de justificatif.</li>
+            </ul>
+        </section>
+    </div>
+</div>
