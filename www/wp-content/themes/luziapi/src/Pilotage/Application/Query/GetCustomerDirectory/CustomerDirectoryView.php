@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Application\Query\GetCustomerDirectory;
 
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
+use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
 
 final readonly class CustomerDirectoryView
 {
@@ -17,6 +18,8 @@ final readonly class CustomerDirectoryView
         public int $currentPage,
         public int $totalPages,
         public ?CustomerProfile $selectedCustomer,
+        /** @var list<CustomerTimelineEntry> */
+        public array $timeline,
     ) {
     }
 }

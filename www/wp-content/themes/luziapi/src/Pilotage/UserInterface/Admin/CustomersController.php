@@ -7,6 +7,7 @@ namespace LuziApi\Pilotage\UserInterface\Admin;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
+use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
 use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use Timber\Timber;
@@ -44,7 +45,12 @@ final readonly class CustomersController
         Timber::render('@luziapi_admin/pilotage/customers.twig', [
             'page_url'          => $pageUrl,
             'dashboard_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
+            'receipts_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
             'tax_declaration_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=tax-declaration'),
+            'products_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),
+            'inventory_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
+            'quick_sale_url'    => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
+            'activity_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'        => admin_url('admin.php?page=wc-orders'),
             'new_order_url'     => admin_url('admin.php?page=wc-orders&action=new'),
             'search'            => $search,
@@ -59,6 +65,7 @@ final readonly class CustomersController
                 $directory->currentPage,
                 $directory->totalPages,
             ),
+            'timeline'          => array_map($this->formatTimeline(...), $directory->timeline),
         ]);
     }
 
@@ -68,6 +75,7 @@ final readonly class CustomersController
     private function formatCustomer(CustomerProfile $customer): array
     {
         $lastOrder = $customer->lastOrder();
+        $sourceLabels = function_exists('luziapi_order_source_options') ? luziapi_order_source_options() : [];
 
         return [
             'id'           => $customer->id,
@@ -81,6 +89,9 @@ final readonly class CustomersController
             'last_order'   => $this->formatOrder($lastOrder),
             'orders_count' => $customer->validOrdersCount,
             'total'        => $this->formatMoney($customer->orderedTotal->cents()),
+            'collected'    => $this->formatMoney($customer->collectedTotal->cents()),
+            'products'     => $customer->favoriteProducts,
+            'sources'      => array_map(static fn (string $source): string => $sourceLabels[$source] ?? $source, $customer->sources),
             'details_url'  => add_query_arg('customer', $customer->id, admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers')),
         ];
     }
@@ -107,6 +118,19 @@ final readonly class CustomersController
             'date'   => wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp()),
             'status' => self::STATUS_LABELS[$order->status] ?? $order->status,
             'total'  => $this->formatMoney($order->total->cents()),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function formatTimeline(CustomerTimelineEntry $entry): array
+    {
+        return [
+            'date'         => wp_date('d/m/Y à H:i', $entry->occurredAt->getTimestamp()),
+            'content'      => $entry->content,
+            'public'       => $entry->public,
+            'visibility'   => $entry->public ? 'Note client' : 'Note privée',
+            'order_number' => $entry->orderNumber,
+            'order_url'    => admin_url('admin.php?page=wc-orders&action=edit&id=' . $entry->orderId),
         ];
     }
 

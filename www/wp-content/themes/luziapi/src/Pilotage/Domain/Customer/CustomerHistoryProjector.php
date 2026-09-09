@@ -15,7 +15,7 @@ final class CustomerHistoryProjector
      *
      * @return list<CustomerProfile>
      */
-    public function project(array $orders): array
+    public function project(array $orders, array $receiptTotalsByOrder = []): array
     {
         $prepared = [];
         $phoneEmails = [];
@@ -45,7 +45,7 @@ final class CustomerHistoryProjector
                 $customerOrders,
                 static fn (OrderSnapshot $left, OrderSnapshot $right): int => $right->createdAt <=> $left->createdAt,
             );
-            $profiles[] = $this->profile($key, $customerOrders);
+            $profiles[] = $this->profile($key, $customerOrders, $receiptTotalsByOrder);
         }
 
         usort(
@@ -75,7 +75,7 @@ final class CustomerHistoryProjector
     /**
      * @param non-empty-list<OrderSnapshot> $orders
      */
-    private function profile(string $key, array $orders): CustomerProfile
+    private function profile(string $key, array $orders, array $receiptTotalsByOrder): CustomerProfile
     {
         $latest = $orders[0];
         $emails = [];
@@ -83,6 +83,8 @@ final class CustomerHistoryProjector
         $sources = [];
         $validOrdersCount = 0;
         $orderedTotal = Money::zero();
+        $collectedTotal = Money::zero();
+        $products = [];
 
         foreach ($orders as $order) {
             $email = strtolower(trim($order->email));
@@ -100,7 +102,12 @@ final class CustomerHistoryProjector
                 ++$validOrdersCount;
                 $orderedTotal = $orderedTotal->add($order->total)->subtract($order->refunded);
             }
+            $collectedTotal = $collectedTotal->add(new Money($receiptTotalsByOrder[$order->id] ?? 0));
+            foreach ($order->lines as $line) {
+                $products[$line->name] = ($products[$line->name] ?? 0) + $line->quantity;
+            }
         }
+        arsort($products);
 
         return new CustomerProfile(
             substr(hash('sha256', $key), 0, 20),
@@ -112,6 +119,8 @@ final class CustomerHistoryProjector
             $orders,
             $validOrdersCount,
             $orderedTotal,
+            $collectedTotal,
+            array_slice(array_keys($products), 0, 3),
         );
     }
 }

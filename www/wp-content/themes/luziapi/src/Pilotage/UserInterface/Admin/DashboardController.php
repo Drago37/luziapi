@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Pilotage\Application\Port\Clock;
+use LuziApi\Pilotage\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardQuery;
+use LuziApi\Pilotage\Domain\Activity\ActivityEntry;
+use LuziApi\Pilotage\Domain\Activity\ActivityFilter;
+use LuziApi\Pilotage\Domain\FollowUp\FollowUpItem;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use Timber\Timber;
 
@@ -38,8 +43,11 @@ final readonly class DashboardController
         'failed'           => 'Échouée',
     ];
 
-    public function __construct(private GetAnnualDashboardHandler $getDashboard)
-    {
+    public function __construct(
+        private GetAnnualDashboardHandler $getDashboard,
+        private GetActivityLogHandler $getActivity,
+        private Clock $clock,
+    ) {
     }
 
     public function render(): void
@@ -65,6 +73,14 @@ final readonly class DashboardController
         }
 
         usort($sources, static fn (array $left, array $right): int => strcmp($left['label'], $right['label']));
+        $now = $this->clock->now();
+        $recentActivity = $this->getActivity->handle(new ActivityFilter(
+            $now->modify('-7 days'),
+            $now,
+            null,
+            '',
+            6,
+        ));
 
         Timber::render('@luziapi_admin/pilotage/dashboard.twig', [
             'year'              => $summary->year,
@@ -72,9 +88,15 @@ final readonly class DashboardController
             'page_url'          => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'tax_declaration_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=tax-declaration'),
             'customers_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers'),
+            'receipts_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
+            'products_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),
+            'inventory_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
+            'quick_sale_url'    => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
+            'activity_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'        => admin_url('admin.php?page=wc-orders'),
             'new_order_url'     => admin_url('admin.php?page=wc-orders&action=new'),
             'metrics'           => [
+                ['label' => 'Recettes encaissées', 'value' => $this->formatMoney($dashboard->receipts->net->cents())],
                 ['label' => 'Commandes validées', 'value' => $this->formatMoney($summary->orderedTotal->cents())],
                 ['label' => 'Après remboursements', 'value' => $this->formatMoney($summary->netOrderedTotal->cents())],
                 ['label' => 'Commandes', 'value' => (string) $summary->ordersCount],
@@ -90,7 +112,28 @@ final readonly class DashboardController
             'sources'           => $sources,
             'recent_orders'     => array_map($this->formatOrder(...), $summary->recentOrders),
             'has_orders'        => $summary->ordersCount > 0,
+            'follow_up_count'   => $dashboard->followUp->totalActions(),
+            'follow_up_groups'  => [
+                ['label' => 'Règlements', 'items' => array_map($this->formatFollowUp(...), $dashboard->followUp->payments)],
+                ['label' => 'Préparation', 'items' => array_map($this->formatFollowUp(...), $dashboard->followUp->preparation)],
+                ['label' => 'Remise', 'items' => array_map($this->formatFollowUp(...), $dashboard->followUp->handover)],
+                ['label' => 'À compléter', 'items' => array_map($this->formatFollowUp(...), $dashboard->followUp->inconsistencies)],
+            ],
+            'recent_activity'   => array_map($this->formatActivity(...), $recentActivity),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function formatFollowUp(FollowUpItem $item): array
+    {
+        return [
+            'number'      => $item->order->number,
+            'customer'    => $item->order->customerName,
+            'reason'      => $item->reason,
+            'age'         => $item->ageDays,
+            'outstanding' => $item->outstanding->cents() > 0 ? $this->formatMoney($item->outstanding->cents()) : '',
+            'url'         => admin_url('admin.php?page=wc-orders&action=edit&id=' . $item->order->id),
+        ];
     }
 
     /**
@@ -129,5 +172,18 @@ final readonly class DashboardController
     private function formatMoney(int $cents): string
     {
         return html_entity_decode(wp_strip_all_tags(wc_price($cents / 100)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    /** @return array<string, string> */
+    private function formatActivity(ActivityEntry $entry): array
+    {
+        $user = $entry->actorId > 0 ? get_userdata($entry->actorId) : null;
+
+        return [
+            'date' => wp_date('d/m à H:i', $entry->occurredAt->getTimestamp()),
+            'category' => $entry->category->label(),
+            'summary' => $entry->summary,
+            'actor' => $user ? $user->display_name : 'Système WooCommerce',
+        ];
     }
 }

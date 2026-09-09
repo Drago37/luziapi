@@ -6,6 +6,9 @@ namespace LuziApi\Pilotage\Application\Query\GetAnnualDashboard;
 
 use DateTimeImmutable;
 use LuziApi\Pilotage\Application\Port\Clock;
+use LuziApi\Pilotage\Domain\FollowUp\FollowUpProjector;
+use LuziApi\Pilotage\Domain\Receipt\AnnualReceiptCalculator;
+use LuziApi\Pilotage\Domain\Receipt\ReceiptRepository;
 use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
 
@@ -14,6 +17,9 @@ final readonly class GetAnnualDashboardHandler
     public function __construct(
         private OrderRepository $orders,
         private AnnualSalesCalculator $calculator,
+        private ReceiptRepository $receipts,
+        private AnnualReceiptCalculator $receiptCalculator,
+        private FollowUpProjector $followUpProjector,
         private Clock $clock,
     ) {
     }
@@ -36,9 +42,18 @@ final readonly class GetAnnualDashboardHandler
             rsort($availableYears);
         }
 
+        $orders = $this->orders->createdBetween($start, $end);
+        $receiptEntries = $this->receipts->occurredBetween($start, $end);
+
         return new AnnualDashboardView(
-            $this->calculator->calculate($year, $this->orders->createdBetween($start, $end)),
+            $this->calculator->calculate($year, $orders),
             $availableYears,
+            $this->followUpProjector->project(
+                $orders,
+                $this->receipts->netTotalsByOrderIds(array_map(static fn ($order): int => $order->id, $orders)),
+                $this->clock->now(),
+            ),
+            $this->receiptCalculator->calculate($year, $receiptEntries),
         );
     }
 }

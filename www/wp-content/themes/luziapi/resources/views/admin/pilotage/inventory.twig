@@ -1,0 +1,60 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div><p class="luziapi-pilotage__eyebrow">Récoltes et traçabilité</p><h1>Stocks et lots</h1><p>Suivre chaque mise en pots, les sorties hors commande et l’affectation automatique des ventes.</p></div>
+    </div>
+
+    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+        <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a><a class="nav-tab" href="{{ receipts_url|e('html_attr') }}">Recettes</a><a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a><a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a><a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a><a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a><a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Stocks et lots</a><a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a><a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
+    </nav>
+
+    {% if notice == 'lot_created' %}<div class="notice notice-success inline"><p>La récolte et son numéro de lot ont été enregistrés ; les pots ont été ajoutés au stock WooCommerce.</p></div>{% endif %}
+    {% if notice == 'lot_attached' %}<div class="notice notice-success inline"><p>La récolte et son numéro de lot ont été enregistrés ; les pots déjà présents ont été rattachés sans modifier le stock WooCommerce.</p></div>{% endif %}
+    {% if notice == 'movement_recorded' %}<div class="notice notice-success inline"><p>Le mouvement a été enregistré et le stock WooCommerce a été ajusté.</p></div>{% endif %}
+    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’opération n’a pas été enregistrée. Vérifie le produit, le lot, la quantité et le stock disponible.</p></div>{% endif %}
+
+    <section class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four">{% for metric in metrics %}<article class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></article>{% endfor %}</section>
+
+    <div class="notice notice-info inline luziapi-pilotage__notice"><p><strong>Écart non affecté.</strong> Il correspond au stock WooCommerce antérieur à la création des lots, ou à un mouvement qui n’a pas pu être relié à un lot. Les ventes consomment d’abord ce stock ancien, puis les lots les plus anciens.</p></div>
+
+    <div class="luziapi-pilotage__grid">
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Nouvelle récolte</p><h2>Enregistrer la récolte mise en pots</h2>
+            <form class="luziapi-pilotage__form" action="{{ action_url|e('html_attr') }}" method="post" data-harvest-form>
+                <input type="hidden" name="action" value="luziapi_create_harvest_lot"><input type="hidden" name="_wpnonce" value="{{ lot_nonce|e('html_attr') }}">
+                <label>Numéro de lot de la récolte<input type="text" name="lot_number" pattern="[A-Za-z0-9._-]{3,64}" maxlength="64" placeholder="Ex. L2026-01" required><span class="description">Le numéro inscrit sur tous les pots issus de cette récolte.</span></label>
+                <label>Produit<select name="product_id" required>{% for product in products %}{% if product.stock is not null %}<option value="{{ product.id }}">{{ product.name|e }} · stock {{ product.stock }}</option>{% endif %}{% endfor %}</select></label>
+                <label>Date de récolte<input type="date" name="harvested_at" max="{{ today|e('html_attr') }}" value="{{ today|e('html_attr') }}" required></label>
+                <label>Rucher ou origine<input type="text" name="apiary_origin" maxlength="190" placeholder="Ex. Rucher de Luzillé" required></label>
+                <label>Variété<input type="text" name="variety" maxlength="190" placeholder="Ex. Châtaignier" required></label>
+                <label>Quantité mise en pots<input type="number" name="quantity_jarred" min="1" step="1" required></label>
+                <fieldset class="luziapi-pilotage__choice"><legend>Traitement du stock</legend><label><input type="radio" name="stock_registration" value="new" checked> Nouvelle récolte : ajouter les pots à WooCommerce</label><label><input type="radio" name="stock_registration" value="existing"> Stock existant : rattacher des pots déjà comptés sans les ajouter</label></fieldset>
+                <label>Date de mise en pots<input type="datetime-local" name="jarred_at" value="{{ now|e('html_attr') }}" required></label>
+                <button class="button button-primary" type="submit" data-harvest-submit>Enregistrer la récolte et ajouter le stock</button>
+            </form>
+        </section>
+
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Hors commande</p><h2>Enregistrer un mouvement</h2>
+            <form class="luziapi-pilotage__form" action="{{ action_url|e('html_attr') }}" method="post" data-stock-movement>
+                <input type="hidden" name="action" value="luziapi_record_stock_movement"><input type="hidden" name="_wpnonce" value="{{ movement_nonce|e('html_attr') }}">
+                <label>Produit<select name="product_id" required data-stock-product>{% for product in products %}{% if product.stock is not null %}<option value="{{ product.id }}">{{ product.name|e }} · stock {{ product.stock }}</option>{% endif %}{% endfor %}</select></label>
+                <label>Lot<select name="lot_id" data-stock-lot><option value="">Stock ancien / non affecté</option>{% for lot in lots %}<option value="{{ lot.id }}" data-product-id="{{ lot.product_id }}" data-available="{{ lot.stock_remaining > 0 ? 'yes' : 'no' }}" {{ lot.stock_remaining <= 0 ? 'disabled' : '' }}>{{ lot.lot_number|e }} · reste {{ lot.stock_remaining }}</option>{% endfor %}</select></label>
+                <label>Nature<select name="movement_type" required data-stock-type>{% for type in movement_types %}<option value="{{ type.value|e('html_attr') }}">{{ type.label|e }}</option>{% endfor %}</select></label>
+                <label>Quantité<input type="number" name="quantity" min="1" step="1" required data-stock-quantity><span class="description" data-stock-quantity-help>Saisir le nombre de pots sortis.</span></label>
+                <label>Motif ou précision<input type="text" name="reason" maxlength="250" placeholder="Facultatif, sauf correction"></label>
+                <label>Date et heure<input type="datetime-local" name="occurred_at" value="{{ now|e('html_attr') }}" required></label>
+                <button class="button button-primary" type="submit">Enregistrer le mouvement</button>
+            </form>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">Récoltes</p><h2>Récoltes mises en pots</h2></div></div>
+            <div class="luziapi-pilotage__table-wrap"><table class="widefat striped"><thead><tr><th>N° de lot</th><th>Produit</th><th>Récolte</th><th>Origine</th><th>Mise en pots</th><th>Stock</th></tr></thead><tbody>{% for lot in lots %}<tr><td><strong>{{ lot.lot_number|e }}</strong><br><small>{{ lot.stock_origin|e }}</small></td><td>{{ lot.product|e }}</td><td>{{ lot.harvested_at|e }}<br><small>{{ lot.variety|e }}</small></td><td>{{ lot.origin|e }}</td><td>{{ lot.jarred_at|e }}<br><small>{{ lot.quantity_jarred }} pots produits</small></td><td class="{{ lot.stock_remaining <= 0 ? 'is-negative' : 'is-positive' }}"><strong>{{ lot.stock_remaining }} pots</strong></td></tr>{% else %}<tr><td colspan="6">Aucune récolte enregistrée. Le stock WooCommerce actuel reste disponible mais n’est pas encore affecté à une récolte.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">Journal</p><h2>Derniers mouvements de stock</h2></div></div>
+            <div class="luziapi-pilotage__table-wrap"><table class="widefat striped"><thead><tr><th>N°</th><th>Date</th><th>Produit</th><th>Lot</th><th>Nature</th><th>Motif</th><th>Quantité</th></tr></thead><tbody>{% for movement in movements %}<tr><td>{{ movement.sequence|e }}</td><td>{{ movement.date|e }}</td><td>{{ movement.product|e }}</td><td>{{ movement.lot|e }}</td><td>{{ movement.type|e }}{% if movement.order_id %}<br><a href="{{ movement.order_url|e('html_attr') }}">commande n°{{ movement.order_id }}</a>{% endif %}</td><td>{{ movement.reason|e }}</td><td class="{{ movement.delta_value < 0 ? 'is-negative' : 'is-positive' }}"><strong>{{ movement.delta|e }}</strong></td></tr>{% else %}<tr><td colspan="7">Aucun mouvement enregistré.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+    </div>
+</div>

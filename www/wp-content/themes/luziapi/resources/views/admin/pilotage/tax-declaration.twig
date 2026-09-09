@@ -1,74 +1,49 @@
 <div class="wrap luziapi-pilotage">
     <div class="luziapi-pilotage__header">
-        <div>
-            <p class="luziapi-pilotage__eyebrow">Micro-BA</p>
-            <h1>Déclaration fiscale</h1>
-            <p>Préparer les recettes à déclarer et contrôler le calcul indicatif du bénéfice agricole.</p>
-        </div>
-        <a class="page-title-action" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
+        <div><p class="luziapi-pilotage__eyebrow">Micro-BA</p><h1>Déclaration fiscale</h1><p>Préparer les recettes à déclarer et contrôler le bénéfice agricole indicatif.</p></div>
+        <a class="page-title-action" href="{{ receipts_url|e('html_attr') }}">Ouvrir le registre</a>
     </div>
 
     <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
         <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab" href="{{ receipts_url|e('html_attr') }}">Recettes</a>
         <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Déclaration fiscale</a>
         <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
         <a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
-        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+        <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
+        <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
+        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a>
+        <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
-    <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
-        <input type="hidden" name="page" value="luziapi-pilotage">
-        <input type="hidden" name="tab" value="tax-declaration">
-        <label for="luziapi-tax-year">Année de déclaration</label>
-        <select id="luziapi-tax-year" name="year" onchange="this.form.submit()">
-            {% for available_year in available_years %}
-                <option value="{{ available_year }}" {{ available_year == year ? 'selected' : '' }}>{{ available_year }}</option>
-            {% endfor %}
-        </select>
-        <noscript><button class="button" type="submit">Afficher</button></noscript>
-    </form>
+    {% if notice == 'saved' %}<div class="notice notice-success inline"><p>L’année de début d’activité a été enregistrée.</p></div>{% endif %}
 
-    <div class="notice notice-info inline luziapi-pilotage__notice">
-        <p><strong>Écran en préparation.</strong> Le montant fiscal sera calculé à partir du futur registre des encaissements, et non à partir du seul statut des commandes.</p>
+    <div class="luziapi-pilotage__toolbar">
+        <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+            <input type="hidden" name="page" value="luziapi-pilotage"><input type="hidden" name="tab" value="tax-declaration">
+            <label for="luziapi-tax-year">Année de déclaration</label>
+            <select id="luziapi-tax-year" name="year" onchange="this.form.submit()">{% for available_year in available_years %}<option value="{{ available_year }}" {{ available_year == year ? 'selected' : '' }}>{{ available_year }}</option>{% endfor %}</select>
+        </form>
+        <form class="luziapi-pilotage__period" action="{{ settings_action|e('html_attr') }}" method="post">
+            <input type="hidden" name="action" value="luziapi_save_tax_settings"><input type="hidden" name="_wpnonce" value="{{ settings_nonce|e('html_attr') }}">
+            <label for="luziapi-activity-start-year">Début d’activité</label>
+            <input id="luziapi-activity-start-year" name="activity_start_year" type="number" min="2000" max="{{ year }}" value="{{ activity_start_year }}" required>
+            <button class="button" type="submit">Enregistrer</button>
+        </form>
     </div>
 
+    <div class="notice notice-warning inline luziapi-pilotage__notice"><p><strong>Aide à la préparation uniquement.</strong> Vérifie que toutes les recettes, y compris celles réalisées hors WooCommerce, ont été saisies. Les numéros de cases fiscales changent selon les millésimes et ne sont pas affichés ici.</p></div>
+
+    <section class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four">
+        <article class="luziapi-pilotage__metric"><span>Recettes nettes du registre {{ year }}</span><strong>{{ declared_receipts|e }}</strong></article>
+        <article class="luziapi-pilotage__metric"><span>Moyenne sur {{ years_count }} an{{ years_count > 1 ? 's' : '' }}</span><strong>{{ average_receipts|e }}</strong></article>
+        <article class="luziapi-pilotage__metric"><span>Abattement de 87 %</span><strong>{{ allowance|e }}</strong></article>
+        <article class="luziapi-pilotage__metric"><span>Bénéfice imposable indicatif</span><strong>{{ taxable_profit|e }}</strong></article>
+    </section>
+
     <div class="luziapi-pilotage__grid">
-        <section class="luziapi-pilotage__panel">
-            <p class="luziapi-pilotage__eyebrow">Montant à reporter</p>
-            <h2>Recettes brutes encaissées</h2>
-            <p>La déclaration porte sur les recettes réellement encaissées pendant l’année, avant application de l’abattement.</p>
-            <p><strong>À venir :</strong> total issu du registre chronologique, avec remboursements et corrections.</p>
-        </section>
-
-        <section class="luziapi-pilotage__panel">
-            <p class="luziapi-pilotage__eyebrow">Calcul automatique</p>
-            <h2>Abattement micro-BA de 87 %</h2>
-            <p>La base imposable indicative correspond à 13 % de la moyenne des recettes de l’année et des deux années précédentes.</p>
-            <p>L’abattement ne peut pas être inférieur à 305 €. Les premières années d’activité demandent un calcul adapté aux années disponibles.</p>
-        </section>
-
-        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
-            <div class="luziapi-pilotage__panel-header">
-                <div>
-                    <p class="luziapi-pilotage__eyebrow">Contrôle commercial {{ year }}</p>
-                    <h2>{{ commercial_reference|e }} de commandes validées après remboursements</h2>
-                </div>
-            </div>
-            <p>Ce montant sert uniquement de point de comparaison. Il peut différer des recettes fiscales si une commande est payée une autre année, reste impayée ou est encaissée en plusieurs fois.</p>
-        </section>
-
-        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
-            <p class="luziapi-pilotage__eyebrow">Avant utilisation fiscale</p>
-            <h2>Données qui seront contrôlées</h2>
-            <ul class="luziapi-pilotage__check-list">
-                <li>date et montant de chaque encaissement ;</li>
-                <li>remboursements et corrections sans suppression d’historique ;</li>
-                <li>recettes des années antérieures absentes de WooCommerce ;</li>
-                <li>année réelle de début d’activité pour appliquer la bonne moyenne ;</li>
-                <li>export annuel détaillé servant de justificatif.</li>
-            </ul>
-        </section>
+        <section class="luziapi-pilotage__panel"><p class="luziapi-pilotage__eyebrow">Moyenne micro-BA</p><h2>Années prises en compte</h2><ul class="luziapi-pilotage__status-list">{% for receipt in annual_receipts %}<li><span>{{ receipt.year }}</span><strong>{{ receipt.amount|e }}</strong></li>{% endfor %}</ul><p>Le registre prépare les recettes de {{ year }} à contrôler avant déclaration. L’administration applique ensuite la moyenne et l’abattement.</p></section>
+        <section class="luziapi-pilotage__panel"><p class="luziapi-pilotage__eyebrow">Contrôle commercial {{ year }}</p><h2>{{ commercial_reference|e }} de commandes validées</h2><p>Ce repère peut différer des recettes : seule la date réelle d’encaissement est retenue dans le registre fiscal.</p><a class="button" href="{{ receipts_url|e('html_attr') }}">Vérifier les encaissements</a></section>
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide"><p class="luziapi-pilotage__eyebrow">Avant de déclarer</p><h2>Points à contrôler</h2><ul class="luziapi-pilotage__check-list"><li>tous les règlements en espèces, chèques, virements et Wero sont enregistrés ;</li><li>les remboursements et contre-écritures sont justifiés ;</li><li>les recettes hors boutique et des années antérieures sont présentes ;</li><li>l’année réelle de début d’activité est correcte ;</li><li>le CSV annuel a été exporté et archivé.</li></ul></section>
     </div>
 </div>

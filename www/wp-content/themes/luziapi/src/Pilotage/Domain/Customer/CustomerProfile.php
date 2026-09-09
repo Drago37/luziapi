@@ -25,6 +25,9 @@ final readonly class CustomerProfile
         public array $orders,
         public int $validOrdersCount,
         public Money $orderedTotal,
+        public Money $collectedTotal,
+        /** @var list<string> */
+        public array $favoriteProducts,
     ) {
     }
 

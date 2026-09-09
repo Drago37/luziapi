@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use LuziApi\Pilotage\Domain\Sales\OrderLineSnapshot;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use LuziApi\Pilotage\Domain\Shared\Money;
@@ -74,7 +75,25 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
         $fulfillment = function_exists('luziapi_order_fulfillment_mode')
             ? luziapi_order_fulfillment_mode($order)
             : 'unknown';
+        if ('unknown' === $fulfillment && 'yes' === $order->get_meta('_luziapi_quick_sale')) {
+            $fulfillment = 'immediate';
+        }
         $customerName = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+        $lines = [];
+        foreach ($order->get_items() as $itemId => $item) {
+            if (! $item instanceof \WC_Order_Item_Product) {
+                continue;
+            }
+            $quantity = max(0, $item->get_quantity() + (int) $order->get_qty_refunded_for_item($itemId));
+            $refunded = (float) $order->get_total_refunded_for_item($itemId);
+            $lines[] = new OrderLineSnapshot(
+                $item->get_product_id(),
+                $item->get_name(),
+                $quantity,
+                new Money($this->toCents(max(0, (float) $item->get_total() - $refunded))),
+            );
+        }
+        $paidAt = $order->get_date_paid();
 
         return new OrderSnapshot(
             $order->get_id(),
@@ -90,6 +109,9 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
             trim($order->get_billing_city()),
             $source,
             $fulfillment,
+            $lines,
+            $order->get_payment_method(),
+            $paidAt ? $this->immutableDate($paidAt->getTimestamp()) : null,
         );
     }
 

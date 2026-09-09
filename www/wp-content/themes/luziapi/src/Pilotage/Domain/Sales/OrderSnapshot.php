@@ -9,6 +9,7 @@ use LuziApi\Pilotage\Domain\Shared\Money;
 
 final readonly class OrderSnapshot
 {
+    /** @param list<OrderLineSnapshot> $lines */
     public function __construct(
         public int $id,
         public string $number,
@@ -23,6 +24,9 @@ final readonly class OrderSnapshot
         public string $city,
         public string $source,
         public string $fulfillment,
+        public array $lines = [],
+        public string $paymentMethod = '',
+        public ?DateTimeImmutable $paidAt = null,
     ) {
     }
 }

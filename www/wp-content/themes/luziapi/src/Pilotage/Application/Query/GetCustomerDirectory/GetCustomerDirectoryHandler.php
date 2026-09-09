@@ -7,7 +7,9 @@ namespace LuziApi\Pilotage\Application\Query\GetCustomerDirectory;
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
+use LuziApi\Pilotage\Domain\Customer\CustomerTimelineRepository;
 use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
+use LuziApi\Pilotage\Domain\Receipt\ReceiptRepository;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
 
 final readonly class GetCustomerDirectoryHandler
@@ -15,6 +17,8 @@ final readonly class GetCustomerDirectoryHandler
     public function __construct(
         private OrderRepository $orders,
         private CustomerHistoryProjector $projector,
+        private ReceiptRepository $receipts,
+        private CustomerTimelineRepository $timeline,
         private Clock $clock,
     ) {
     }
@@ -22,12 +26,14 @@ final readonly class GetCustomerDirectoryHandler
     public function handle(GetCustomerDirectoryQuery $query): CustomerDirectoryView
     {
         $firstOrder = $this->orders->firstOrderDate();
-        $profiles = null === $firstOrder
-            ? []
-            : $this->projector->project($this->orders->createdBetween(
-                $firstOrder->setTime(0, 0),
-                $this->clock->now()->modify('+1 day'),
-            ));
+        $orders = null === $firstOrder ? [] : $this->orders->createdBetween(
+            $firstOrder->setTime(0, 0),
+            $this->clock->now()->modify('+1 day'),
+        );
+        $profiles = $this->projector->project(
+            $orders,
+            $this->receipts->netTotalsByOrderIds(array_map(static fn ($order): int => $order->id, $orders)),
+        );
         $selected = $this->findSelected($profiles, $query->selectedCustomerId);
         $search = $this->normalize($query->search);
 
@@ -49,6 +55,7 @@ final readonly class GetCustomerDirectoryHandler
             $currentPage,
             $totalPages,
             $selected,
+            null === $selected ? [] : $this->timeline->forOrderIds(array_map(static fn ($order): int => $order->id, $selected->orders)),
         );
     }
 

@@ -10,12 +10,14 @@
 
     <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
         <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Vue d’ensemble</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab" href="{{ receipts_url|e('html_attr') }}">Recettes</a>
         <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
         <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
         <a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
-        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+        <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
+        <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
+        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a>
+        <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
     <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
@@ -29,8 +31,8 @@
         <noscript><button class="button" type="submit">Afficher</button></noscript>
     </form>
 
-    <div class="notice notice-warning inline luziapi-pilotage__notice">
-        <p><strong>Montants commerciaux provisoires.</strong> Ils reposent sur les commandes validées, pas sur les dates réelles d’encaissement. Ils ne doivent pas encore être utilisés comme recettes fiscales.</p>
+    <div class="notice notice-info inline luziapi-pilotage__notice">
+        <p><strong>Deux lectures complémentaires.</strong> Les recettes proviennent du registre des encaissements ; les autres montants décrivent les commandes validées selon leur date de création.</p>
     </div>
 
     <section class="luziapi-pilotage__metrics" aria-label="Indicateurs de l’année {{ year }}">
@@ -40,6 +42,11 @@
                 <strong>{{ metric.value|e }}</strong>
             </article>
         {% endfor %}
+    </section>
+
+    <section class="luziapi-pilotage__panel luziapi-pilotage__follow-up">
+        <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">À faire</p><h2>{{ follow_up_count }} action{{ follow_up_count > 1 ? 's' : '' }} à suivre</h2></div><a class="button" href="{{ receipts_url|e('html_attr') }}">Ouvrir les recettes</a></div>
+        <div class="luziapi-pilotage__follow-up-grid">{% for group in follow_up_groups %}<div><h3>{{ group.label|e }} <span>{{ group.items|length }}</span></h3><ul>{% for item in group.items|slice(0, 5) %}<li><a href="{{ item.url|e('html_attr') }}"><strong>n°{{ item.number|e }} · {{ item.customer|e }}</strong><span>{{ item.reason|e }} · {{ item.age }} j{% if item.outstanding %} · {{ item.outstanding|e }}{% endif %}</span></a></li>{% else %}<li class="is-empty">Rien à signaler</li>{% endfor %}</ul></div>{% endfor %}</div>
     </section>
 
     {% if has_orders %}
@@ -124,4 +131,9 @@
             <a class="button button-primary" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
         </section>
     {% endif %}
+
+    <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+        <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">Sept derniers jours</p><h2>Activité récente</h2></div><a href="{{ activity_url|e('html_attr') }}">Ouvrir le journal complet</a></div>
+        <div class="luziapi-pilotage__table-wrap"><table class="widefat striped"><thead><tr><th>Date</th><th>Domaine</th><th>Action</th><th>Auteur</th></tr></thead><tbody>{% for entry in recent_activity %}<tr><td>{{ entry.date|e }}</td><td>{{ entry.category|e }}</td><td>{{ entry.summary|e }}</td><td>{{ entry.actor|e }}</td></tr>{% else %}<tr><td colspan="4">Aucune activité enregistrée durant cette période.</td></tr>{% endfor %}</tbody></table></div>
+    </section>
 </div>

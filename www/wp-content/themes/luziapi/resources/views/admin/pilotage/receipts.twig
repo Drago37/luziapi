@@ -1,0 +1,68 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div><p class="luziapi-pilotage__eyebrow">Livre des recettes</p><h1>Encaissements</h1><p>Registre chronologique des sommes réellement reçues et remboursées.</p></div>
+        <div class="luziapi-pilotage__header-actions"><a class="button" href="{{ export_url|e('html_attr') }}">Exporter en CSV</a><button class="button" type="button" onclick="window.print()">Imprimer</button></div>
+    </div>
+
+    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+        <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
+        <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Recettes</a>
+        <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
+        <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
+        <a class="nav-tab" href="{{ customers_url|e('html_attr') }}">Clients</a>
+        <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
+        <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
+        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a>
+        <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
+    </nav>
+
+    {% if notice == 'recorded' %}<div class="notice notice-success inline"><p>L’écriture a été enregistrée.</p></div>{% endif %}
+    {% if notice == 'reversed' %}<div class="notice notice-success inline"><p>La contre-écriture a été enregistrée. L’écriture d’origine est conservée.</p></div>{% endif %}
+    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’écriture n’a pas pu être enregistrée. Vérifie les informations saisies.</p></div>{% endif %}
+
+    <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+        <input type="hidden" name="page" value="luziapi-pilotage"><input type="hidden" name="tab" value="receipts">
+        <label for="luziapi-receipts-year">Année</label>
+        <select id="luziapi-receipts-year" name="year" onchange="this.form.submit()">{% for available_year in available_years %}<option value="{{ available_year }}" {{ available_year == year ? 'selected' : '' }}>{{ available_year }}</option>{% endfor %}</select>
+    </form>
+
+    <section class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four" aria-label="Totaux {{ year }}">{% for metric in metrics %}<article class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></article>{% endfor %}</section>
+
+    <div class="luziapi-pilotage__grid">
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Nouvelle écriture</p><h2>Enregistrer un mouvement</h2>
+            <form class="luziapi-pilotage__form" action="{{ record_action|e('html_attr') }}" method="post">
+                <input type="hidden" name="action" value="luziapi_record_receipt"><input type="hidden" name="_wpnonce" value="{{ record_nonce|e('html_attr') }}">
+                <label>Type<select name="entry_type" required><option value="collection">Encaissement</option><option value="refund">Remboursement</option></select></label>
+                <label>Date et heure<input type="datetime-local" name="occurred_at" value="{{ now|e('html_attr') }}" required></label>
+                <label>Montant TTC (€)<input type="number" name="amount" min="0.01" step="0.01" required></label>
+                <label>Moyen de règlement<select name="payment_method" required>{% for value, label in payment_methods %}<option value="{{ value|e('html_attr') }}">{{ label|e }}</option>{% endfor %}</select></label>
+                <label>Numéro interne de commande <span class="description">(facultatif)</span><input type="number" name="order_id" min="1"></label>
+                <label>Description <span class="description">(facultative)</span><input type="text" name="description" maxlength="250" placeholder="Ex. règlement au marché de Bléré"></label>
+                <button class="button button-primary" type="submit">Enregistrer l’écriture</button>
+            </form>
+        </section>
+
+        <section class="luziapi-pilotage__panel">
+            <p class="luziapi-pilotage__eyebrow">Traçabilité</p><h2>Règles du registre</h2>
+            <ul class="luziapi-pilotage__check-list"><li>utiliser la date à laquelle l’argent a réellement été reçu ;</li><li>lier la commande lorsqu’elle existe ;</li><li>enregistrer les remboursements séparément ;</li><li>corriger une erreur par une contre-écriture : aucune ligne n’est supprimée.</li></ul>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">Rapprochement assisté</p><h2>{{ reconciliations|length }} commande{{ reconciliations|length > 1 ? 's' : '' }} à contrôler</h2></div></div>
+            <p>Le statut d’une commande ne prouve pas son paiement. Confirme la date, le montant et le moyen uniquement lorsque l’argent a réellement été reçu.</p>
+            <div class="luziapi-pilotage__table-wrap"><table class="widefat striped"><thead><tr><th>Commande</th><th>Attendu</th><th>Au registre</th><th>Écart</th><th>Action</th></tr></thead><tbody>
+            {% for item in reconciliations %}<tr><td><a href="{{ item.order_url|e('html_attr') }}"><strong>n°{{ item.order_number|e }}</strong></a><br><small>{{ item.customer|e }} · {{ item.date|e }}</small></td><td>{{ item.expected|e }}</td><td>{{ item.recorded|e }}</td><td class="{{ item.difference_cents > 0 ? 'is-negative' : 'is-positive' }}"><strong>{{ item.difference|e }}</strong></td><td>{% if item.difference_cents > 0 %}<details><summary>Confirmer l’encaissement</summary><form class="luziapi-pilotage__reconcile-form" action="{{ record_action|e('html_attr') }}" method="post"><input type="hidden" name="action" value="luziapi_record_receipt"><input type="hidden" name="_wpnonce" value="{{ record_nonce|e('html_attr') }}"><input type="hidden" name="entry_type" value="collection"><input type="hidden" name="order_id" value="{{ item.order_id }}"><input type="hidden" name="description" value="Rapprochement — commande n°{{ item.order_number|e('html_attr') }}"><label>Montant (€)<input type="number" name="amount" min="0.01" step="0.01" value="{{ item.suggested_amount|e('html_attr') }}" required></label><label>Date et heure<input type="datetime-local" name="occurred_at" value="{{ item.suggested_date|e('html_attr') }}" required></label><label>Moyen<select name="payment_method" required>{% for value, label in payment_methods %}<option value="{{ value|e('html_attr') }}" {{ value == item.suggested_payment ? 'selected' : '' }}>{{ label|e }}</option>{% endfor %}</select></label><button class="button button-primary" type="submit">Enregistrer</button></form></details>{% else %}<span class="luziapi-pilotage__badge luziapi-pilotage__badge--warning">Surplus à vérifier</span>{% endif %}</td></tr>
+            {% else %}<tr><td colspan="5">Toutes les commandes de {{ year }} sont rapprochées.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </section>
+
+        <section class="luziapi-pilotage__panel luziapi-pilotage__panel--wide">
+            <div class="luziapi-pilotage__panel-header"><div><p class="luziapi-pilotage__eyebrow">Année {{ year }}</p><h2>Journal chronologique</h2></div></div>
+            <div class="luziapi-pilotage__table-wrap"><table class="widefat striped"><thead><tr><th>N°</th><th>Date</th><th>Type</th><th>Commande</th><th>Règlement</th><th>Description</th><th>Montant</th><th class="luziapi-no-print">Correction</th></tr></thead><tbody>
+            {% for entry in entries %}<tr><td>{{ entry.sequence|e }}</td><td>{{ entry.date|e }}</td><td>{{ entry.type|e }}{% if entry.reversal_of %}<br><small>de l’écriture {{ entry.reversal_of }}</small>{% endif %}</td><td>{% if entry.order_id %}<a href="{{ entry.order_url|e('html_attr') }}">n°{{ entry.order_id }}</a>{% else %}—{% endif %}</td><td>{{ entry.payment_method|e }}</td><td>{{ entry.description|e }}</td><td class="{{ entry.amount_cents < 0 ? 'is-negative' : 'is-positive' }}"><strong>{{ entry.amount|e }}</strong></td><td class="luziapi-no-print">{% if entry.can_reverse %}<details><summary>Contrepasser</summary><form action="{{ record_action|e('html_attr') }}" method="post"><input type="hidden" name="action" value="luziapi_reverse_receipt"><input type="hidden" name="_wpnonce" value="{{ reverse_nonce|e('html_attr') }}"><input type="hidden" name="entry_id" value="{{ entry.id }}"><input type="hidden" name="year" value="{{ year }}"><input type="text" name="reason" maxlength="250" required placeholder="Motif"><button class="button" type="submit">Confirmer</button></form></details>{% else %}—{% endif %}</td></tr>
+            {% else %}<tr><td colspan="8">Aucune écriture pour {{ year }}.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </section>
+    </div>
+</div>

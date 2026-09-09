@@ -10,6 +10,11 @@ final readonly class PilotageController
         private DashboardController $dashboard,
         private CustomersController $customers,
         private TaxDeclarationController $taxDeclaration,
+        private ReceiptsController $receipts,
+        private ProductsController $products,
+        private InventoryController $inventory,
+        private QuickSaleController $quickSale,
+        private ActivityController $activity,
     ) {
     }
 
@@ -25,6 +30,36 @@ final readonly class PilotageController
 
         if ('tax-declaration' === $tab) {
             $this->taxDeclaration->render();
+
+            return;
+        }
+
+        if ('receipts' === $tab) {
+            $this->receipts->render();
+
+            return;
+        }
+
+        if ('products' === $tab) {
+            $this->products->render();
+
+            return;
+        }
+
+        if ('inventory' === $tab) {
+            $this->inventory->render();
+
+            return;
+        }
+
+        if ('quick-sale' === $tab) {
+            $this->quickSale->render();
+
+            return;
+        }
+
+        if ('activity' === $tab) {
+            $this->activity->render();
 
             return;
         }

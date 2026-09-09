@@ -10,12 +10,14 @@
 
     <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
         <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Recettes</span>
+        <a class="nav-tab" href="{{ receipts_url|e('html_attr') }}">Recettes</a>
         <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
         <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
         <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Clients</a>
-        <span class="nav-tab is-disabled" aria-disabled="true">Produits</span>
-        <span class="nav-tab is-disabled" aria-disabled="true">Vente rapide</span>
+        <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
+        <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
+        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a>
+        <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
     {% if selected_customer %}
@@ -31,11 +33,16 @@
             <div class="luziapi-pilotage__customer-summary">
                 <div><span>Commandes validées</span><strong>{{ selected_customer.orders_count }}</strong></div>
                 <div><span>Total commandé</span><strong>{{ selected_customer.total|e }}</strong></div>
+                <div><span>Total encaissé</span><strong>{{ selected_customer.collected|e }}</strong></div>
                 <div>
                     <span>Coordonnées</span>
                     {% for email in selected_customer.emails %}<a href="mailto:{{ email|e('html_attr') }}">{{ email|e }}</a>{% endfor %}
                     {% for phone in selected_customer.phones %}<a href="tel:{{ phone.href|e('html_attr') }}">{{ phone.label|e }}</a>{% endfor %}
                 </div>
+            </div>
+            <div class="luziapi-pilotage__customer-insights">
+                <p><strong>Produits habituels :</strong> {{ selected_customer.products ? selected_customer.products|join(', ')|e : 'Pas encore assez de données' }}</p>
+                <p><strong>Sources :</strong> {{ selected_customer.sources ? selected_customer.sources|join(', ')|e : 'Non renseignée' }}</p>
             </div>
             <h3>Historique complet</h3>
             <div class="luziapi-pilotage__table-wrap">
@@ -52,6 +59,10 @@
                     {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            <h3>Notes et échanges</h3>
+            <div class="luziapi-pilotage__timeline">
+                {% for event in timeline %}<article><div><span class="luziapi-pilotage__badge {{ event.public ? 'is-public' : 'is-private' }}">{{ event.visibility|e }}</span><time>{{ event.date|e }}</time> · <a href="{{ event.order_url|e('html_attr') }}">commande n°{{ event.order_number|e }}</a></div><p>{{ event.content|e }}</p></article>{% else %}<p>Aucune note enregistrée pour ces commandes.</p>{% endfor %}
             </div>
         </section>
     {% endif %}
