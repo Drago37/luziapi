@@ -67,6 +67,17 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   le total et les sources, avec recherche. Il ne crée aucun compte et n'inscrit personne aux
   communications marketing. Empreintes vérifiées, OPcache vidé et présence d'un client sans
   e-mail confirmée en production sans exposer ses données.
+- **Tableau de pilotage déployé le 9 septembre 2026**, placé en premier sous WooCommerce. Son
+  premier lot, en lecture seule, fournit une vue annuelle des commandes validées (totaux, volume,
+  panier moyen, évolution mensuelle avec Chart.js local, statuts à traiter et sources) ainsi
+  qu'une nouvelle vue Clients regroupant prudemment l'historique par e-mail ou téléphone. Le
+  module PHP est le premier code métier du thème sous `src/`, en architecture hexagonale et DDD
+  pragmatique, chargé par l'autoload PSR-4 de Composer. L'onglet **Déclaration fiscale** rappelle
+  le régime micro-BA (recettes brutes, moyenne triennale, abattement de 87 %, minimum de 305 €),
+  mais reste volontairement préparatoire : le montant fiscal ne sera calculé qu'à partir du futur
+  registre chronologique des encaissements. Les montants actuels de commandes ne sont présentés
+  que comme repères commerciaux. Les fichiers ont été vérifiés après transfert, WordPress charge
+  bien le module et l'OPcache a été vidé.
 - **Navigation boutique déployée le 7 septembre 2026** : bouton « Boutique » avec icône de
   magasin et panier toujours visible dans le header (« Vide », puis nombre d'articles). Le
   mini-panier s'ouvre au survol sur ordinateur et au toucher sur mobile/tablette ; son contenu est
