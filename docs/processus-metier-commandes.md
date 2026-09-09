@@ -102,6 +102,12 @@ commande du site reçoit automatiquement « Boutique en ligne » ; une saisie ma
 attribution reçoit « Administration web ». Les données d'attribution du navigateur ne sont
 collectées qu'après le consentement global ou Marketing de CookieAdmin.
 
+Le menu **WooCommerce → Répertoire clients** complète le rapport analytique natif. Il est alimenté
+directement par les commandes HPOS et accepte un client disposant d'un e-mail, d'un téléphone ou
+des deux. Les clients sans e-mail sont regroupés par numéro normalisé ; si une adresse est connue
+plus tard avec ce même numéro, l'historique est rattaché lorsqu'il n'existe aucune ambiguïté. Cette
+identification commerciale ne crée ni compte WordPress ni inscription à la newsletter/SMS.
+
 ## 4. Catalogue et disponibilité actuels
 
 Tous les produits sont des pots physiques simples de 1 kg. Le stock est suivi individuellement,
@@ -443,6 +449,8 @@ flowchart LR
   contact et la saisie des statuts restent manuelles.
 - Les demandes directes hors boutique ne créent pas automatiquement de commande, mais leur saisie
   manuelle permet désormais de tracer leur source et de suivre le même processus métier.
+- Le répertoire clients retrouve les commandes par e-mail ou téléphone et permet donc de conserver
+  un historique pour une personne qui n'a communiqué aucune adresse e-mail.
 
 ## 13. Écarts et décisions à prendre
 

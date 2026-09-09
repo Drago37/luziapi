@@ -58,6 +58,15 @@ Versionnés dans [`prod-mu-plugins/`](../prod-mu-plugins), déployés par script
   WooCommerce n'en possède aucune. L'absence de donnée marketing est libellée « Attribution
   marketing indisponible » plutôt que « Inconnue ». La collecte d'attribution au checkout est
   conditionnée au consentement global ou Marketing de CookieAdmin.
+- **Répertoire clients déployé le 8 septembre 2026** sous WooCommerce : il lit directement les
+  commandes HPOS et retrouve aussi les clients invités connus uniquement par téléphone, sans
+  dépendre de l'indexation analytique native. Les commandes sont regroupées par e-mail ou, à
+  défaut, par numéro normalisé. Un historique sans e-mail rejoint ensuite l'unique adresse connue
+  avec le même numéro ; aucune fusion n'est faite si plusieurs adresses partagent ce téléphone.
+  Le répertoire affiche les coordonnées cliquables, la dernière commande, le nombre de commandes,
+  le total et les sources, avec recherche. Il ne crée aucun compte et n'inscrit personne aux
+  communications marketing. Empreintes vérifiées, OPcache vidé et présence d'un client sans
+  e-mail confirmée en production sans exposer ses données.
 - **Navigation boutique déployée le 7 septembre 2026** : bouton « Boutique » avec icône de
   magasin et panier toujours visible dans le header (« Vide », puis nombre d'articles). Le
   mini-panier s'ouvre au survol sur ordinateur et au toucher sur mobile/tablette ; son contenu est
