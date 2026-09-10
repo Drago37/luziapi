@@ -425,6 +425,10 @@ seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais
 - **Deux choses distinctes à ne pas confondre** (voir `AGENTS.md` § 5) : le **« 1 €/pot »** est la
   remise de volume au panier (`inc/shop.php`, inchangée) ; la **fidélité** est le nouveau programme
   de pots. La **remise remerciement** (lot 3) est encore autre chose (geste monétaire libre).
+- **Page « Fidélité » du pilotage — déployée le 10 septembre 2026 :** onglet dédié dans le tableau
+  de bord (récap par client + classements meilleurs clients / plus profité / plus de remises).
+  Déploiement FTPS ciblé (28 fichiers, dont l'onglet ajouté aux 8 pages existantes), empreintes et
+  smoke test vérifiés, OPcache vidé. Lecture seule, aucune écriture.
 
 ---
 
