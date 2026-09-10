@@ -89,6 +89,17 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return is_array($row) ? $this->hydrate($row) : null;
     }
 
+    public function orderTotals(int $orderId): array
+    {
+        $row = $this->database->get_row($this->database->prepare(
+            'SELECT COALESCE(SUM(pots_delta), 0) AS pots, COALESCE(SUM(rights_delta), 0) AS rights'
+            . ' FROM ' . $this->schema->ledgerTableName() . ' WHERE source_order_id = %d',
+            $orderId,
+        ), ARRAY_A);
+
+        return ['pots' => (int) ($row['pots'] ?? 0), 'rights' => (int) ($row['rights'] ?? 0)];
+    }
+
     public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $keys = $this->sanitizeKeys($customerKeys);

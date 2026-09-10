@@ -61,6 +61,20 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return null;
     }
 
+    public function orderTotals(int $orderId): array
+    {
+        $pots = 0;
+        $rights = 0;
+        foreach ($this->entries as $entry) {
+            if ($entry->sourceOrderId === $orderId) {
+                $pots += $entry->potsDelta;
+                $rights += $entry->rightsDelta;
+            }
+        }
+
+        return ['pots' => $pots, 'rights' => $rights];
+    }
+
     public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $pots = 0;

@@ -23,6 +23,15 @@ interface LoyaltyLedger
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry;
 
     /**
+     * Totaux déjà journalisés pour une commande (toutes écritures dont
+     * `source_order_id` vaut `$orderId`) : `pots` = somme des `pots_delta`,
+     * `rights` = somme brute des `rights_delta`. Base de la réconciliation.
+     *
+     * @return array{pots: int, rights: int}
+     */
+    public function orderTotals(int $orderId): array;
+
+    /**
      * Soldes nets pour un ensemble de clés client (tous les `identityIds` d'un
      * même profil). `pots` = somme des `pots_delta` ; `rightsConsumed` = solde net
      * des avantages consommés = `max(0, -somme(rights_delta))` (une consommation

@@ -122,10 +122,9 @@ try {
 
     // La commande étant passée « Terminée », le subscriber branché a crédité les
     // pots payés (offerts exclus) et consommé l'avantage.
-    $credit = $ledger->findByIdempotencyKey('credit:' . $orderId);
-    $consumption = $ledger->findByIdempotencyKey('reward:' . $orderId);
-    $assert('Le subscriber a crédité les 2 pots payés', null !== $credit && 2 === ($credit->potsDelta ?? 0));
-    $assert('Le subscriber a consommé 1 avantage', null !== $consumption && -1 === ($consumption->rightsDelta ?? 0));
+    $orderTotals = $ledger->orderTotals($orderId);
+    $assert('Le subscriber a crédité les 2 pots payés', 2 === $orderTotals['pots']);
+    $assert('Le subscriber a consommé 1 avantage', -1 === $orderTotals['rights']);
 } catch (Throwable $exception) {
     $assert('Le scénario se termine sans exception', false, $exception->getMessage());
 } finally {

@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Loyalty\Bootstrap;
 
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
-use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderHandler;
-use LuziApi\Loyalty\Application\Command\RecordRewardConsumption\RecordRewardConsumptionHandler;
-use LuziApi\Loyalty\Application\Command\ReverseOrderCredit\ReverseOrderCreditHandler;
-use LuziApi\Loyalty\Application\Command\ReverseRewardConsumption\ReverseRewardConsumptionHandler;
+use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
@@ -54,14 +51,12 @@ final class LoyaltyServiceProvider
             new WooCommerceOrderContactKeys(),
             self::$customerLoyaltyHandler,
         );
-        self::$adjustmentHandler = new AdjustLoyaltyPotsHandler($ledger, $clock, new WordPressIdGenerator());
+        $ids = new WordPressIdGenerator();
+        self::$adjustmentHandler = new AdjustLoyaltyPotsHandler($ledger, $clock, $ids);
 
         add_action('init', [$schema, 'migrate'], 1);
         (new WooCommerceLoyaltyEarningSubscriber(
-            new RecordCompletedOrderHandler($ledger, $clock),
-            new ReverseOrderCreditHandler($ledger, $clock),
-            new RecordRewardConsumptionHandler($ledger, $clock),
-            new ReverseRewardConsumptionHandler($ledger, $clock),
+            new ReconcileOrderLoyaltyHandler($ledger, $clock, $ids),
             new WooCommerceEligiblePotCounter(),
             new WooCommerceOrderIdentityResolver(),
             $logger,
