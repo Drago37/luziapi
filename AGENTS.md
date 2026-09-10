@@ -79,6 +79,8 @@ ne rien y dupliquer.
   À lire avant toute intervention touchant la production.
 - **docs/processus-metier-commandes.md** — processus réel de vente et de traitement des commandes,
   diagramme, automatismes, notifications et écarts de configuration.
+- **docs/fidelite.md** — programme de fidélité (« 10 pots achetés, le 11e offert »), architecture
+  du module `src/Loyalty/` et suivi des lots de l'issue #4.
 - **docs/modeles-sms-brevo.md** — modèles de SMS.
 - **docs/** — supports imprimés et visuels :
   - `print/` — brochure, flyer et carte de visite. Deux variantes par document : sans suffixe
@@ -133,6 +135,8 @@ ou prod) à chaque changement du workflow des commandes.
 Le suivi client sans compte possède en plus son test d’intégration local
 `make e2e-tracking-local` et sa documentation dans
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
+La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/` et son test
+d’intégration local `make e2e-loyalty-local` (voir [docs/fidelite.md](docs/fidelite.md)).
 
 **Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
 **fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`
@@ -306,6 +310,12 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
   `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
   + `RecordOrderReceiptHandlerTest`.
+- **Fidélité : « offert » et « fidélité » sont deux choses distinctes** (décision explicite, ne pas
+  fusionner). Depuis la Vente : « **offert** » = geste commercial libre (ligne à 0 €, affichée
+  « offert », sortie du stock, **sans** impact fidélité) ; « **Fidélité → offrir un pot** » = pot
+  offert au titre du programme (0 €, sorti du stock **et** consomme un avantage, borné aux avantages
+  disponibles). Les deux sont exclus du gain de pots. Détails et métas de ligne dans
+  [docs/fidelite.md](docs/fidelite.md). Module `src/Loyalty/`, tests `make e2e-loyalty-local`.
 
 ---
 

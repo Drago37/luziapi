@@ -141,12 +141,14 @@ final class PilotageServiceProvider
             $clock,
             $activity,
         );
+        $loyaltyHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
         $quickSaleController = new QuickSaleController(
             $products,
-            new CreateQuickSaleHandler(new WooCommerceQuickSaleOrderWriter(), $recordReceipt, $clock),
+            new CreateQuickSaleHandler(new WooCommerceQuickSaleOrderWriter(), $recordReceipt, $clock, $loyaltyHandler),
             $customerHandler,
             $clock,
             $activity,
+            $loyaltyHandler,
         );
         $inventoryController = new InventoryController(
             new GetInventoryDashboardHandler($products, $inventory),
@@ -161,6 +163,7 @@ final class PilotageServiceProvider
             $customerHandler,
             new AssignCustomerCategoryHandler($customerCategories, $clock),
             $activity,
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler(),
         );
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),

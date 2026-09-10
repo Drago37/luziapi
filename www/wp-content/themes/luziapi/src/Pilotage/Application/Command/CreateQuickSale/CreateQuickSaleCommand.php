@@ -8,7 +8,11 @@ use DateTimeImmutable;
 
 final readonly class CreateQuickSaleCommand
 {
-    /** @param list<QuickSaleLine> $lines */
+    /**
+     * @param list<QuickSaleLine> $lines       lignes payées
+     * @param list<QuickSaleLine> $giftLines   lignes offertes (geste commercial, 0 €, hors fidélité)
+     * @param list<QuickSaleLine> $rewardLines lignes offertes au titre de la fidélité (0 €, consomment un avantage)
+     */
     public function __construct(
         public array $lines,
         public string $customerName,
@@ -25,6 +29,8 @@ final readonly class CreateQuickSaleCommand
         public DateTimeImmutable $occurredAt,
         public int $actorId,
         public string $requestId,
+        public array $giftLines = [],
+        public array $rewardLines = [],
     ) {
     }
 }

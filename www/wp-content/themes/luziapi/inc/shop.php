@@ -253,6 +253,7 @@ function luziapi_product_metabox(\WP_Post $post): void
     $no_harvest  = get_post_meta($post->ID, '_luziapi_no_harvest', true);
     $nh_label    = (string) get_post_meta($post->ID, '_luziapi_no_harvest_label', true);
     $nh_url      = (string) get_post_meta($post->ID, '_luziapi_no_harvest_url', true);
+    $pot_admissible = get_post_meta($post->ID, '_luziapi_pot_admissible', true);
     ?>
     <p>
         <label>
@@ -287,6 +288,16 @@ function luziapi_product_metabox(\WP_Post $post): void
     </p>
     <p class="description">
         <?php esc_html_e('Différent de « À venir » : indique une saison sans récolte (ne revient pas cette année). Désactive l\'achat et affiche un badge dédié.', 'luziapi'); ?>
+    </p>
+    <hr>
+    <p>
+        <label>
+            <input type="checkbox" name="luziapi_pot_admissible" value="yes" <?php checked($pot_admissible, 'yes'); ?> />
+            <?php esc_html_e('Pot admissible à la fidélité (compté dans « 10 pots achetés, le 11e offert »)', 'luziapi'); ?>
+        </label>
+    </p>
+    <p class="description">
+        <?php esc_html_e('Cocher pour les pots de miel. Laisser décoché pour les articles hors programme (coffrets, frais, cartes cadeaux…).', 'luziapi'); ?>
     </p>
     <?php
 }
@@ -327,5 +338,10 @@ add_action('save_post_product', static function (int $post_id): void {
         $post_id,
         '_luziapi_no_harvest_url',
         esc_url_raw(wp_unslash($_POST['luziapi_no_harvest_url'] ?? ''))
+    );
+    update_post_meta(
+        $post_id,
+        '_luziapi_pot_admissible',
+        isset($_POST['luziapi_pot_admissible']) ? 'yes' : 'no'
     );
 });

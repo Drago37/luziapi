@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\UserInterface\Admin;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
+use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
@@ -38,6 +39,7 @@ final readonly class QuickSaleController
         private GetCustomerDirectoryHandler $getCustomers,
         private Clock $clock,
         private ActivityRecorder $activity,
+        private ?GetCustomerLoyaltyHandler $loyalty = null,
     ) {
     }
 
@@ -53,10 +55,20 @@ final readonly class QuickSaleController
 
         $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash((string) $_GET['customer'])) : '';
         $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 100, $customerId));
-        $clients = array_map($this->formatClientOption(...), $directory->customers);
+
+        $profiles = $directory->customers;
+        if ($directory->selectedCustomer instanceof CustomerProfile) {
+            $profiles[] = $directory->selectedCustomer;
+        }
+        $rewardsByCustomer = $this->availableRewardsByCustomer($profiles);
+
+        $clients = array_map(
+            fn (CustomerProfile $customer): array => $this->formatClientOption($customer, $rewardsByCustomer[$customer->id] ?? 0),
+            $directory->customers,
+        );
         $prefill = null;
         if ($directory->selectedCustomer instanceof CustomerProfile) {
-            $prefill = $this->formatClientOption($directory->selectedCustomer);
+            $prefill = $this->formatClientOption($directory->selectedCustomer, $rewardsByCustomer[$directory->selectedCustomer->id] ?? 0);
             // Rendre le client présélectionnable même s'il n'est pas dans la
             // première page de la liste embarquée.
             $known = array_column($clients, 'id');
@@ -89,6 +101,7 @@ final readonly class QuickSaleController
             'created_order_url'    => isset($_GET['order_id']) ? admin_url('admin.php?page=wc-orders&action=edit&id=' . absint($_GET['order_id'])) : '',
             'clients'              => $clients,
             'prefill'              => $prefill,
+            'loyalty_enabled'      => null !== $this->loyalty,
         ]);
     }
 
@@ -120,12 +133,13 @@ final readonly class QuickSaleController
                 throw new InvalidArgumentException('Invalid sale date.');
             }
 
-            $lines = [];
-            foreach ((array) ($_POST['quantities'] ?? []) as $productId => $quantity) {
-                $quantity = absint($quantity);
-                if ($quantity > 0) {
-                    $lines[] = new QuickSaleLine(absint($productId), $quantity);
-                }
+            $lines = $this->readLines((array) ($_POST['quantities'] ?? []));
+            $giftLines = $this->readLines((array) ($_POST['gifts'] ?? []));
+            $rewardLines = [];
+            $rewardProduct = absint($_POST['reward_product'] ?? 0);
+            $rewardQty = absint($_POST['reward_qty'] ?? 0);
+            if ($rewardProduct > 0 && $rewardQty > 0) {
+                $rewardLines[] = new QuickSaleLine($rewardProduct, $rewardQty);
             }
             $created = $this->createQuickSale->handle(new CreateQuickSaleCommand(
                 $lines,
@@ -143,6 +157,8 @@ final readonly class QuickSaleController
                 $occurredAt,
                 get_current_user_id(),
                 sanitize_text_field(wp_unslash((string) ($_POST['request_id'] ?? ''))),
+                $giftLines,
+                $rewardLines,
             ));
 
             $this->redirect($created->alreadyExisted ? 'duplicate' : 'created', $created->orderId);
@@ -153,6 +169,24 @@ final readonly class QuickSaleController
             $this->recordFailure('Création d’une vente échouée');
             $this->redirect('error');
         }
+    }
+
+    /**
+     * @param array<array-key, mixed> $quantities méta POST productId => quantité
+     *
+     * @return list<QuickSaleLine>
+     */
+    private function readLines(array $quantities): array
+    {
+        $lines = [];
+        foreach ($quantities as $productId => $quantity) {
+            $quantity = absint($quantity);
+            if ($quantity > 0) {
+                $lines[] = new QuickSaleLine(absint($productId), $quantity);
+            }
+        }
+
+        return $lines;
     }
 
     /** @return array<string, mixed> */
@@ -169,9 +203,9 @@ final readonly class QuickSaleController
     /**
      * Coordonnées d'un client du répertoire, prêtes à préremplir le formulaire.
      *
-     * @return array{id: string, name: string, email: string, phone: string, city: string, label: string}
+     * @return array{id: string, name: string, email: string, phone: string, city: string, label: string, rewards: int}
      */
-    private function formatClientOption(CustomerProfile $customer): array
+    private function formatClientOption(CustomerProfile $customer, int $rewards = 0): array
     {
         $email = $customer->primaryEmail();
         $phone = $customer->primaryPhone();
@@ -184,13 +218,35 @@ final readonly class QuickSaleController
         }
 
         return [
-            'id'    => $customer->id,
-            'name'  => $customer->name,
-            'email' => $email,
-            'phone' => $phone,
-            'city'  => $customer->city,
-            'label' => $label,
+            'id'      => $customer->id,
+            'name'    => $customer->name,
+            'email'   => $email,
+            'phone'   => $phone,
+            'city'    => $customer->city,
+            'label'   => $label,
+            'rewards' => $rewards,
         ];
+    }
+
+    /**
+     * Avantages fidélité disponibles par client (une requête groupée).
+     *
+     * @param list<CustomerProfile> $profiles
+     *
+     * @return array<string, int>
+     */
+    private function availableRewardsByCustomer(array $profiles): array
+    {
+        if (null === $this->loyalty || [] === $profiles) {
+            return [];
+        }
+
+        $keysByCustomer = [];
+        foreach ($profiles as $profile) {
+            $keysByCustomer[$profile->id] = $profile->identityIds;
+        }
+
+        return $this->loyalty->availableRewardsByCustomer($keysByCustomer);
     }
 
     private function redirect(string $notice, int $orderId = 0): never

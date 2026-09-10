@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
+use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreatedQuickSale;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Pilotage\Application\Port\QuickSaleOrderWriter;
 use RuntimeException;
 use WC_Order;
+use WC_Order_Item_Product;
 use WC_Order_Item_Shipping;
+use WC_Product;
 
 final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
 {
@@ -55,24 +58,36 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
 
     private function createNew(CreateQuickSaleCommand $command): CreatedQuickSale
     {
-        $products = [];
-        foreach ($command->lines as $line) {
-            $product = wc_get_product($line->productId);
-            if (! $product || ! $product->is_purchasable() || $line->quantity <= 0) {
+        // Résout produits et vérifie le stock sur la quantité TOTALE par produit
+        // (payé + offert + fidélité peuvent viser le même produit).
+        $required = [];
+        foreach ([...$command->lines, ...$command->giftLines, ...$command->rewardLines] as $line) {
+            $required[$line->productId] = ($required[$line->productId] ?? 0) + $line->quantity;
+        }
+        $resolved = [];
+        foreach ($required as $productId => $quantity) {
+            $product = wc_get_product($productId);
+            if (! $product instanceof WC_Product || ! $product->is_purchasable() || $quantity <= 0) {
                 throw new RuntimeException('Invalid quick sale product.');
             }
-            if ($product->managing_stock() && null !== $product->get_stock_quantity() && $product->get_stock_quantity() < $line->quantity) {
+            if ($product->managing_stock() && null !== $product->get_stock_quantity() && $product->get_stock_quantity() < $quantity) {
                 throw new RuntimeException('Insufficient product stock.');
             }
-            $products[] = [$product, $line->quantity];
+            $resolved[$productId] = $product;
         }
 
         $order = wc_create_order(['created_via' => 'luziapi-quick-sale', 'status' => 'pending']);
         if (! $order instanceof WC_Order) {
             throw new RuntimeException('Unable to create WooCommerce order.');
         }
-        foreach ($products as [$product, $quantity]) {
-            $order->add_product($product, $quantity);
+        foreach ($command->lines as $line) {
+            $order->add_product($resolved[$line->productId], $line->quantity);
+        }
+        foreach ($command->giftLines as $line) {
+            $this->addOfferedItem($order, $resolved[$line->productId], $line->quantity, false);
+        }
+        foreach ($command->rewardLines as $line) {
+            $this->addOfferedItem($order, $resolved[$line->productId], $line->quantity, true);
         }
 
         $order->set_date_created($command->occurredAt->getTimestamp());
@@ -128,6 +143,28 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
             false,
             false,
         );
+    }
+
+    /**
+     * Ajoute une ligne **offerte** (0 €) : geste commercial (`$loyalty = false`) ou
+     * pot offert au titre de la fidélité (`$loyalty = true`). La ligne est marquée
+     * pour être exclue du gain de pots et, pour la fidélité, décompter un avantage ;
+     * une méta visible « Offert » l'affiche sur la commande et les e-mails. Le stock
+     * est décompté comme pour toute ligne (via `wc_reduce_stock_levels`).
+     */
+    private function addOfferedItem(WC_Order $order, WC_Product $product, int $quantity, bool $loyalty): void
+    {
+        $item = new WC_Order_Item_Product();
+        $item->set_product($product);
+        $item->set_quantity($quantity);
+        $item->set_subtotal('0');
+        $item->set_total('0');
+        $item->add_meta_data(WooCommerceEligiblePotCounter::OFFERT_LINE_META, 'yes', true);
+        $item->add_meta_data('Offert', $loyalty ? 'Fidélité' : 'Oui', true);
+        if ($loyalty) {
+            $item->add_meta_data(WooCommerceEligiblePotCounter::REWARD_LINE_META, 'yes', true);
+        }
+        $order->add_item($item);
     }
 
     public function markReceiptRecorded(int $orderId): void

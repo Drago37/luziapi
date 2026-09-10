@@ -58,6 +58,37 @@
                 <p><strong>Produits habituels :</strong> {{ selected_customer.products ? selected_customer.products|join(', ')|e : 'Pas encore assez de données' }}</p>
                 <p><strong>Sources :</strong> {{ selected_customer.sources ? selected_customer.sources|join(', ')|e : 'Non renseignée' }}</p>
             </div>
+            {% if selected_customer.loyalty %}
+                {% set loyalty = selected_customer.loyalty %}
+                <div class="luziapi-pilotage__loyalty">
+                    <h3>Fidélité</h3>
+                    <div class="luziapi-pilotage__customer-summary">
+                        <div><span>Pots fidélité</span><strong>{{ loyalty.net_pots }}</strong></div>
+                        <div><span>Pots offerts disponibles</span><strong>{{ loyalty.rewards_available }}</strong></div>
+                        <div><span>Progression</span><strong>{{ loyalty.pots_in_progress }} / {{ loyalty.pots_per_reward }}</strong></div>
+                        <div><span>Avant le prochain</span><strong>{{ loyalty.pots_until_next }} pot{{ loyalty.pots_until_next > 1 ? 's' : '' }}</strong></div>
+                    </div>
+                    {% if loyalty.entries %}
+                        <div class="luziapi-pilotage__table-wrap">
+                            <table class="widefat striped">
+                                <thead><tr><th>Date</th><th>Mouvement</th><th>Pots</th><th>Détail</th></tr></thead>
+                                <tbody>
+                                {% for entry in loyalty.entries %}
+                                    <tr>
+                                        <td>{{ entry.date|e }}</td>
+                                        <td>{{ entry.label|e }}</td>
+                                        <td>{{ entry.pots|e }}</td>
+                                        <td>{{ entry.reason|e }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>Aucun pot crédité pour l’instant.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
             <h3>Historique complet</h3>
             <div class="luziapi-pilotage__table-wrap">
                 <table class="widefat striped">

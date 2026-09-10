@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
+use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
+use LuziApi\Loyalty\Domain\LoyaltyEntry;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
@@ -36,6 +39,7 @@ final readonly class CustomersController
         private GetCustomerDirectoryHandler $getCustomers,
         private AssignCustomerCategoryHandler $assignCategory,
         private ActivityRecorder $activity,
+        private ?GetCustomerLoyaltyHandler $getLoyalty = null,
     ) {
     }
 
@@ -171,8 +175,51 @@ final readonly class CustomersController
     {
         $formatted = $this->formatCustomer($customer);
         $formatted['orders'] = array_map($this->formatOrder(...), $customer->orders);
+        $formatted['loyalty'] = $this->formatLoyalty($customer);
 
         return $formatted;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function formatLoyalty(CustomerProfile $customer): ?array
+    {
+        if (! $this->getLoyalty instanceof GetCustomerLoyaltyHandler) {
+            return null;
+        }
+
+        $loyalty = $this->getLoyalty->handle(new GetCustomerLoyaltyQuery($customer->identityIds));
+
+        return [
+            'net_pots'          => $loyalty->netPots,
+            'rewards_available' => $loyalty->rewardsAvailable,
+            'rewards_acquired'  => $loyalty->rewardsAcquired,
+            'pots_in_progress'  => $loyalty->potsTowardNextReward,
+            'pots_until_next'   => $loyalty->potsUntilNextReward,
+            'pots_per_reward'   => $loyalty->potsPerReward,
+            'entries'           => array_map($this->formatLoyaltyEntry(...), $loyalty->entries),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function formatLoyaltyEntry(LoyaltyEntry $entry): array
+    {
+        if (0 !== $entry->rightsDelta) {
+            // Mouvement d'avantage (pot offert / rendu) : afficher les avantages.
+            $movement = sprintf('%+d avantage', $entry->rightsDelta);
+        } else {
+            $movement = sprintf('%+d pot', $entry->potsDelta);
+        }
+
+        return [
+            'date'   => wp_date('d/m/Y à H:i', $entry->occurredAt->getTimestamp()),
+            'label'  => $entry->type->label(),
+            'pots'   => $movement,
+            'reason' => $entry->reason,
+        ];
     }
 
     /**

@@ -34,9 +34,27 @@ function setupQuickSale(quickSale) {
     const nameField = quickSale.querySelector('[name="customer_name"]');
     const phoneField = quickSale.querySelector('[name="phone"]');
     const cityField = quickSale.querySelector('[name="city"]');
+    const loyaltyPanel = quickSale.querySelector('[data-loyalty-panel]');
+    const loyaltyAvailable = quickSale.querySelector('[data-loyalty-available]');
+    const rewardProduct = quickSale.querySelector('[data-reward-product]');
+    const rewardQty = quickSale.querySelector('[data-reward-qty]');
     const updateEmail = () => {
         sendEmail.disabled = !email.value.trim();
         if (sendEmail.disabled) sendEmail.checked = false;
+    };
+    const updateLoyalty = (rewards) => {
+        if (!loyaltyPanel) return;
+        const available = Math.max(0, parseInt(rewards, 10) || 0);
+        loyaltyPanel.hidden = available <= 0;
+        if (loyaltyAvailable) loyaltyAvailable.textContent = String(available);
+        if (rewardQty) {
+            rewardQty.max = String(available);
+            if ((parseInt(rewardQty.value, 10) || 0) > available) rewardQty.value = String(available);
+        }
+        if (available <= 0) {
+            if (rewardProduct) rewardProduct.value = '';
+            if (rewardQty) rewardQty.value = '0';
+        }
     };
     const updateDelivery = () => {
         const delivery = fulfillment.value === 'delivery';
@@ -53,6 +71,7 @@ function setupQuickSale(quickSale) {
             if (phoneField) phoneField.value = data.phone || '';
             if (cityField) cityField.value = data.city || '';
             updateEmail();
+            updateLoyalty(data.rewards || 0);
         });
     }
     quickSale.addEventListener('submit', () => {
@@ -64,6 +83,10 @@ function setupQuickSale(quickSale) {
     });
     updateEmail();
     updateDelivery();
+    if (loyaltyPanel) {
+        const selected = clientPicker && clientPicker.selectedOptions[0] ? clientPicker.selectedOptions[0].dataset.rewards : null;
+        updateLoyalty(selected !== null && selected !== undefined ? selected : (loyaltyAvailable ? loyaltyAvailable.textContent : 0));
+    }
 }
 
 if (typeof document !== 'undefined') {
