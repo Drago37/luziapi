@@ -23,6 +23,8 @@ use Timber\Timber;
 
 final readonly class InventoryController
 {
+    private const ERROR_TRANSIENT = 'luziapi_inventory_error_';
+
     public function __construct(
         private GetInventoryDashboardHandler $getInventory,
         private CreateHarvestLotHandler $createLot,
@@ -41,6 +43,11 @@ final readonly class InventoryController
     public function render(): void
     {
         $this->assertPermission();
+        $noticeDetailKey = self::ERROR_TRANSIENT . get_current_user_id();
+        $noticeDetail = (string) (get_transient($noticeDetailKey) ?: '');
+        if ('' !== $noticeDetail) {
+            delete_transient($noticeDetailKey);
+        }
         $view = $this->getInventory->handle();
         $products = [];
         foreach ($view->products as $product) {
@@ -86,6 +93,7 @@ final readonly class InventoryController
                 ['label' => 'Lots enregistrés', 'value' => (string) count($view->lots)],
             ],
             'notice'               => isset($_GET['inventory_notice']) ? sanitize_key(wp_unslash((string) $_GET['inventory_notice'])) : '',
+            'notice_detail'        => $noticeDetail,
         ]);
     }
 
@@ -223,7 +231,16 @@ final readonly class InventoryController
     private function recordFailure(string $summary, Throwable $exception): void
     {
         // Ne plus avaler la cause : on consigne le message d'exception dans le
-        // journal d'activité pour le rendre visible depuis le pilotage.
+        // journal d'activité pour le rendre visible depuis le pilotage, et on le
+        // met de côté (transient éphémère) pour l'afficher sur la page de retour.
+        $detail = sprintf(
+            '%s (%s @ %s:%d)',
+            $exception->getMessage(),
+            (new \ReflectionClass($exception))->getShortName(),
+            basename($exception->getFile()),
+            $exception->getLine(),
+        );
+        set_transient(self::ERROR_TRANSIENT . get_current_user_id(), $detail, 120);
         $this->activity->record(
             ActivityCategory::Error,
             'inventory_operation_failed',

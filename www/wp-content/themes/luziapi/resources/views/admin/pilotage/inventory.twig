@@ -10,7 +10,7 @@
     {% if notice == 'lot_created' %}<div class="notice notice-success inline"><p>La récolte et son numéro de lot ont été enregistrés ; les pots ont été ajoutés au stock WooCommerce.</p></div>{% endif %}
     {% if notice == 'lot_attached' %}<div class="notice notice-success inline"><p>La récolte et son numéro de lot ont été enregistrés ; les pots déjà présents ont été rattachés sans modifier le stock WooCommerce.</p></div>{% endif %}
     {% if notice == 'movement_recorded' %}<div class="notice notice-success inline"><p>Le mouvement a été enregistré et le stock WooCommerce a été ajusté.</p></div>{% endif %}
-    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’opération n’a pas été enregistrée. Vérifie le produit, le lot, la quantité et le stock disponible.</p></div>{% endif %}
+    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’opération n’a pas été enregistrée. Vérifie le produit, le lot, la quantité et le stock disponible.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     <section class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four">{% for metric in metrics %}<article class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></article>{% endfor %}</section>
 
