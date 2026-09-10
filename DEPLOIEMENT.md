@@ -105,6 +105,10 @@ au cœur WordPress, à la base ni aux médias — qui vivent sur le serveur. Les
 dev/test (`tools/`, `tests-js/`, `node_modules/`, `package.json`/`package-lock.json`, PHPStan,
 CS-Fixer, `README.md`) sont exclus de l'envoi via la variable `DEPLOY_EXCLUDES` du `Makefile`.
 
+`make deploy` lance ensuite automatiquement `make deploy-check-live` (curl d'URL **non cachées**),
+qui détecte un déploiement incomplet laissant la prod en 500 derrière le cache. **Après un envoi
+FTPS ciblé** (méthode manuelle), lancer `make deploy-check-live` soi-même.
+
 > Le SSH/rsync (port 22) est bloqué par le pare-feu o2switch tant que l'IP n'est pas
 > débloquée ; on utilise donc FTPS (port 21), chiffré, qui passe sans déblocage.
 

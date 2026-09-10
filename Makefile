@@ -192,3 +192,7 @@ deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (FTPS) pui
 	@printf "🔧  Restauration des dépendances de dev en local…\n"
 	@$(call IN_THEME,composer install --no-interaction)
 	@printf "\n\033[1;32m✔  Thème déployé\033[0m  →  https://luziapi.fr\n\n"
+	@bash scripts/post-deploy-check.sh
+
+deploy-check-live: ## Vérifie que la prod répond (URL non cachées) — à lancer après tout déploiement
+	@bash scripts/post-deploy-check.sh

@@ -1,27 +1,34 @@
 name: Qualité du thème
 
-# Analyse statique (PHPStan) et style de code (PHP-CS-Fixer).
-# IMPORTANT : on analyse UNIQUEMENT le thème (www/wp-content/themes/luziapi).
+# Style (CS-Fixer), analyse statique (PHPStan), tests unitaires PHP et tests JS.
+# IMPORTANT : on ne vise QUE le thème (www/wp-content/themes/luziapi) et les
+# tests de logique pure (tests/), jamais le cœur WordPress fourni par l'hôte.
 
 on:
   push:
     branches: [main]
     paths:
       - "www/wp-content/themes/luziapi/**"
+      - "tests/**"
+      - "prod-mu-plugins/**"
+      - "phpunit.xml.dist"
+      - "composer.json"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "www/wp-content/themes/luziapi/**"
+      - "tests/**"
+      - "prod-mu-plugins/**"
+      - "phpunit.xml.dist"
+      - "composer.json"
 
 jobs:
   quality:
     name: PHPStan + CS-Fixer (thème)
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: www/wp-content/themes/luziapi
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,3 +55,48 @@ jobs:
 
       - name: PHPStan (analyse statique)
         run: composer stan
+
+  tests-php:
+    name: PHPUnit (logique pure)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Install theme dependencies (autoload + Timber)
+        run: composer install --no-interaction --no-progress --prefer-dist
+        working-directory: www/wp-content/themes/luziapi
+
+      - name: Install test dependencies (PHPUnit)
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: PHPUnit
+        run: composer test
+
+  tests-js:
+    name: Tests JS (jsdom)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: www/wp-content/themes/luziapi
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JS dev dependencies
+        run: npm ci
+
+      - name: Run JS tests
+        run: npm test
