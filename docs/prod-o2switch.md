@@ -417,8 +417,11 @@ seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais
   portent pas la méta **`_luziapi_pot_admissible = yes`** (case « Pot admissible à la fidélité » dans
   la fiche produit → « Options LuziApi »). **Cocher les pots de miel en catalogue**, sinon le
   programme reste dormant. À faire manuellement (ou backfill de la méta).
-- **Pas de rétro-crédit :** le journal démarre vide ; les commandes déjà « Terminée » ne sont pas
-  comptées. Un backfill des « Terminée » passées est possible mais pas encore décidé.
+- **Rétro-crédit du passé — fait le 10 septembre 2026 :** une fois les pots cochés admissibles, le
+  backfill (`tools/backfill-loyalty.php`) a crédité **9 pots sur 4 commandes** déjà « Terminée ».
+  Idempotent (clé `credit:{orderId}`, daté à la complétion) : rejeu vérifié `credited=0, already=4`.
+  Exécuté par script à jeton temporaire (uploadé, appelé en HTTPS, supprimé ; tool `tools/` non
+  déployé en temps normal). Rejouable après avoir coché de nouveaux produits.
 - **Deux choses distinctes à ne pas confondre** (voir `AGENTS.md` § 5) : le **« 1 €/pot »** est la
   remise de volume au panier (`inc/shop.php`, inchangée) ; la **fidélité** est le nouveau programme
   de pots. La **remise remerciement** (lot 3) est encore autre chose (geste monétaire libre).
