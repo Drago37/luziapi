@@ -80,6 +80,9 @@ e2e-vente-local: ## Teste la Vente (préremplissage client + point d'entrée uni
 backfill-receipts-local: ## Porte au registre l'encaissement des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
 	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-receipts.php';" --user=admin
 
+backfill-loyalty-local: ## Rétro-crédite les pots des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
+	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-loyalty.php';" --user=admin
+
 e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-receipt-on-complete.php';" --user=admin
 
