@@ -21,6 +21,7 @@
  * @var string                      $mediation_url
  * @var string                      $mediator_url
  * @var string                      $tracking_url
+ * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
  */
 
 defined('ABSPATH') || exit;
@@ -41,6 +42,7 @@ $highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
 $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
 $tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
+$loyalty        = isset($loyalty) && is_array($loyalty) ? $loyalty : null;
 
 if ('' !== $highlight_text) {
     echo "MESSAGE\n";
@@ -55,6 +57,19 @@ if ('' !== $action_url && '' !== $action_label) {
 do_action('woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email);
+
+if (null !== $loyalty) {
+    echo "\nFIDÉLITÉ LUZIAPI\n";
+    echo "----------------\n";
+    if ($loyalty['rewards_available'] > 0) {
+        echo $loyalty['rewards_available'] . ' pot(s) offert(s) à réclamer ! Signalez-le à LuziApi lors de votre prochaine commande.' . "\n";
+    } elseif ($loyalty['net_pots'] > 0) {
+        echo $loyalty['net_pots'] . ' pot(s) de fidélité — plus que ' . $loyalty['pots_until_next']
+            . ' avant un pot offert (' . $loyalty['pots_per_reward'] . ' pots achetés, le suivant est offert).' . "\n";
+    } else {
+        echo $loyalty['pots_per_reward'] . ' pots achetés, le suivant offert. Chaque pot est compté automatiquement.' . "\n";
+    }
+}
 
 if ('' !== $tracking_url) {
     echo "\nSuivre ma commande : " . esc_url($tracking_url) . "\n";

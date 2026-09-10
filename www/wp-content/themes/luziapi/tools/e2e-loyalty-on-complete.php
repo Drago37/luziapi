@@ -166,6 +166,12 @@ try {
     $publicView = (new GetLoyaltyForOrdersHandler(new WooCommerceOrderContactKeys(), $query))->handle([$orderId]);
     $assert('Le suivi client voit la fidélité depuis la commande', 3 === $publicView->netPots);
 
+    // Donnée du rappel fidélité de l'e-mail « Terminée » (résolue depuis la commande).
+    if (function_exists('luziapi_email_loyalty_summary')) {
+        $emailLoyalty = luziapi_email_loyalty_summary($order);
+        $assert('L\'e-mail « Terminée » verrait 3 pots', null !== $emailLoyalty && 3 === ($emailLoyalty['net_pots'] ?? 0));
+    }
+
     // Sortie de « Terminée » (annulation) : crédit ET avantage contre-passés.
     $subscriber->orderStatusChanged($orderId, 'completed', 'cancelled', $order);
     $reversal = $ledger->findByIdempotencyKey('reverse:' . $orderId);

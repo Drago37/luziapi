@@ -115,6 +115,15 @@ body {
     text-align: center;
 }
 
+.luziapi-email-loyalty {
+    padding: 14px 34px;
+}
+
+.luziapi-email-loyalty p:last-child {
+    margin: 4px 0 0;
+    color: #432c16;
+}
+
 .luziapi-email-button {
     background-color: #e0a124;
     border: 1px solid #c48916;

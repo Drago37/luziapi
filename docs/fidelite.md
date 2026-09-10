@@ -158,9 +158,14 @@ template), via `GetLoyaltyForOrders` (`OrderContactKeys` + `GetCustomerLoyalty`)
 (`inc/shop.php`, −1 € par pot dès 2 pots au checkout du site), sans rapport avec la
 fidélité. Aucune migration : elle reste telle quelle.
 
+**Rappel fidélité dans l'e-mail « Terminée »** : l'e-mail de commande terminée
+(`Luziapi_Email_Customer_Completed`) affiche le compteur réel — pots cumulés,
+pot(s) offert(s) à réclamer, progression. Uniquement cet e-mail : c'est le seul
+moment où le compteur est à jour (les pots sont crédités à « Terminée »). Pour
+garantir la fraîcheur, le crédit fidélité passe désormais en **priorité 5** sur
+`woocommerce_order_status_completed` (avant l'envoi des e-mails, priorité 10). La
+donnée vient de `luziapi_email_loyalty_summary()` (`inc/customer-emails.php`),
+rendue dans les deux variantes (HTML + texte).
+
 Reste à faire dans le lot 4 :
-- **Rappel fidélité dans les e-mails de commande** — attention au timing : l'e-mail
-  de statut part en priorité 10, le crédit fidélité en priorité 100 ; un compteur
-  affiché dans l'e-mail « Terminée » serait en retard d'une commande. À cadrer
-  (rappel générique + lien vers le suivi, ou compteur avec correction du timing).
 - **Communication de lancement** (action non-code, à préparer et valider ensemble).

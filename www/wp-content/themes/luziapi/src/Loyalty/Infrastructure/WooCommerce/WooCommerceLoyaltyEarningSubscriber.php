@@ -41,7 +41,10 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
 
     public function register(): void
     {
-        add_action('woocommerce_order_status_completed', [$this, 'orderCompleted'], 100, 2);
+        // Priorité 5 : le crédit/consommation est écrit AVANT l'envoi des e-mails
+        // de commande (WooCommerce les déclenche en priorité 10), pour que l'e-mail
+        // « Terminée » affiche un compteur de pots à jour.
+        add_action('woocommerce_order_status_completed', [$this, 'orderCompleted'], 5, 2);
         add_action('woocommerce_order_status_changed', [$this, 'orderStatusChanged'], 30, 4);
     }
 

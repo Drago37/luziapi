@@ -22,6 +22,7 @@
  * @var string                      $mediation_url
  * @var string                      $mediator_url
  * @var string                      $tracking_url
+ * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
  */
 
 defined('ABSPATH') || exit;
@@ -31,6 +32,7 @@ $highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
 $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
 $tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
+$loyalty        = isset($loyalty) && is_array($loyalty) ? $loyalty : null;
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -100,6 +102,20 @@ $tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
                         </div>
                     </td>
                 </tr>
+                <?php if (! empty($loyalty)) : ?>
+                    <tr>
+                        <td class="luziapi-email-loyalty">
+                            <p class="luziapi-email-eyebrow">Fidélité LuziApi</p>
+                            <?php if ($loyalty['rewards_available'] > 0) : ?>
+                                <p>🎉 <strong><?php echo esc_html((string) $loyalty['rewards_available']); ?> pot<?php echo $loyalty['rewards_available'] > 1 ? 's' : ''; ?> offert<?php echo $loyalty['rewards_available'] > 1 ? 's' : ''; ?> à réclamer !</strong> Signalez-le à LuziApi lors de votre prochaine commande pour en profiter.</p>
+                            <?php elseif ($loyalty['net_pots'] > 0) : ?>
+                                <p><strong><?php echo esc_html((string) $loyalty['net_pots']); ?> pot<?php echo $loyalty['net_pots'] > 1 ? 's' : ''; ?> de fidélité</strong> — plus que <?php echo esc_html((string) $loyalty['pots_until_next']); ?> avant un pot offert (<?php echo esc_html((string) $loyalty['pots_per_reward']); ?> pots achetés, le suivant est offert).</p>
+                            <?php else : ?>
+                                <p><strong><?php echo esc_html((string) $loyalty['pots_per_reward']); ?> pots achetés, le suivant offert.</strong> Chaque pot de miel acheté est compté automatiquement.</p>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endif; ?>
                 <?php if ('' !== $tracking_url) : ?>
                     <tr>
                         <td class="luziapi-email-action" align="center">

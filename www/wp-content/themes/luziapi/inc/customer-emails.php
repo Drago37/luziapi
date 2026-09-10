@@ -111,6 +111,43 @@ function luziapi_customer_email_common_data(?\WC_Order $order): array
 }
 
 /**
+ * Résumé de fidélité d'une commande pour l'e-mail « Terminée » (les pots viennent
+ * d'être crédités). `null` si la fidélité n'est pas disponible ou si la commande
+ * n'a pas de contact rattachable. À n'utiliser QUE sur l'e-mail « Terminée » :
+ * ailleurs, le compteur n'inclurait pas encore la commande en cours.
+ *
+ * @return array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null
+ */
+function luziapi_email_loyalty_summary(?\WC_Order $order): ?array
+{
+    if (! $order instanceof \WC_Order
+        || ! class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)) {
+        return null;
+    }
+    $handler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+    if (null === $handler) {
+        return null;
+    }
+    $keys = \LuziApi\Loyalty\Domain\LoyaltyIdentity::keysForContact(
+        (string) $order->get_billing_email(),
+        (string) $order->get_billing_phone(),
+    );
+    if ([] === $keys) {
+        return null;
+    }
+
+    $view = $handler->handle(new \LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery($keys));
+
+    return [
+        'net_pots'          => $view->netPots,
+        'rewards_available' => $view->rewardsAvailable,
+        'pots_toward_next'  => $view->potsTowardNextReward,
+        'pots_until_next'   => $view->potsUntilNextReward,
+        'pots_per_reward'   => $view->potsPerReward,
+    ];
+}
+
+/**
  * Prépare les textes propres à chaque e-mail WooCommerce encore natif.
  *
  * @param array{partial_refund?: bool, customer_note?: string} $context
