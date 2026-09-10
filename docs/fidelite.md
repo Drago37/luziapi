@@ -147,6 +147,11 @@ les valeurs pour l'empêcher.
     fidélité et remise — vérifie les lignes marquées à 0 €, la remise en
     `discount_total`, le décompte du stock, puis le crédit des pots et la
     consommation de l'avantage écrits par le subscriber du thème à « Terminée ».
+  - `make e2e-loyalty-client-local` : les surfaces client — le bloc fidélité est
+    réellement **rendu dans l'e-mail « Terminée »** avec le bon compteur, le
+    handler de suivi branché **agrège plusieurs commandes** d'un client, et la
+    **remise a posteriori corrige la recette** au registre (vrai
+    `WordPressReceiptRepository`).
   Tous nettoient les données créées.
 
 ## Ce que fait le lot 4 (affichage côté client — en cours)
