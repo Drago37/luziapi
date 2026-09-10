@@ -133,6 +133,8 @@ $resetMail = static function () use (&$mailResetCount): void {
 // WooCommerce (ex. « La commande a été annulée » envoyée à la boutique)
 // partagent des mots-clés et fausseraient les assertions.
 $customerEmail = (string) ($identity['email'] ?? '');
+$trackingAvailable = class_exists(\LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator::class)
+    && '' !== (new \LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator())->publishedPageUrl();
 $mailSent = static function (string $needle) use ($customerEmail): bool {
     foreach ($GLOBALS['e2e_mails'] as $mail) {
         if ('' !== $customerEmail && false === mb_stripos($mail['to'], $customerEmail)) {
@@ -146,7 +148,7 @@ $mailSent = static function (string $needle) use ($customerEmail): bool {
     return false;
 };
 
-$assertEmailTemplate = static function (string $label, string $subjectNeedle) use ($assert, $customerEmail): void {
+$assertEmailTemplate = static function (string $label, string $subjectNeedle) use ($assert, $customerEmail, $trackingAvailable): void {
     $message = '';
     foreach ($GLOBALS['e2e_mails'] as $mail) {
         if ('' !== $customerEmail && false === mb_stripos($mail['to'], $customerEmail)) {
@@ -169,14 +171,17 @@ $assertEmailTemplate = static function (string $label, string $subjectNeedle) us
         $expected,
         static fn (string $needle): bool => false === mb_stripos($message, $needle)
     ));
-    $hasUnexpectedTracking = false !== mb_stripos($message, 'Suivre ma commande');
+    $hasTracking = false !== mb_stripos($message, 'Suivre ma commande');
+    $isValid = '' !== $message && [] === $missing && $trackingAvailable === $hasTracking;
 
     $assert(
         $label . ' — gabarit LuziApi complet',
-        '' !== $message && [] === $missing && ! $hasUnexpectedTracking,
-        [] !== $missing
-            ? 'éléments absents : ' . implode(', ', $missing)
-            : ($hasUnexpectedTracking ? 'lien de suivi présent alors que la fonctionnalité est reportée' : '')
+        $isValid,
+        $isValid
+            ? ''
+            : ([] !== $missing
+                ? 'éléments absents : ' . implode(', ', $missing)
+                : ($trackingAvailable ? 'lien de suivi absent' : 'lien de suivi présent sans page publiée'))
     );
 };
 
@@ -215,7 +220,7 @@ $assertAdminEmailTemplate = static function (string $label) use ($assert, $custo
     );
 };
 
-$assertNativeCustomerEmailTemplates = static function (\WC_Order $order) use ($assert): void {
+$assertNativeCustomerEmailTemplates = static function (\WC_Order $order) use ($assert, $trackingAvailable): void {
     $emails = WC()->mailer()->get_emails();
     $definitions = [
         'WC_Email_Customer_Failed_Order' => ['Paiement non abouti', null],
@@ -253,6 +258,9 @@ $assertNativeCustomerEmailTemplates = static function (\WC_Order $order) use ($a
         if (is_string($customerNote)) {
             $expected[] = $customerNote;
         }
+        if ($trackingAvailable) {
+            $expected[] = 'Suivre ma commande';
+        }
         $missing = array_values(array_filter(
             $expected,
             static fn (string $needle): bool => false === mb_stripos($message, $needle)
@@ -266,6 +274,9 @@ $assertNativeCustomerEmailTemplates = static function (\WC_Order $order) use ($a
         ];
         if (is_string($customerNote)) {
             $plainExpected[] = $customerNote;
+        }
+        if ($trackingAvailable) {
+            $plainExpected[] = 'SUIVRE MA COMMANDE';
         }
         $plainMissing = array_values(array_filter(
             $plainExpected,

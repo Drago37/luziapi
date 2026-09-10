@@ -21,6 +21,7 @@
  * @var string                      $withdrawal_url
  * @var string                      $mediation_url
  * @var string                      $mediator_url
+ * @var string                      $tracking_url
  */
 
 defined('ABSPATH') || exit;
@@ -29,6 +30,7 @@ $firstName = trim((string) $order->get_billing_first_name());
 $highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
 $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
+$tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -98,6 +100,13 @@ $action_label   = isset($action_label) ? trim((string) $action_label) : '';
                         </div>
                     </td>
                 </tr>
+                <?php if ('' !== $tracking_url) : ?>
+                    <tr>
+                        <td class="luziapi-email-action" align="center">
+                            <a class="luziapi-email-button" href="<?php echo esc_url($tracking_url); ?>">Suivre ma commande</a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
                 <tr>
                     <td class="luziapi-email-customer">
                         <?php

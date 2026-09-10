@@ -38,5 +38,6 @@ $cgv_version    = $common['cgv_version'];
 $withdrawal_url = $common['withdrawal_url'];
 $mediation_url  = $common['mediation_url'];
 $mediator_url   = $common['mediator_url'];
+$tracking_url   = $common['tracking_url'];
 
 require __DIR__ . '/luziapi-customer-order-status.php';

@@ -41,6 +41,8 @@ node_modules/
 /www/wp-config-sample.php
 
 # --- wp-content : on ne versionne QUE notre thème ---
+# Journaux applicatifs (Monolog) créés au runtime — jamais versionnés.
+/www/wp-content/luziapi-logs/
 /www/wp-content/plugins/*
 !/www/wp-content/plugins/.gitkeep
 /www/wp-content/mu-plugins/

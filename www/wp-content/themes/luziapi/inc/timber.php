@@ -66,6 +66,10 @@ add_filter('timber/context', static function (array $context): array {
 
     // Coordonnées de l'entreprise (= lieu de retrait), réutilisées partout.
     $context['contact'] = luziapi_contact_details();
+    $trackingPage = get_page_by_path('suivi-commande');
+    $context['order_tracking_url'] = $trackingPage instanceof \WP_Post && 'publish' === $trackingPage->post_status
+        ? get_permalink($trackingPage)
+        : '';
 
     // Crédit photo affiché en pied de page.
     $context['credit_photo'] = 'Thomas Bourdilleau';

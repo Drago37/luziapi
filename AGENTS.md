@@ -130,6 +130,14 @@ Tests : `phpunit.xml.dist` + `tests/` (logique pure). CI : PHPStan + CS-Fixer su
 e-mails, échéance de règlement, annulation, stock) : `tools/e2e-orders.php` + doc
 [docs/tests-e2e-commandes.md](docs/tests-e2e-commandes.md) — à rejouer (local `make e2e-local`
 ou prod) à chaque changement du workflow des commandes.
+Le suivi client sans compte possède en plus son test d’intégration local
+`make e2e-tracking-local` et sa documentation dans
+[docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
+
+**Journalisation.** Le thème a un logger PSR-3 partagé, `luziapi_logger()` (Monolog, `inc/logger.php`),
+qui écrit les anomalies (niveau WARNING) dans `wp-content/luziapi-logs/prod.log` — dossier hors du
+thème, auto-créé et protégé par `.htaccess`, jamais accessible en HTTP ni versionné. Le fichier n'est
+pas déployé (créé au runtime) ; pour lire les logs de prod, passer par le script à jeton (§ 4).
 
 ---
 

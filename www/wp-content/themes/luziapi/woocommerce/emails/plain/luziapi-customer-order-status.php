@@ -20,6 +20,7 @@
  * @var string                      $withdrawal_url
  * @var string                      $mediation_url
  * @var string                      $mediator_url
+ * @var string                      $tracking_url
  */
 
 defined('ABSPATH') || exit;
@@ -39,6 +40,7 @@ foreach ($message_lines as $line) {
 $highlight_text = isset($highlight_text) ? trim((string) $highlight_text) : '';
 $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
+$tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
 
 if ('' !== $highlight_text) {
     echo "MESSAGE\n";
@@ -53,6 +55,10 @@ if ('' !== $action_url && '' !== $action_label) {
 do_action('woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email);
 do_action('woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email);
+
+if ('' !== $tracking_url) {
+    echo "\nSuivre ma commande : " . esc_url($tracking_url) . "\n";
+}
 
 if ('' !== trim($additional_content)) {
     echo "\n" . wp_strip_all_tags(wptexturize($additional_content)) . "\n";

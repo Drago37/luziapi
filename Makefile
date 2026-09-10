@@ -35,7 +35,8 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .DEFAULT_GOAL := help
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
-        cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean e2e-prod e2e-prod-send
+        test cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean \
+        e2e-tracking-local e2e-vente-local e2e-prod e2e-prod-send
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -69,6 +70,9 @@ e2e-local: ## Joue le test e2e des commandes en local (identité : tools/.e2e-id
 
 e2e-clean: ## Supprime toute trace de commande/produit de test e2e resté en base
 	$(DC) run --rm -e LUZIAPI_E2E_PAYLOAD='{"options":{"cleanup_only":true}}' wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orders.php';" --user=admin
+
+e2e-tracking-local: fixtures ## Teste le suivi avec le vrai WordPress/WooCommerce local (aucun e-mail envoyé)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-order-tracking.php';" --user=admin
 
 e2e-vente-local: ## Teste la Vente (préremplissage client + point d'entrée unique) sur le vrai WooCommerce local
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente.php';" --user=admin
@@ -156,6 +160,9 @@ db: ## Ouvre le client MySQL sur la base
 	$(DC) exec db mariadb -u$${DB_USER:-luziapi} -p$${DB_PASSWORD:-luziapi} $${DB_NAME:-luziapi}
 
 ##@ Qualité (thème uniquement)
+test: ## Lance toute la suite PHPUnit
+	@composer test
+
 cs: ## Corrige le style du code (PHP-CS-Fixer)
 	@$(call IN_THEME,composer cs)
 

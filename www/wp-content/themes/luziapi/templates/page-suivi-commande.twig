@@ -1,0 +1,178 @@
+{% extends "base.twig" %}
+
+{% block content %}
+{% set tracking = order_tracking %}
+<section class="tracking-hero hexbg">
+    <div class="wrap tracking-hero__inner">
+        <p class="eyebrow gold">Vos commandes LuziApi</p>
+        <h1>Suivre une commande</h1>
+        <p>Consultez son avancement et retrouvez les messages que je vous ai adressés, sans créer de compte.</p>
+    </div>
+</section>
+
+<section class="tracking-page">
+    <div class="wrap tracking-wrap">
+        {% if tracking.notice %}
+            <div class="tracking-notice tracking-notice--{{ tracking.notice.type }}" role="{{ tracking.notice.type == 'error' ? 'alert' : 'status' }}">
+                {{ tracking.notice.message }}
+            </div>
+        {% endif %}
+
+        {% if not tracking.active %}
+            <div class="tracking-intro">
+                <p class="eyebrow">Deux façons de retrouver vos commandes</p>
+                <h2>Choisissez l’accès qui vous convient</h2>
+                <p>Vos informations servent uniquement à vérifier que les commandes vous appartiennent.</p>
+            </div>
+
+            <div class="tracking-access-grid">
+                <article class="tracking-access-card">
+                    <span class="tracking-card-number">1</span>
+                    <h2>Une commande précise</h2>
+                    <p>Munissez-vous du numéro indiqué dans votre e-mail de confirmation et de l’adresse utilisée lors de la commande.</p>
+                    <form method="post" action="{{ tracking.page_url }}" class="tracking-form">
+                        <input type="hidden" name="_wpnonce" value="{{ tracking.nonce|e('html_attr') }}">
+                        <input type="hidden" name="tracking_action" value="track_order">
+                        <div class="tracking-honeypot" aria-hidden="true">
+                            <label>Site internet<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                        </div>
+                        <label for="tracking-order-number">Numéro de commande</label>
+                        <div class="tracking-order-input">
+                            <span aria-hidden="true">n°</span>
+                            <input id="tracking-order-number" name="order_number" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="20" value="{{ tracking.prefill_order|e('html_attr') }}" autocomplete="off" required>
+                        </div>
+                        <label for="tracking-order-email">Adresse e-mail de facturation</label>
+                        <input id="tracking-order-email" name="order_email" type="email" maxlength="254" autocomplete="email" required>
+                        <button type="submit" class="btn btn-primary">Afficher la commande</button>
+                    </form>
+                </article>
+
+                <article class="tracking-access-card tracking-access-card--history">
+                    <span class="tracking-card-number">2</span>
+                    <h2>Toutes mes commandes</h2>
+                    <p>Recevez par e-mail un lien sécurisé valable 15 minutes. Il ouvre pendant 2 heures les commandes associées à cette adresse.</p>
+                    <form method="post" action="{{ tracking.page_url }}" class="tracking-form">
+                        <input type="hidden" name="_wpnonce" value="{{ tracking.nonce|e('html_attr') }}">
+                        <input type="hidden" name="tracking_action" value="request_history">
+                        <div class="tracking-honeypot" aria-hidden="true">
+                            <label>Site internet<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                        </div>
+                        <label for="tracking-history-email">Adresse e-mail utilisée pour commander</label>
+                        <input id="tracking-history-email" name="history_email" type="email" maxlength="254" autocomplete="email" required>
+                        <button type="submit" class="btn btn-primary">Recevoir mon lien sécurisé</button>
+                    </form>
+                    <p class="tracking-privacy">Pour protéger votre vie privée, le message affiché ici reste identique, qu’une commande corresponde ou non à l’adresse.</p>
+                </article>
+            </div>
+        {% else %}
+            <div class="tracking-session-bar">
+                <div>
+                    <p class="eyebrow">Espace sécurisé</p>
+                    <h2>{{ tracking.total_orders }} commande{{ tracking.total_orders > 1 ? 's' : '' }} retrouvée{{ tracking.total_orders > 1 ? 's' : '' }}</h2>
+                </div>
+                <form method="post" action="{{ tracking.page_url }}">
+                    <input type="hidden" name="_wpnonce" value="{{ tracking.nonce|e('html_attr') }}">
+                    <input type="hidden" name="tracking_action" value="logout">
+                    <button type="submit" class="tracking-logout">Quitter cet espace</button>
+                </form>
+            </div>
+
+            <div class="tracking-dashboard">
+                <aside class="tracking-orders" aria-label="Liste de vos commandes">
+                    <h2>Mes commandes</h2>
+                    {% for order in tracking.orders %}
+                        <a class="tracking-order-card {{ tracking.selected_order and tracking.selected_order.number == order.number ? 'is-active' : '' }}" href="{{ order.url }}">
+                            <span><strong>Commande n°{{ order.number }}</strong><small>{{ order.date }}</small></span>
+                            <span class="tracking-status tracking-status--{{ order.tone }}">{{ order.status }}</span>
+                            <strong class="tracking-order-total">{{ order.total }}</strong>
+                        </a>
+                    {% else %}
+                        <p>Aucune commande disponible dans cette session.</p>
+                    {% endfor %}
+                    {% if tracking.pagination %}<nav class="tracking-pagination" aria-label="Pages de commandes">{{ tracking.pagination|raw }}</nav>{% endif %}
+                </aside>
+
+                <div class="tracking-detail">
+                {% if tracking.selected_order %}
+                    {% set order = tracking.selected_order %}
+                    <article class="tracking-panel tracking-order-head">
+                        <div>
+                            <p class="eyebrow">Commande n°{{ order.number }}</p>
+                            <h2>{{ order.status }}</h2>
+                            <p>Passée le {{ order.date }} · {{ order.total }}</p>
+                        </div>
+                        <span class="tracking-status tracking-status--{{ order.tone }}">{{ order.status }}</span>
+                    </article>
+
+                    {% if order.cancelled %}
+                        <div class="tracking-notice tracking-notice--error">Cette commande n’est plus dans le parcours de préparation. Son historique reste disponible ci-dessous.</div>
+                    {% else %}
+                        <ol class="tracking-steps" aria-label="Avancement de la commande">
+                            {% for step in order.steps %}
+                                <li class="tracking-step tracking-step--{{ step.state }}">
+                                    <span aria-hidden="true">{{ loop.index }}</span><strong>{{ step.label }}</strong>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    {% endif %}
+
+                    <div class="tracking-detail-grid">
+                        <article class="tracking-panel">
+                            <p class="eyebrow">Récapitulatif</p>
+                            <h2>Votre commande</h2>
+                            <div class="tracking-lines">
+                                {% for line in order.lines %}
+                                    <div><span><strong>{{ line.name }}</strong><small>Quantité : {{ line.quantity }}</small></span><strong>{{ line.total }}</strong></div>
+                                {% endfor %}
+                            </div>
+                            <dl class="tracking-totals">
+                                {% for total in order.totals %}<div class="{{ loop.last ? 'is-total' : '' }}"><dt>{{ total.label }}</dt><dd>{{ total.amount }}</dd></div>{% endfor %}
+                            </dl>
+                            {% if order.customer_note %}
+                                <div class="tracking-customer-note"><strong>Votre note lors de la commande</strong><p>{{ order.customer_note|nl2br }}</p></div>
+                            {% endif %}
+                        </article>
+
+                        <article class="tracking-panel">
+                            <p class="eyebrow">Organisation</p>
+                            <h2>Remise et règlement</h2>
+                            <dl class="tracking-facts">
+                                <div><dt>Mode de remise</dt><dd>{{ order.fulfillment_label }}</dd></div>
+                                <div><dt>Paiement</dt><dd>{{ order.payment_method }}</dd></div>
+                            </dl>
+                            <p class="tracking-help">Une question ? Appelez Anthony au <a href="tel:{{ contact.tel_lien }}">{{ contact.tel }}</a> ou écrivez à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>.</p>
+                        </article>
+                    </div>
+
+                    <article class="tracking-panel tracking-history">
+                        <p class="eyebrow">Historique</p>
+                        <h2>Avancement et messages</h2>
+                        <ol>
+                            {% for update in order.updates %}
+                                <li class="tracking-update tracking-update--{{ update.type }}">
+                                    <span class="tracking-update-dot" aria-hidden="true"></span>
+                                    <div><time>{{ update.date }}</time><h3>{{ update.title }}</h3>{% if update.content %}<p>{{ update.content|nl2br }}</p>{% endif %}</div>
+                                </li>
+                            {% else %}
+                                <li>Aucun message n’a encore été ajouté.</li>
+                            {% endfor %}
+                        </ol>
+                        <p class="tracking-history-note">Seuls les messages destinés au client sont affichés. Les notes privées de gestion ne quittent jamais l’administration LuziApi.</p>
+                    </article>
+                {% else %}
+                    <article class="tracking-panel tracking-empty-detail">
+                        <h2>Sélectionnez une commande</h2>
+                        <p>Choisissez une commande dans la liste pour consulter son détail et ses messages.</p>
+                    </article>
+                {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="tracking-security">
+            <span aria-hidden="true">⌁</span>
+            <p><strong>Un accès pensé pour protéger vos commandes.</strong> Aucun compte n’est créé, aucun e-mail n’apparaît dans l’adresse de la page et l’espace se ferme automatiquement après 2 heures.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

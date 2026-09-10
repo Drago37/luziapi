@@ -39,6 +39,7 @@ Timber\Timber::init();
 // Les gabarits Twig du thème vivent dans templates/ (le dossier par défaut de Timber est « views »).
 Timber\Timber::$dirname = 'templates';
 
+require_once LUZIAPI_DIR . '/inc/logger.php';
 require_once LUZIAPI_DIR . '/inc/setup.php';
 require_once LUZIAPI_DIR . '/inc/login.php';
 require_once LUZIAPI_DIR . '/inc/timber.php';
@@ -54,3 +55,4 @@ require_once LUZIAPI_DIR . '/inc/payment-deadline.php';
 require_once LUZIAPI_DIR . '/inc/blog.php';
 
 LuziApi\Pilotage\Bootstrap\PilotageServiceProvider::boot(LUZIAPI_DIR, LUZIAPI_URI);
+LuziApi\OrderTracking\Bootstrap\OrderTrackingServiceProvider::boot(LUZIAPI_URI);

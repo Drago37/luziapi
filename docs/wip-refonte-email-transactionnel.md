@@ -44,8 +44,10 @@ un beau template **à la charte du site**, avec :
 - Captures locales du troisième lot, générées avec le vrai moteur WooCommerce :
   **`docs/maquettes/email-note-client-rendu.png`** et
   **`docs/maquettes/email-demande-paiement-rendu.png`**.
-- Le suivi de commande sans compte est reporté en **phase 2** : aucun bouton ni lien de suivi
-  n'est présent dans ce premier lot.
+- La **phase 2 de suivi sans compte est implémentée et testée en local le 9 septembre 2026**,
+  mais n’est pas encore déployée. La page de production n’existe donc pas encore et aucun lien
+  de suivi ne s’y affiche. Le code n’ajoute le bouton aux e-mails qu’après publication effective
+  de la page, ce qui évite tout lien mort pendant le déploiement.
 
 ### Questions client encore ouvertes (à confirmer avant/pendant l'implémentation)
 
@@ -70,7 +72,7 @@ un beau template **à la charte du site**, avec :
   total, mode de remise, paiement, adresses et métadonnées restent présents.
 - Le mode de remise n'est plus répété par le nouveau gabarit WooCommerce 10.8.
 
-## 3. Phase 2 reportée — suivi sans compte
+## 3. Phase 2 implémentée en local — suivi sans compte
 
 ### Deux accès complémentaires
 
@@ -107,16 +109,16 @@ internes ne seront pas exposées ni interprétées aveuglément.
 - page en `noindex` et strictement exclue du cache. La non-mise-en-cache PowerBoost devra être
   vérifiée en production avec deux sessions distinctes avant ouverture au public.
 
-### Intégration future aux e-mails
+### Intégration aux e-mails
 
-- rétablir le bouton « Suivre ma commande » seulement lorsque la page fonctionne ;
-- faire pointer les sept e-mails vers la page de suivi avec le numéro de commande prérempli ;
+- le bouton « Suivre ma commande » est conditionné à l’existence de la page publiée ;
+- les sept e-mails pointent vers la page avec le numéro de commande prérempli, jamais l’e-mail ;
 - afficher dans chaque e-mail le rappel discret d’inscription aux actualités par e-mail et/ou SMS ;
 - conserver une version texte brut complète avec l’URL de suivi ;
 - ne créer la page en production, ne déployer et n’envoyer les e-mails de test qu’après accord
   explicite.
 
-### Vérifications prévues
+### Vérifications locales réalisées
 
 - bonne et mauvaise combinaison numéro/e-mail ;
 - plusieurs commandes invitées avec la même adresse ;
@@ -126,6 +128,12 @@ internes ne seront pas exposées ni interprétées aveuglément.
 - sept statuts LuziApi, commandes annulées comprises ;
 - absence de fuite via le cache, les URL, les journaux et les messages d’erreur ;
 - rendu mobile et test des versions HTML et texte brut.
+
+Le détail, les commandes et les résultats attendus sont consignés dans
+[`tests-suivi-commandes.md`](tests-suivi-commandes.md). La suite PHPUnit couvre le domaine et les
+cas d’usage ; `make e2e-tracking-local` ajoute **24 assertions** sur le vrai stockage WordPress,
+WooCommerce/HPOS et le nettoyage. La page locale répond en 200 avec `noindex` et `no-store` ; ses
+rendus bureau (1 440 px) et mobile (500 px) ont été contrôlés visuellement.
 
 ## 4. Où vit le code des e-mails
 

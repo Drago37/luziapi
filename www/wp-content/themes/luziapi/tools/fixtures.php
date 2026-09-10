@@ -9,7 +9,8 @@
  * Idempotent : relançable sans créer de doublon. Les produits/articles repérés
  * par leur titre sont mis à jour ; les manquants sont créés.
  *
- * Recrée : devise EUR (format français), les 4 miels, les 3 actualités.
+ * Recrée : devise EUR (format français), les pages utiles, les 4 miels,
+ * les 3 actualités.
  *
  * Note : pas de declare(strict_types) — `wp eval-file` exécute via eval(),
  * qui interdit cette déclaration.
@@ -55,6 +56,10 @@ $legalPages = [
     'retractation' => [
         'title'   => 'Exercer mon droit de rétractation',
         'content' => 'Fonctionnalité en ligne de rétractation des commandes LuziApi.',
+    ],
+    'suivi-commande' => [
+        'title'   => 'Suivre mes commandes',
+        'content' => 'Accès sécurisé au suivi des commandes LuziApi.',
     ],
 ];
 
@@ -156,4 +161,4 @@ if ($hello) {
     WP_CLI::log('  − « Hello world! » mis à la corbeille');
 }
 
-WP_CLI::success('Fixtures LuziApi en place : pages légales + 4 miels + 3 actualités.');
+WP_CLI::success('Fixtures LuziApi en place : pages utiles + 4 miels + 3 actualités.');

@@ -87,6 +87,15 @@ function luziapi_customer_email_common_data(?\WC_Order $order): array
         }
     }
 
+    $trackingUrl = '';
+    if ($order instanceof \WC_Order
+        && class_exists(\LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator::class)) {
+        $trackingUrls = new \LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator();
+        if ('' !== $trackingUrls->publishedPageUrl()) {
+            $trackingUrl = $trackingUrls->forOrderNumber((string) $order->get_order_number());
+        }
+    }
+
     return [
         'newsletter_url' => home_url('/#newsletter'),
         'site_url'       => home_url('/'),
@@ -97,6 +106,7 @@ function luziapi_customer_email_common_data(?\WC_Order $order): array
         'withdrawal_url' => function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '',
         'mediation_url'  => '' !== $cgvUrl ? $cgvUrl . '#mediation' : '',
         'mediator_url'   => 'https://www.cm2c.net/',
+        'tracking_url'   => $trackingUrl,
     ];
 }
 
