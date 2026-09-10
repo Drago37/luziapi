@@ -135,9 +135,11 @@ ou prod) à chaque changement du workflow des commandes.
 Le suivi client sans compte possède en plus son test d’intégration local
 `make e2e-tracking-local` et sa documentation dans
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
-La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/` et ses tests
-d’intégration locaux `make e2e-loyalty-local` (pots/avantages) et
-`make e2e-discount-local` (remise remerciement) — voir [docs/fidelite.md](docs/fidelite.md).
+La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/`, `tests/Pilotage/`
+et ses tests d’intégration locaux `make e2e-loyalty-local` (pots/avantages),
+`make e2e-discount-local` (remise remerciement) et `make e2e-vente-loyalty-local`
+(chemin réel de la Vente : offert + fidélité + remise + stock) — voir
+[docs/fidelite.md](docs/fidelite.md).
 
 **Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
 **fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`

@@ -142,7 +142,12 @@ les valeurs pour l'empêcher.
   - `make e2e-discount-local` : remise portée en `discount_total` natif (pas de
     frais négatifs), à la création et a posteriori, plafond au total, précision
     devise.
-  Les deux nettoient toutes les données créées.
+  - `make e2e-vente-loyalty-local` : le chemin RÉEL de la Vente
+    (`WooCommerceQuickSaleOrderWriter::create`) avec pot offert (geste), pot offert
+    fidélité et remise — vérifie les lignes marquées à 0 €, la remise en
+    `discount_total`, le décompte du stock, puis le crédit des pots et la
+    consommation de l'avantage écrits par le subscriber du thème à « Terminée ».
+  Tous nettoient les données créées.
 
 ## Ce que fait le lot 4 (affichage côté client — en cours)
 
