@@ -6,7 +6,12 @@ namespace LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard;
 
 final readonly class GetLoyaltyDashboardQuery
 {
-    public function __construct(public int $topSize = 5)
-    {
+    /**
+     * @param int|null $year année civile à afficher, ou `null` pour l'année en cours
+     */
+    public function __construct(
+        public ?int $year = null,
+        public int $topSize = 5,
+    ) {
     }
 }

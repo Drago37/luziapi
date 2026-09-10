@@ -110,6 +110,33 @@
     line-height: 1.1;
 }
 
+.luziapi-pilotage__year-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.luziapi-pilotage__year-picker span {
+    color: #64605b;
+    font-size: 12px;
+}
+
+.luziapi-pilotage__year-picker a {
+    padding: 4px 12px;
+    border: 1px solid var(--luziapi-line, #ece7df);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--luziapi-espresso);
+}
+
+.luziapi-pilotage__year-picker a.is-active {
+    background: var(--luziapi-honey);
+    border-color: var(--luziapi-honey);
+    color: #fff;
+    font-weight: 700;
+}
+
 .luziapi-pilotage__ranking {
     margin: 12px 0 0;
     padding-left: 1.4em;

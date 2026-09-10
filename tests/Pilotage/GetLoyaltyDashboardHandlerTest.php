@@ -6,10 +6,6 @@ namespace LuziApi\Tests\Pilotage;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderCommand;
-use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderHandler;
-use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
-use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Application\Port\LoyaltyEconomicsReader;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
@@ -18,80 +14,79 @@ use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use LuziApi\Pilotage\Domain\Shared\Money;
-use LuziApi\Tests\Loyalty\FixedClock as LoyaltyFixedClock;
-use LuziApi\Tests\Loyalty\InMemoryLoyaltyLedger;
 use PHPUnit\Framework\TestCase;
-
-require_once __DIR__ . '/../Loyalty/InMemoryLoyaltyLedger.php';
-require_once __DIR__ . '/../Loyalty/FixedClock.php';
 
 final class GetLoyaltyDashboardHandlerTest extends TestCase
 {
-    public function testRanksCustomersAndAggregatesEconomics(): void
+    private function handler(): GetLoyaltyDashboardHandler
     {
-        $ledger = new InMemoryLoyaltyLedger();
-        $credit = new RecordCompletedOrderHandler($ledger, LoyaltyFixedClock::at('2026-09-01 10:00:00'));
-        // Alice : 5 pots ; Bob : 3 pots (clés d'identité = celles du projecteur).
-        $credit->handle(new RecordCompletedOrderCommand(1, LoyaltyIdentity::hash('email:alice@example.test'), 5));
-        $credit->handle(new RecordCompletedOrderCommand(2, LoyaltyIdentity::hash('email:bob@example.test'), 3));
-
-        $handler = new GetLoyaltyDashboardHandler(
+        return new GetLoyaltyDashboardHandler(
             new OrderRepositoryStub([
-                $this->order(1, 'Alice', 'alice@example.test'),
-                $this->order(2, 'Bob', 'bob@example.test'),
-                $this->order(3, '', ''), // commande sans contact : ignorée
+                // Alice : commande 2026 (5 pots, 1 offert, 2,50 €) et 2025 (4 pots).
+                $this->order(1, 'Alice', 'alice@example.test', '2026-05-10'),
+                $this->order(3, 'Alice', 'alice@example.test', '2025-03-01'),
+                // Bob : commande 2026 (3 pots).
+                $this->order(2, 'Bob', 'bob@example.test', '2026-06-15'),
+                // Commande sans contact : ignorée par le projecteur.
+                $this->order(4, '', '', '2026-07-01'),
             ]),
             new CustomerHistoryProjector(),
-            new LoyaltyEconomicsReaderStub([1 => ['discountCents' => 250, 'offeredPots' => 1]]),
+            new LoyaltyEconomicsReaderStub([
+                1 => ['potsBought' => 5, 'offeredPots' => 1, 'discountCents' => 250],
+                2 => ['potsBought' => 3, 'offeredPots' => 0, 'discountCents' => 0],
+                3 => ['potsBought' => 4, 'offeredPots' => 0, 'discountCents' => 0],
+            ]),
             new DashboardClock(),
-            new GetCustomerLoyaltyHandler($ledger),
         );
+    }
 
-        $view = $handler->handle(new GetLoyaltyDashboardQuery());
+    public function testAggregatesAndRanksForTheSelectedYear(): void
+    {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(2026));
 
+        self::assertSame(2026, $view->year);
+        self::assertSame([2026, 2025], $view->availableYears);
         self::assertSame(2, $view->totalCustomers);
-        self::assertSame(8, $view->totalPots);
+        self::assertSame(8, $view->totalPots); // 5 (Alice 2026) + 3 (Bob) — la commande 2025 exclue
         self::assertSame(1, $view->totalOfferedPots);
         self::assertSame(250, $view->totalDiscountCents);
 
-        // Récap trié par pots achetés : Alice (5) avant Bob (3).
         self::assertSame('Alice', $view->customers[0]->name);
-        self::assertSame(5, $view->customers[0]->netPots);
+        self::assertSame(5, $view->customers[0]->potsBought);
         self::assertSame('Bob', $view->customers[1]->name);
 
-        // Tops.
         self::assertSame('Alice', $view->topBuyers[0]->name);
         self::assertSame('Alice', $view->topBenefited[0]->name);
-        self::assertSame(1, $view->topBenefited[0]->offeredPots);
         self::assertSame('Alice', $view->topDiscounts[0]->name);
-        self::assertSame(250, $view->topDiscounts[0]->discountCents);
-        // Bob n'a ni pot offert ni remise : absent des tops correspondants.
         self::assertCount(1, $view->topBenefited);
         self::assertCount(1, $view->topDiscounts);
     }
 
-    public function testEmptyWithoutLoyaltyHandler(): void
+    public function testYearFilteringIsolatesEachYear(): void
     {
-        $handler = new GetLoyaltyDashboardHandler(
-            new OrderRepositoryStub([$this->order(1, 'Alice', 'alice@example.test')]),
-            new CustomerHistoryProjector(),
-            new LoyaltyEconomicsReaderStub([]),
-            new DashboardClock(),
-            null,
-        );
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(2025));
 
-        $view = $handler->handle(new GetLoyaltyDashboardQuery());
-
-        self::assertSame(0, $view->totalCustomers);
-        self::assertSame([], $view->customers);
+        self::assertSame(2025, $view->year);
+        self::assertSame(1, $view->totalCustomers); // seule Alice a une commande 2025
+        self::assertSame(4, $view->totalPots);
+        self::assertSame('Alice', $view->customers[0]->name);
     }
 
-    private function order(int $id, string $name, string $email): OrderSnapshot
+    public function testUnknownYearFallsBackToMostRecentAvailable(): void
     {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(1999));
+
+        self::assertSame(2026, $view->year);
+    }
+
+    private function order(int $id, string $name, string $email, string $date): OrderSnapshot
+    {
+        $when = new DateTimeImmutable($date . ' 10:00:00', new DateTimeZone('Europe/Paris'));
+
         return new OrderSnapshot(
             $id,
             (string) $id,
-            new DateTimeImmutable('2026-09-0' . $id . ' 10:00:00', new DateTimeZone('Europe/Paris')),
+            $when,
             'completed',
             new Money(3_600),
             Money::zero(),
@@ -102,6 +97,9 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
             'Luzillé',
             'market',
             'immediate',
+            [],
+            '',
+            $when,
         );
     }
 }
@@ -126,21 +124,23 @@ final class OrderRepositoryStub implements OrderRepository
 
 final class LoyaltyEconomicsReaderStub implements LoyaltyEconomicsReader
 {
-    /** @param array<int, array{discountCents:int, offeredPots:int}> $byOrderId */
+    /** @param array<int, array{potsBought:int, offeredPots:int, discountCents:int}> $byOrderId */
     public function __construct(private array $byOrderId)
     {
     }
 
     public function forOrderIds(array $orderIds): array
     {
-        $discountCents = 0;
+        $potsBought = 0;
         $offeredPots = 0;
+        $discountCents = 0;
         foreach ($orderIds as $orderId) {
-            $discountCents += $this->byOrderId[$orderId]['discountCents'] ?? 0;
+            $potsBought += $this->byOrderId[$orderId]['potsBought'] ?? 0;
             $offeredPots += $this->byOrderId[$orderId]['offeredPots'] ?? 0;
+            $discountCents += $this->byOrderId[$orderId]['discountCents'] ?? 0;
         }
 
-        return ['discountCents' => $discountCents, 'offeredPots' => $offeredPots];
+        return ['potsBought' => $potsBought, 'offeredPots' => $offeredPots, 'discountCents' => $discountCents];
     }
 }
 

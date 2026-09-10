@@ -18,10 +18,11 @@ final readonly class LoyaltyController
     public function render(): void
     {
         $this->assertPermission();
-        $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery());
+        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
+        $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery($requestedYear ?: null));
 
         Timber::render('@luziapi_admin/pilotage/loyalty.twig', [
-            'page_url'            => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty'),
+            'page_url'            => $this->pageUrl($dashboard->year),
             'dashboard_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
             'tax_declaration_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=tax-declaration'),
@@ -31,11 +32,15 @@ final readonly class LoyaltyController
             'quick_sale_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'activity_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'          => admin_url('admin.php?page=wc-orders'),
+            'year'                => $dashboard->year,
+            'available_years'     => array_map(
+                fn (int $year): array => ['year' => $year, 'url' => $this->pageUrl($year)],
+                $dashboard->availableYears,
+            ),
             'metrics'             => [
                 ['label' => 'Clients fidélité', 'value' => (string) $dashboard->totalCustomers],
-                ['label' => 'Pots achetés (cumul)', 'value' => (string) $dashboard->totalPots],
+                ['label' => 'Pots achetés', 'value' => (string) $dashboard->totalPots],
                 ['label' => 'Pots offerts', 'value' => (string) $dashboard->totalOfferedPots],
-                ['label' => 'Avantages à réclamer', 'value' => (string) $dashboard->totalRewardsAvailable],
                 ['label' => 'Remises remerciement', 'value' => $this->formatMoney($dashboard->totalDiscountCents)],
             ],
             'top_buyers'          => array_map($this->formatRow(...), $dashboard->topBuyers),
@@ -45,19 +50,23 @@ final readonly class LoyaltyController
         ]);
     }
 
+    private function pageUrl(int $year): string
+    {
+        return admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty&year=' . $year);
+    }
+
     /**
      * @return array<string, string>
      */
     private function formatRow(LoyaltyCustomerRow $row): array
     {
         return [
-            'name'              => $row->name,
-            'city'              => $row->city,
-            'net_pots'          => (string) $row->netPots,
-            'rewards_available' => (string) $row->rewardsAvailable,
-            'offered_pots'      => (string) $row->offeredPots,
-            'discount'          => $this->formatMoney($row->discountCents),
-            'details_url'       => add_query_arg(
+            'name'         => $row->name,
+            'city'         => $row->city,
+            'pots_bought'  => (string) $row->potsBought,
+            'offered_pots' => (string) $row->offeredPots,
+            'discount'     => $this->formatMoney($row->discountCents),
+            'details_url'  => add_query_arg(
                 'customer',
                 $row->customerId,
                 admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers'),

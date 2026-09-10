@@ -10,25 +10,25 @@ use WC_Order;
 
 final readonly class WooCommerceLoyaltyEconomicsReader implements LoyaltyEconomicsReader
 {
-    private const IGNORED_STATUSES = ['cancelled', 'refunded', 'failed', 'trash'];
-
     public function __construct(private WooCommerceEligiblePotCounter $counter)
     {
     }
 
     public function forOrderIds(array $orderIds): array
     {
-        $discountCents = 0;
+        $potsBought = 0;
         $offeredPots = 0;
+        $discountCents = 0;
         foreach (array_unique($orderIds) as $orderId) {
             $order = wc_get_order($orderId);
-            if (! $order instanceof WC_Order || in_array($order->get_status(), self::IGNORED_STATUSES, true)) {
+            if (! $order instanceof WC_Order || 'completed' !== $order->get_status()) {
                 continue;
             }
-            $discountCents += max(0, (int) $order->get_meta(WooCommerceThankYouDiscount::ORDER_META));
+            $potsBought += $this->counter->countEligiblePots($order);
             $offeredPots += $this->counter->countOfferedPots($order);
+            $discountCents += max(0, (int) $order->get_meta(WooCommerceThankYouDiscount::ORDER_META));
         }
 
-        return ['discountCents' => $discountCents, 'offeredPots' => $offeredPots];
+        return ['potsBought' => $potsBought, 'offeredPots' => $offeredPots, 'discountCents' => $discountCents];
     }
 }

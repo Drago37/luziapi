@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard;
 
 /**
- * Vue du tableau de bord de fidélité : récapitulatif par client et classements.
+ * Vue du tableau de bord de fidélité pour une année : récapitulatif par client et
+ * classements.
  */
 final readonly class LoyaltyDashboardView
 {
     /**
-     * @param list<LoyaltyCustomerRow> $customers     tous les clients avec activité fidélité, triés par pots achetés
+     * @param list<LoyaltyCustomerRow> $customers     clients avec activité fidélité dans l'année, triés par pots achetés
      * @param list<LoyaltyCustomerRow> $topBuyers     meilleurs clients par pots achetés
      * @param list<LoyaltyCustomerRow> $topBenefited  clients ayant reçu le plus de pots offerts
      * @param list<LoyaltyCustomerRow> $topDiscounts  clients ayant reçu le plus de remise remerciement
+     * @param list<int>                $availableYears années proposées au sélecteur, décroissantes
      */
     public function __construct(
+        public int $year,
+        public array $availableYears,
         public array $customers,
         public array $topBuyers,
         public array $topBenefited,
@@ -24,12 +28,14 @@ final readonly class LoyaltyDashboardView
         public int $totalPots,
         public int $totalOfferedPots,
         public int $totalDiscountCents,
-        public int $totalRewardsAvailable,
     ) {
     }
 
-    public static function empty(): self
+    /**
+     * @param list<int> $availableYears
+     */
+    public static function empty(int $year, array $availableYears): self
     {
-        return new self([], [], [], [], 0, 0, 0, 0, 0);
+        return new self($year, $availableYears, [], [], [], [], 0, 0, 0, 0);
     }
 }

@@ -183,7 +183,6 @@ final class PilotageServiceProvider
             new CustomerHistoryProjector(),
             new WooCommerceLoyaltyEconomicsReader(new WooCommerceEligiblePotCounter()),
             $clock,
-            $loyaltyHandler,
         ));
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),

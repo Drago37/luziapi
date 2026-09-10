@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard;
 
 /**
- * Ligne du récapitulatif de fidélité d'un client.
+ * Ligne du récapitulatif de fidélité d'un client, pour une année donnée.
  *
- * - `netPots` : pots achetés comptés au programme (produits admissibles, net des
- *   contre-passations) — sert aussi de classement des meilleurs clients ;
- * - `rewardsAvailable` : pots offerts disponibles à réclamer ;
- * - `offeredPots` : pots offerts déjà reçus (geste + fidélité) ;
- * - `discountCents` : remise remerciement cumulée reçue.
+ * - `potsBought` : pots achetés dans l'année (produits admissibles, commandes
+ *   terminées) — sert aussi de classement des meilleurs clients ;
+ * - `offeredPots` : pots offerts reçus dans l'année (geste + fidélité) ;
+ * - `discountCents` : remise remerciement reçue dans l'année.
  */
 final readonly class LoyaltyCustomerRow
 {
@@ -19,8 +18,7 @@ final readonly class LoyaltyCustomerRow
         public string $customerId,
         public string $name,
         public string $city,
-        public int $netPots,
-        public int $rewardsAvailable,
+        public int $potsBought,
         public int $offeredPots,
         public int $discountCents,
     ) {

@@ -7,14 +7,14 @@ namespace LuziApi\Pilotage\Application\Port;
 interface LoyaltyEconomicsReader
 {
     /**
-     * Agrège, sur un ensemble de commandes, la remise remerciement totale (en
-     * centimes) et le nombre de pots offerts (geste + fidélité). Les commandes
-     * annulées / remboursées / échouées sont ignorées (l'avantage n'a pas été
-     * réellement reçu).
+     * Agrège, sur un ensemble de commandes **terminées**, les pots achetés
+     * (produits admissibles), les pots offerts (geste + fidélité) et la remise
+     * remerciement totale (centimes). Les commandes non terminées sont ignorées :
+     * les pots ne sont acquis qu'à « Terminée ».
      *
      * @param list<int> $orderIds
      *
-     * @return array{discountCents: int, offeredPots: int}
+     * @return array{potsBought: int, offeredPots: int, discountCents: int}
      */
     public function forOrderIds(array $orderIds): array;
 }

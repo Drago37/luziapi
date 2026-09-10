@@ -2,9 +2,15 @@
     <div class="luziapi-pilotage__header">
         <div>
             <p class="luziapi-pilotage__eyebrow">Programme « 10 pots achetés, le 11e offert »</p>
-            <h1>Fidélité</h1>
-            <p>Récapitulatif par client et classements — pots achetés, pots offerts et remises remerciement.</p>
+            <h1>Fidélité {{ year }}</h1>
+            <p>Récapitulatif par client et classements de l’année — pots achetés, pots offerts et remises remerciement.</p>
         </div>
+        {% if available_years|length > 1 %}
+            <div class="luziapi-pilotage__year-picker">
+                <span>Année</span>
+                {% for item in available_years %}<a class="{{ item.year == year ? 'is-active' : '' }}" href="{{ item.url|e('html_attr') }}">{{ item.year }}</a>{% endfor %}
+            </div>
+        {% endif %}
     </div>
 
     <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
@@ -28,7 +34,7 @@
 
     {% if customers is empty %}
         <section class="luziapi-pilotage__panel">
-            <p>Aucune activité de fidélité pour l’instant. Les pots se comptent dès qu’une commande « Terminée » contient des produits cochés « Pot admissible à la fidélité ».</p>
+            <p>Aucune activité de fidélité en {{ year }}. Les pots se comptent dès qu’une commande « Terminée » contient des produits cochés « Pot admissible à la fidélité ».</p>
         </section>
     {% else %}
         <div class="luziapi-pilotage__grid">
@@ -36,7 +42,7 @@
                 <p class="luziapi-pilotage__eyebrow">🏆 Meilleurs clients</p>
                 <h2>Plus de pots achetés</h2>
                 <ol class="luziapi-pilotage__ranking">
-                    {% for row in top_buyers %}<li><a href="{{ row.details_url|e('html_attr') }}">{{ row.name|e }}</a><strong>{{ row.net_pots }} pots</strong></li>{% else %}<li>—</li>{% endfor %}
+                    {% for row in top_buyers %}<li><a href="{{ row.details_url|e('html_attr') }}">{{ row.name|e }}</a><strong>{{ row.pots_bought }} pots</strong></li>{% else %}<li>—</li>{% endfor %}
                 </ol>
             </section>
             <section class="luziapi-pilotage__panel">
@@ -61,14 +67,13 @@
             </div>
             <div class="luziapi-pilotage__table-wrap">
                 <table class="widefat striped">
-                    <thead><tr><th>Client</th><th>Ville</th><th>Pots achetés</th><th>Avantages dispo</th><th>Pots offerts reçus</th><th>Remises reçues</th></tr></thead>
+                    <thead><tr><th>Client</th><th>Ville</th><th>Pots achetés</th><th>Pots offerts reçus</th><th>Remises reçues</th></tr></thead>
                     <tbody>
                     {% for row in customers %}
                         <tr>
                             <td><a href="{{ row.details_url|e('html_attr') }}"><strong>{{ row.name|e }}</strong></a></td>
                             <td>{{ row.city|e }}</td>
-                            <td>{{ row.net_pots }}</td>
-                            <td>{{ row.rewards_available }}</td>
+                            <td>{{ row.pots_bought }}</td>
                             <td>{{ row.offered_pots }}</td>
                             <td>{{ row.discount|e }}</td>
                         </tr>
