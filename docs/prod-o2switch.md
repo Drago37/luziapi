@@ -368,6 +368,19 @@ laisse prod à moitié déployé, donc en 500. Préférer le **FTPS ciblé** des
 (voir `AGENTS.md` § 3), avec **vérification SHA-256** et un **contrôle post-déploiement** sur une URL
 non cachée.
 
+## Recettes — encaissement automatique (10 septembre 2026)
+
+- **Règle métier :** une commande **« Terminée »** vaut encaissement. Sa recette est portée au
+  registre **automatiquement** (`WooCommerceReceiptSubscriber`), sans rapprochement manuel. Les
+  commandes issues de la Vente gèrent déjà la leur (exclues du hook). Le rapprochement assisté reste
+  disponible pour les cas particuliers.
+- **Bug corrigé au passage :** la colonne `sequence_number` de `luziapi_receipts` était `NOT NULL`
+  (un vieux schéma que `dbDelta` n'a jamais rendu nullable), alors que le dépôt insère NULL puis la
+  renseigne → **tout enregistrement de recette échouait**, d'où un tableau à 0 €. Migration de schéma
+  **v8** (`ALTER … MODIFY sequence_number … NULL`), appliquée en prod le 10 septembre 2026.
+- **État :** l'historique a été rattrapé (4 commandes terminées, **97 €** au registre) via le
+  rapprochement assisté. Le futur est automatique.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.

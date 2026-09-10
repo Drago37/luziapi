@@ -223,6 +223,12 @@ empreintes de fichiers.
   10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109 fichiers `src/Pilotage/`, site
   en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé
   + vérif SHA** à `make deploy`.
+- **`dbDelta` ne change pas la nullabilité d'une colonne existante.** Constaté le 10 septembre 2026 :
+  la colonne `sequence_number` de `luziapi_receipts`, créée jadis en `NOT NULL`, l'est restée malgré
+  un schéma passé à `NULL` — le dépôt insérant NULL puis le renseignant, **tout enregistrement de
+  recette échouait** silencieusement. Pour un changement de nullabilité (ou de type), ajouter un
+  `ALTER TABLE … MODIFY` explicite dans la migration versionnée (`PilotageSchemaManager`), jamais se
+  fier au seul `dbDelta`.
 
 ### Processus de remise en production depuis le 6 septembre 2026
 
@@ -266,6 +272,14 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   répertoire client (invités sans compte : source = le carnet maison, jamais la liste des
   utilisateurs WordPress). Ne pas rétablir la création native sans en parler. Test :
   `make e2e-vente-local` (voir [docs/tests-vente.md](docs/tests-vente.md)).
+- **Recette = commande « Terminée » (enregistrement automatique).** Règle métier validée : le statut
+  « Terminée » vaut preuve d'encaissement. Un subscriber (`WooCommerceReceiptSubscriber`) porte donc
+  automatiquement la recette au registre au passage à ce statut, idempotent (solde manquant seulement),
+  en excluant les commandes issues de la Vente qui gèrent déjà la leur. Le rapprochement assisté et la
+  saisie manuelle restent disponibles pour les cas particuliers, mais ne sont plus la voie normale. Ne
+  pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
+  `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
+  + `RecordOrderReceiptHandlerTest`.
 
 ---
 
