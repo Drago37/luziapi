@@ -34,7 +34,7 @@ final class GetLoyaltyForOrdersHandlerTest extends TestCase
     {
         $ledger = new InMemoryLoyaltyLedger();
         (new RecordCompletedOrderHandler($ledger, FixedClock::at('2026-09-10 10:00:00')))
-            ->handle(new RecordCompletedOrderCommand(1, 'client-key', 11));
+            ->handle(new RecordCompletedOrderCommand(1, 'client-key', 16));
 
         $handler = new GetLoyaltyForOrdersHandler(
             new FakeOrderContactKeys(['client-key']),
@@ -43,10 +43,10 @@ final class GetLoyaltyForOrdersHandlerTest extends TestCase
 
         $view = $handler->handle([1]);
 
-        self::assertSame(11, $view->netPots);
+        self::assertSame(16, $view->netPots);
         self::assertSame(1, $view->rewardsAvailable);
         self::assertSame(1, $view->potsTowardNextReward);
-        self::assertSame(9, $view->potsUntilNextReward);
+        self::assertSame(14, $view->potsUntilNextReward);
     }
 }
 

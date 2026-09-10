@@ -293,7 +293,7 @@ function luziapi_product_metabox(\WP_Post $post): void
     <p>
         <label>
             <input type="checkbox" name="luziapi_pot_admissible" value="yes" <?php checked($pot_admissible, 'yes'); ?> />
-            <?php esc_html_e('Pot admissible à la fidélité (compté dans « 10 pots achetés, le 11e offert »)', 'luziapi'); ?>
+            <?php esc_html_e('Pot admissible à la fidélité (compté dans « 15 pots achetés, le 16e offert »)', 'luziapi'); ?>
         </label>
     </p>
     <p class="description">

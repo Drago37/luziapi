@@ -39,12 +39,12 @@ final class GetCustomerLoyaltyHandlerTest extends TestCase
     {
         // Même client, deux commandes rattachées à deux clés d'identité distinctes
         // (ex. une par e-mail, une par téléphone) — la fiche agrège les deux.
-        $this->record->handle(new RecordCompletedOrderCommand(1, 'key-email', 6));
-        $this->record->handle(new RecordCompletedOrderCommand(2, 'key-phone', 5));
+        $this->record->handle(new RecordCompletedOrderCommand(1, 'key-email', 10));
+        $this->record->handle(new RecordCompletedOrderCommand(2, 'key-phone', 6));
 
         $view = $this->query->handle(new GetCustomerLoyaltyQuery(['key-email', 'key-phone']));
 
-        self::assertSame(11, $view->netPots);
+        self::assertSame(16, $view->netPots);
         self::assertSame(1, $view->rewardsAcquired);
         self::assertSame(1, $view->potsTowardNextReward);
         self::assertCount(2, $view->entries);

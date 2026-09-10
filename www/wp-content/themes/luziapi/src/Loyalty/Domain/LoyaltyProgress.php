@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace LuziApi\Loyalty\Domain;
 
 /**
- * Progression d'un client dans le programme « 10 pots achetés, le 11e offert ».
+ * Progression d'un client dans le programme « 15 pots achetés, le 16e offert ».
  *
  * Calcul à partir du nombre net de pots crédités (achats moins contre-passations
- * de remboursement/annulation). Chaque tranche de 10 pots ouvre un avantage :
- * 23 pots → 2 avantages acquis et 3/10 sur la tranche en cours.
+ * de remboursement/annulation). Chaque tranche de 15 pots ouvre un avantage :
+ * 33 pots → 2 avantages acquis et 3/15 sur la tranche en cours.
  *
  * Le lot 1 ne consomme pas encore d'avantage (pot offert = lot 2) ; le nombre
  * d'avantages consommés est passé pour rester juste le jour où il deviendra non
@@ -17,7 +17,7 @@ namespace LuziApi\Loyalty\Domain;
  */
 final readonly class LoyaltyProgress
 {
-    private const POTS_PER_REWARD = 10;
+    private const POTS_PER_REWARD = 15;
 
     public int $netPots;
 

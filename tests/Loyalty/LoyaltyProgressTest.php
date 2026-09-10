@@ -17,32 +17,32 @@ final class LoyaltyProgressTest extends TestCase
         self::assertSame(0, $progress->rightsAcquired);
         self::assertSame(0, $progress->rightsAvailable);
         self::assertSame(0, $progress->potsTowardNextReward);
-        self::assertSame(10, $progress->potsUntilNextReward());
+        self::assertSame(15, $progress->potsUntilNextReward());
     }
 
-    public function testTenPotsAcquireExactlyOneReward(): void
+    public function testFifteenPotsAcquireExactlyOneReward(): void
     {
-        $progress = new LoyaltyProgress(10);
+        $progress = new LoyaltyProgress(15);
 
         self::assertSame(1, $progress->rightsAcquired);
         self::assertSame(1, $progress->rightsAvailable);
         self::assertSame(0, $progress->potsTowardNextReward);
-        self::assertSame(10, $progress->potsUntilNextReward());
+        self::assertSame(15, $progress->potsUntilNextReward());
     }
 
-    public function testTwentyThreePotsGiveTwoRewardsAndThreeInProgress(): void
+    public function testThirtyThreePotsGiveTwoRewardsAndThreeInProgress(): void
     {
-        $progress = new LoyaltyProgress(23);
+        $progress = new LoyaltyProgress(33);
 
-        self::assertSame(23, $progress->netPots);
+        self::assertSame(33, $progress->netPots);
         self::assertSame(2, $progress->rightsAcquired);
         self::assertSame(3, $progress->potsTowardNextReward);
-        self::assertSame(7, $progress->potsUntilNextReward());
+        self::assertSame(12, $progress->potsUntilNextReward());
     }
 
     public function testConsumedRewardsLowerAvailabilityButNotAcquisition(): void
     {
-        $progress = new LoyaltyProgress(23, rightsConsumed: 1);
+        $progress = new LoyaltyProgress(33, rightsConsumed: 1);
 
         self::assertSame(2, $progress->rightsAcquired);
         self::assertSame(1, $progress->rightsAvailable);

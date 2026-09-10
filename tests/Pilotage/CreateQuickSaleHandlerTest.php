@@ -52,7 +52,7 @@ final class CreateQuickSaleHandlerTest extends TestCase
         $ledger = new InMemoryLoyaltyLedger();
         // 10 pots crédités sous la clé e-mail du client => 1 avantage disponible.
         (new RecordCompletedOrderHandler($ledger, LoyaltyFixedClock::at('2026-09-01 10:00:00')))->handle(
-            new RecordCompletedOrderCommand(999, LoyaltyIdentity::hash('email:camille@example.test'), 10),
+            new RecordCompletedOrderCommand(999, LoyaltyIdentity::hash('email:camille@example.test'), 15),
         );
         $handler = $this->handler($orders, $receipts, new GetCustomerLoyaltyHandler($ledger));
 

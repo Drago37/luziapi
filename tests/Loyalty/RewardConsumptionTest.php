@@ -37,7 +37,7 @@ final class RewardConsumptionTest extends TestCase
 
     public function testConsumingARewardLowersAvailabilityNotAcquisition(): void
     {
-        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 20)); // 2 avantages acquis
+        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 30)); // 2 avantages acquis
 
         $id = $this->consume->handle(new RecordRewardConsumptionCommand(2, 'key', 1));
 
@@ -54,7 +54,7 @@ final class RewardConsumptionTest extends TestCase
 
     public function testConsumptionIsIdempotent(): void
     {
-        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 20));
+        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 30));
 
         $first = $this->consume->handle(new RecordRewardConsumptionCommand(2, 'key', 1));
         $second = $this->consume->handle(new RecordRewardConsumptionCommand(2, 'key', 1));
@@ -71,7 +71,7 @@ final class RewardConsumptionTest extends TestCase
 
     public function testRestoringGivesTheRewardBack(): void
     {
-        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 20));
+        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 30));
         $this->consume->handle(new RecordRewardConsumptionCommand(2, 'key', 1));
 
         $restoreId = $this->restore->handle(new ReverseRewardConsumptionCommand(2));
@@ -88,7 +88,7 @@ final class RewardConsumptionTest extends TestCase
     {
         self::assertNull($this->restore->handle(new ReverseRewardConsumptionCommand(999)));
 
-        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 20));
+        $this->credit->handle(new RecordCompletedOrderCommand(1, 'key', 30));
         $this->consume->handle(new RecordRewardConsumptionCommand(2, 'key', 1));
         $first = $this->restore->handle(new ReverseRewardConsumptionCommand(2));
         $second = $this->restore->handle(new ReverseRewardConsumptionCommand(2));
@@ -99,8 +99,8 @@ final class RewardConsumptionTest extends TestCase
 
     public function testAvailableRewardsByCustomerAggregatesKeys(): void
     {
-        $this->credit->handle(new RecordCompletedOrderCommand(1, 'marie-email', 6));
-        $this->credit->handle(new RecordCompletedOrderCommand(2, 'marie-phone', 5)); // 11 pots -> 1 avantage
+        $this->credit->handle(new RecordCompletedOrderCommand(1, 'marie-email', 10));
+        $this->credit->handle(new RecordCompletedOrderCommand(2, 'marie-phone', 5)); // 15 pots -> 1 avantage
         $this->consume->handle(new RecordRewardConsumptionCommand(3, 'marie-email', 1)); // consommé
 
         $available = $this->query->availableRewardsByCustomer([
