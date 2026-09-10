@@ -60,12 +60,26 @@ final readonly class WooCommerceEligiblePotCounter
      */
     public function countRewardPots(WC_Order $order): int
     {
+        return $this->countMarkedLines($order, self::REWARD_LINE_META);
+    }
+
+    /**
+     * Nombre total de pots **offerts** sur la commande (geste commercial ET
+     * fidélité), ajusté des remboursements.
+     */
+    public function countOfferedPots(WC_Order $order): int
+    {
+        return $this->countMarkedLines($order, self::OFFERT_LINE_META);
+    }
+
+    private function countMarkedLines(WC_Order $order, string $meta): int
+    {
         $total = 0;
         foreach ($order->get_items() as $itemId => $item) {
             if (! $item instanceof WC_Order_Item_Product) {
                 continue;
             }
-            if ('yes' !== (string) $item->get_meta(self::REWARD_LINE_META)) {
+            if ('yes' !== (string) $item->get_meta($meta)) {
                 continue;
             }
             $netQuantity = (int) $item->get_quantity() + (int) $order->get_qty_refunded_for_item((int) $itemId);

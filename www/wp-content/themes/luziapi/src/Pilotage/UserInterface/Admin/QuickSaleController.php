@@ -88,6 +88,7 @@ final readonly class QuickSaleController
             'products_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),
             'inventory_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
             'activity_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
+            'loyalty_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty'),
             'orders_url'           => admin_url('admin.php?page=wc-orders'),
             'action_url'           => admin_url('admin-post.php'),
             'nonce'                => wp_create_nonce('luziapi_create_quick_sale'),

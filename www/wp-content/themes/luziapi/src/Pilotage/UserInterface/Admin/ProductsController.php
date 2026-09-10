@@ -37,6 +37,7 @@ final readonly class ProductsController
             'inventory_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
             'quick_sale_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'activity_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
+            'loyalty_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty'),
             'orders_url'           => admin_url('admin.php?page=wc-orders'),
             'products_admin_url'   => admin_url('edit.php?post_type=product'),
             'metrics'              => [

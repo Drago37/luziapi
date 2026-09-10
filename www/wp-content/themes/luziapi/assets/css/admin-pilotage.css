@@ -110,6 +110,29 @@
     line-height: 1.1;
 }
 
+.luziapi-pilotage__ranking {
+    margin: 12px 0 0;
+    padding-left: 1.4em;
+}
+
+.luziapi-pilotage__ranking li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--luziapi-line, #ece7df);
+}
+
+.luziapi-pilotage__ranking li:last-child {
+    border-bottom: 0;
+}
+
+.luziapi-pilotage__ranking strong {
+    color: var(--luziapi-espresso);
+    white-space: nowrap;
+}
+
 .luziapi-pilotage__grid {
     display: grid;
     gap: 18px;

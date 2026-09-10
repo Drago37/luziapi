@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\Bootstrap;
 
+use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
@@ -18,6 +19,7 @@ use LuziApi\Pilotage\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
 use LuziApi\Pilotage\Application\Query\GetInventoryDashboard\GetInventoryDashboardHandler;
+use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetProductDashboard\GetProductDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetReceiptRegister\GetReceiptRegisterHandler;
 use LuziApi\Pilotage\Application\Query\GetTaxDeclaration\GetTaxDeclarationHandler;
@@ -30,6 +32,7 @@ use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderLotSelector;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
@@ -54,6 +57,7 @@ use LuziApi\Pilotage\UserInterface\Admin\AssetLoader;
 use LuziApi\Pilotage\UserInterface\Admin\CustomersController;
 use LuziApi\Pilotage\UserInterface\Admin\DashboardController;
 use LuziApi\Pilotage\UserInterface\Admin\InventoryController;
+use LuziApi\Pilotage\UserInterface\Admin\LoyaltyController;
 use LuziApi\Pilotage\UserInterface\Admin\PilotageController;
 use LuziApi\Pilotage\UserInterface\Admin\ProductsController;
 use LuziApi\Pilotage\UserInterface\Admin\QuickSaleController;
@@ -174,6 +178,13 @@ final class PilotageServiceProvider
                 $clock,
             ),
         );
+        $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
+            $orders,
+            new CustomerHistoryProjector(),
+            new WooCommerceLoyaltyEconomicsReader(new WooCommerceEligiblePotCounter()),
+            $clock,
+            $loyaltyHandler,
+        ));
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),
             $customersController,
@@ -183,6 +194,7 @@ final class PilotageServiceProvider
             $inventoryController,
             $quickSaleController,
             $activityController,
+            $loyaltyController,
         );
 
         add_action('init', [$schema, 'migrate'], 1);

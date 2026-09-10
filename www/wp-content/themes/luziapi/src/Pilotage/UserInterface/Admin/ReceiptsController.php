@@ -68,6 +68,7 @@ final readonly class ReceiptsController
             'inventory_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
             'quick_sale_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'activity_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
+            'loyalty_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty'),
             'orders_url'          => admin_url('admin.php?page=wc-orders'),
             'record_action'       => admin_url('admin-post.php'),
             'record_nonce'        => wp_create_nonce('luziapi_record_receipt'),

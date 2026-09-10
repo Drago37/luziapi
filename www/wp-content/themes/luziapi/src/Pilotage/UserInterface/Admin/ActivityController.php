@@ -43,6 +43,7 @@ final readonly class ActivityController
             'products_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),
             'inventory_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
             'quick_sale_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
+            'loyalty_url'          => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty'),
             'orders_url'           => admin_url('admin.php?page=wc-orders'),
             'from'                 => $filter->from->format('Y-m-d'),
             'to'                   => $filter->to->format('Y-m-d'),

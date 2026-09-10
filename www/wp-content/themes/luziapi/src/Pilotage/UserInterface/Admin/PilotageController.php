@@ -15,6 +15,7 @@ final readonly class PilotageController
         private InventoryController $inventory,
         private QuickSaleController $quickSale,
         private ActivityController $activity,
+        private LoyaltyController $loyalty,
     ) {
     }
 
@@ -60,6 +61,12 @@ final readonly class PilotageController
 
         if ('activity' === $tab) {
             $this->activity->render();
+
+            return;
+        }
+
+        if ('loyalty' === $tab) {
+            $this->loyalty->render();
 
             return;
         }
