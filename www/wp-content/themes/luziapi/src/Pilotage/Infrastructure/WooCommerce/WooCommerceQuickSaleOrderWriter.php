@@ -89,6 +89,9 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
         foreach ($command->rewardLines as $line) {
             $this->addOfferedItem($order, $resolved[$line->productId], $line->quantity, true);
         }
+        if (null !== $command->discount) {
+            WooCommerceThankYouDiscount::applyTo($order, $command->discount);
+        }
 
         $order->set_date_created($command->occurredAt->getTimestamp());
         if ($command->paid) {

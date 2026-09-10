@@ -135,8 +135,9 @@ ou prod) à chaque changement du workflow des commandes.
 Le suivi client sans compte possède en plus son test d’intégration local
 `make e2e-tracking-local` et sa documentation dans
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
-La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/` et son test
-d’intégration local `make e2e-loyalty-local` (voir [docs/fidelite.md](docs/fidelite.md)).
+La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/` et ses tests
+d’intégration locaux `make e2e-loyalty-local` (pots/avantages) et
+`make e2e-discount-local` (remise remerciement) — voir [docs/fidelite.md](docs/fidelite.md).
 
 **Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
 **fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`
@@ -316,6 +317,10 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   offert au titre du programme (0 €, sorti du stock **et** consomme un avantage, borné aux avantages
   disponibles). Les deux sont exclus du gain de pots. Détails et métas de ligne dans
   [docs/fidelite.md](docs/fidelite.md). Module `src/Loyalty/`, tests `make e2e-loyalty-local`.
+  La **remise remerciement** (lot 3) est encore autre chose : un geste monétaire libre
+  (€ ou %), porté comme une vraie réduction WooCommerce (jamais des frais négatifs),
+  applicable dans la Vente ou a posteriori sur une commande (avec correction de recette
+  automatique si déjà encaissée). Tests `make e2e-discount-local`.
 
 ---
 

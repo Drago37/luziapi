@@ -22,6 +22,8 @@
 
     {% if notice == 'category_updated' %}<div class="notice notice-success inline"><p>La catégorie du client a été enregistrée.</p></div>{% endif %}
     {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p></div>{% endif %}
+    {% if notice == 'discount_applied' %}<div class="notice notice-success inline"><p>La remise remerciement a été appliquée à la commande.</p></div>{% endif %}
+    {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p></div>{% endif %}
 
     {% if selected_customer %}
         <section class="luziapi-pilotage__customer-card">
@@ -105,6 +107,18 @@
                     </tbody>
                 </table>
             </div>
+            <h3>Remise remerciement</h3>
+            <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post">
+                <input type="hidden" name="action" value="luziapi_apply_thankyou_discount">
+                <input type="hidden" name="_wpnonce" value="{{ discount_nonce|e('html_attr') }}">
+                <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                <label for="luziapi-discount-order"><strong>Commande</strong></label>
+                <select id="luziapi-discount-order" name="order_id" required>{% for order in selected_customer.orders %}<option value="{{ order.id }}">n°{{ order.number|e }} — {{ order.date|e }} — {{ order.total|e }} ({{ order.status|e }})</option>{% endfor %}</select>
+                <select name="discount_type" required><option value="percent">En %</option><option value="amount">En €</option></select>
+                <input type="number" name="discount_value" min="0" step="0.01" value="0" required aria-label="Valeur de la remise">
+                <button class="button button-primary" type="submit">Appliquer la remise</button>
+            </form>
+            <p class="description">Geste commercial libre. Si la commande était déjà encaissée, la recette est corrigée automatiquement.</p>
             <h3>Notes et échanges</h3>
             <div class="luziapi-pilotage__timeline">
                 {% for event in timeline %}<article><div><span class="luziapi-pilotage__badge {{ event.public ? 'is-public' : 'is-private' }}">{{ event.visibility|e }}</span><time>{{ event.date|e }}</time> · <a href="{{ event.order_url|e('html_attr') }}">commande n°{{ event.order_number|e }}</a></div><p>{{ event.content|e }}</p></article>{% else %}<p>Aucune note enregistrée pour ces commandes.</p>{% endfor %}

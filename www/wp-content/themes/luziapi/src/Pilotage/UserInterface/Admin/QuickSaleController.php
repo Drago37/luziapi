@@ -19,6 +19,8 @@ use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Product\ProductCatalog;
 use LuziApi\Pilotage\Domain\Product\ProductStockSnapshot;
+use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
+use LuziApi\Pilotage\Domain\Sales\ThankYouDiscountType;
 use Throwable;
 use Timber\Timber;
 
@@ -141,6 +143,7 @@ final readonly class QuickSaleController
             if ($rewardProduct > 0 && $rewardQty > 0) {
                 $rewardLines[] = new QuickSaleLine($rewardProduct, $rewardQty);
             }
+            $discount = $this->readDiscount();
             $created = $this->createQuickSale->handle(new CreateQuickSaleCommand(
                 $lines,
                 sanitize_text_field(wp_unslash((string) ($_POST['customer_name'] ?? ''))),
@@ -159,6 +162,7 @@ final readonly class QuickSaleController
                 sanitize_text_field(wp_unslash((string) ($_POST['request_id'] ?? ''))),
                 $giftLines,
                 $rewardLines,
+                $discount,
             ));
 
             $this->redirect($created->alreadyExisted ? 'duplicate' : 'created', $created->orderId);
@@ -169,6 +173,26 @@ final readonly class QuickSaleController
             $this->recordFailure('Création d’une vente échouée');
             $this->redirect('error');
         }
+    }
+
+    /**
+     * Remise remerciement saisie dans la Vente (montant € ou %), ou `null`.
+     */
+    private function readDiscount(): ?ThankYouDiscount
+    {
+        $type = sanitize_key(wp_unslash((string) ($_POST['discount_type'] ?? '')));
+        if ('' === $type) {
+            return null;
+        }
+        $raw = sanitize_text_field(wp_unslash((string) ($_POST['discount_value'] ?? '')));
+        if (ThankYouDiscountType::Percent->value === $type) {
+            return ThankYouDiscount::fromInput($type, absint($raw));
+        }
+
+        // Montant : saisi en euros, converti en centimes.
+        $cents = (int) round((float) str_replace(',', '.', $raw) * 100);
+
+        return ThankYouDiscount::fromInput($type, $cents);
     }
 
     /**

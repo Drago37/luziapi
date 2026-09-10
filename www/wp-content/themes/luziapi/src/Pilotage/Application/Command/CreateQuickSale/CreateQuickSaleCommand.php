@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Application\Command\CreateQuickSale;
 
 use DateTimeImmutable;
+use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
 
 final readonly class CreateQuickSaleCommand
 {
@@ -31,6 +32,7 @@ final readonly class CreateQuickSaleCommand
         public string $requestId,
         public array $giftLines = [],
         public array $rewardLines = [],
+        public ?ThankYouDiscount $discount = null,
     ) {
     }
 }

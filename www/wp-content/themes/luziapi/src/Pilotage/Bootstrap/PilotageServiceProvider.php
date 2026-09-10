@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Bootstrap;
 
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
+use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
 use LuziApi\Pilotage\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
@@ -29,6 +30,7 @@ use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderLotSelector;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderStockSubscriber;
@@ -164,6 +166,13 @@ final class PilotageServiceProvider
             new AssignCustomerCategoryHandler($customerCategories, $clock),
             $activity,
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler(),
+            new ApplyThankYouDiscountHandler(
+                new WooCommerceOrderDiscountWriter(),
+                $recordReceipt,
+                $receipts,
+                $activity,
+                $clock,
+            ),
         );
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),

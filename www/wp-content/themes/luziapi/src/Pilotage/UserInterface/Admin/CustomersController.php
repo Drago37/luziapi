@@ -8,6 +8,8 @@ use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandl
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
+use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
+use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
@@ -18,6 +20,8 @@ use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
 use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
+use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
+use LuziApi\Pilotage\Domain\Sales\ThankYouDiscountType;
 use Throwable;
 use Timber\Timber;
 
@@ -40,12 +44,59 @@ final readonly class CustomersController
         private AssignCustomerCategoryHandler $assignCategory,
         private ActivityRecorder $activity,
         private ?GetCustomerLoyaltyHandler $getLoyalty = null,
+        private ?ApplyThankYouDiscountHandler $applyDiscount = null,
     ) {
     }
 
     public function register(): void
     {
         add_action('admin_post_luziapi_assign_customer_category', [$this, 'assignCategory']);
+        add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
+    }
+
+    public function applyThankYouDiscount(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_apply_thankyou_discount');
+        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+
+        try {
+            if (! $this->applyDiscount instanceof ApplyThankYouDiscountHandler) {
+                throw new \RuntimeException('Thank-you discount is not available.');
+            }
+            $orderId = absint($_POST['order_id'] ?? 0);
+            $discount = $this->readDiscount();
+            if ($orderId <= 0 || ! $discount instanceof ThankYouDiscount) {
+                throw new \InvalidArgumentException('Invalid thank-you discount request.');
+            }
+            $this->applyDiscount->handle(new ApplyThankYouDiscountCommand($orderId, $discount, get_current_user_id()));
+            $this->redirectAfterCategory($customerId, 'discount_applied');
+        } catch (Throwable) {
+            $this->activity->record(
+                ActivityCategory::Error,
+                'thankyou_discount_failed',
+                'order',
+                null,
+                'Remise remerciement échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'discount_error');
+        }
+    }
+
+    private function readDiscount(): ?ThankYouDiscount
+    {
+        $type = sanitize_key(wp_unslash((string) ($_POST['discount_type'] ?? '')));
+        if ('' === $type) {
+            return null;
+        }
+        $raw = sanitize_text_field(wp_unslash((string) ($_POST['discount_value'] ?? '')));
+        if (ThankYouDiscountType::Percent->value === $type) {
+            return ThankYouDiscount::fromInput($type, absint($raw));
+        }
+
+        return ThankYouDiscount::fromInput($type, (int) round((float) str_replace(',', '.', $raw) * 100));
     }
 
     public function render(): void
@@ -78,6 +129,7 @@ final readonly class CustomersController
                 : '',
             'action_url'        => admin_url('admin-post.php'),
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
+            'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
@@ -228,6 +280,7 @@ final readonly class CustomersController
     private function formatOrder(OrderSnapshot $order): array
     {
         return [
+            'id'     => (string) $order->id,
             'number' => $order->number,
             'url'    => admin_url('admin.php?page=wc-orders&action=edit&id=' . $order->id),
             'date'   => wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp()),

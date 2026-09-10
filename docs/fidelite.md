@@ -1,8 +1,8 @@
 # Programme de fidélité LuziApi
 
-> Suivi de l'implémentation de l'issue #4. Ce document décrit les **lots 1 et 2**
-> (acquisition des pots + utilisation d'un avantage), en place, et les lots suivants
-> restant à faire.
+> Suivi de l'implémentation de l'issue #4. Ce document décrit les **lots 1 à 3**
+> (acquisition des pots, utilisation d'un avantage, remise remerciement), en place,
+> et les lots suivants restant à faire.
 
 ## Règle métier
 
@@ -48,6 +48,26 @@ l'avantage est alors rendu au client.
 
 Le programme **n'affiche pas encore** l'état de fidélité côté client (compte /
 e-mails) : c'est l'objet du lot 4.
+
+## Ce que fait le lot 3 (remise remerciement)
+
+Geste commercial **monétaire libre** (€ ou %), **sans lien avec les avantages
+fidélité** — à ne pas confondre avec le pot offert (lot 2). Portée comme une
+**vraie réduction** WooCommerce (`discount_total` natif, jamais des frais
+négatifs), donc affichée correctement sur la commande et les e-mails. Toujours
+**bornée au total remisable** et arrondie au pas de la devise. Deux chemins :
+
+- **À la création, dans la Vente** : champ « remise remerciement » ; la commande
+  et la recette intègrent d'emblée le total remisé (rien à corriger).
+- **A posteriori, depuis la fiche client** : bouton sur une commande déjà passée.
+  Si elle était **déjà encaissée**, la recette est corrigée automatiquement par
+  une contre-écriture `Refund` du montant réellement remisé, pour que la compta
+  reste juste. Le geste est tracé dans le **journal d'activité**.
+
+Composants : VO `Domain/Sales/ThankYouDiscount` (calcul + plafond), commande
+`Application/Command/ApplyThankYouDiscount` (chemin a posteriori + correction de
+recette + traçabilité), helper `Infrastructure/WooCommerce/WooCommerceThankYouDiscount`
+(vraie réduction, partagé Vente/fiche) et `WooCommerceOrderDiscountWriter`.
 
 ## Produits éligibles
 
@@ -112,16 +132,19 @@ les valeurs pour l'empêcher.
 
 - **Unitaires / intégration légère** (`tests/Loyalty/`, `tests/Pilotage/`,
   `make test`) : progression, identité (golden), crédit / contre-passation,
-  consommation / restitution d'avantage, agrégation de la requête, disponibilités,
-  et garde-fou de la Vente (refus d'offrir plus d'avantages que disponibles).
-- **Intégration bout en bout** (`tools/e2e-loyalty-on-complete.php`,
-  `make e2e-loyalty-local`) : vraie commande WooCommerce, vrai journal en base ;
-  vérifie compteur (offerts exclus), crédit, consommation d'avantage, **décompte
-  du stock des pots offerts**, idempotence, contre-passation/restitution à zéro,
-  puis nettoie toutes les données créées.
+  consommation / restitution d'avantage, agrégation, disponibilités, garde-fou de
+  la Vente, calcul et plafond de la remise remerciement, et correction de recette
+  a posteriori.
+- **Intégration bout en bout** :
+  - `make e2e-loyalty-local` : compteur (offerts exclus), crédit, consommation
+    d'avantage, **décompte du stock des pots offerts**, idempotence,
+    contre-passation/restitution à zéro.
+  - `make e2e-discount-local` : remise portée en `discount_total` natif (pas de
+    frais négatifs), à la création et a posteriori, plafond au total, précision
+    devise.
+  Les deux nettoient toutes les données créées.
 
 ## Reste à faire (lots suivants de l'issue #4)
 
-- **Lot 3** — remise « remerciement » manuelle depuis la fiche client.
 - **Lot 4** — affichage côté client (compte / e-mails), migration de l'ancien
   « 1 €/pot » et communication.
