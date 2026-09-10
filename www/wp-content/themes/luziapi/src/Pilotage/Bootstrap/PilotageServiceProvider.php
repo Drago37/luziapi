@@ -8,6 +8,7 @@ use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
 use LuziApi\Pilotage\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
+use LuziApi\Pilotage\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
 use LuziApi\Pilotage\Application\Command\RecordOrderStockMovement\OrderStockMovementRecorder;
 use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Pilotage\Application\Command\RecordStockMovement\RecordStockMovementHandler;
@@ -33,6 +34,7 @@ use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderStockSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceProductCatalog;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceStockLevelGateway;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedInventoryRepository;
@@ -181,6 +183,7 @@ final class PilotageServiceProvider
         (new WooCommerceOrderStockSubscriber(new OrderStockMovementRecorder($inventory, $clock), $activity))->register();
         (new WooCommerceOrderLotSelector($inventory, $activity))->register();
         (new WooCommerceActivitySubscriber($activity))->register();
+        (new WooCommerceReceiptSubscriber(new RecordOrderReceiptHandler($receipts, $recordReceipt), $clock))->register();
         (new AdminMenu($controller))->register();
         (new AssetLoader($themeDirectory, $themeUri))->register();
     }

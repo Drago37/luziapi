@@ -73,6 +73,12 @@ e2e-clean: ## Supprime toute trace de commande/produit de test e2e resté en bas
 e2e-vente-local: ## Teste la Vente (préremplissage client + point d'entrée unique) sur le vrai WooCommerce local
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente.php';" --user=admin
 
+backfill-receipts-local: ## Porte au registre l'encaissement des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
+	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-receipts.php';" --user=admin
+
+e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Terminée »
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-receipt-on-complete.php';" --user=admin
+
 e2e-prod: ## Test e2e sur la PROD en dry-run (aucun e-mail, dépose→exécute→supprime)
 	@bash scripts/e2e-prod.sh
 

@@ -8,7 +8,7 @@ use wpdb;
 
 final readonly class PilotageSchemaManager
 {
-    public const VERSION = '7';
+    public const VERSION = '8';
     private const OPTION = 'luziapi_pilotage_receipts_schema_version';
 
     public function __construct(private wpdb $database)
@@ -116,6 +116,14 @@ final readonly class PilotageSchemaManager
             PRIMARY KEY  (customer_key),
             KEY category (category)
         ) {$charset};");
+
+        // dbDelta ne modifie pas la nullabilité d'une colonne existante. Les
+        // premières tables ont été créées avec `sequence_number` en NOT NULL, or
+        // le dépôt insère d'abord NULL puis le renseigne (= id) : sans ce correctif,
+        // tout enregistrement de recette échoue. L'ALTER est idempotent.
+        $this->database->query(
+            "ALTER TABLE {$table} MODIFY sequence_number bigint(20) unsigned NULL",
+        );
 
         update_option(self::OPTION, self::VERSION, false);
     }
