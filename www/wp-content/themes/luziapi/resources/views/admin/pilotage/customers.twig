@@ -24,6 +24,8 @@
     {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p></div>{% endif %}
     {% if notice == 'discount_applied' %}<div class="notice notice-success inline"><p>La remise remerciement a été appliquée à la commande.</p></div>{% endif %}
     {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p></div>{% endif %}
+    {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
+    {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p></div>{% endif %}
 
     {% if selected_customer %}
         <section class="luziapi-pilotage__customer-card">
@@ -70,6 +72,16 @@
                         <div><span>Progression</span><strong>{{ loyalty.pots_in_progress }} / {{ loyalty.pots_per_reward }}</strong></div>
                         <div><span>Avant le prochain</span><strong>{{ loyalty.pots_until_next }} pot{{ loyalty.pots_until_next > 1 ? 's' : '' }}</strong></div>
                     </div>
+                    <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post">
+                        <input type="hidden" name="action" value="luziapi_adjust_loyalty_pots">
+                        <input type="hidden" name="_wpnonce" value="{{ adjust_pots_nonce|e('html_attr') }}">
+                        <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                        <label for="luziapi-pots-amount"><strong>Ajuster le solde de pots</strong></label>
+                        <select name="pots_direction" aria-label="Sens de l’ajustement"><option value="add">Ajouter</option><option value="remove">Retirer</option></select>
+                        <input id="luziapi-pots-amount" type="number" name="pots_amount" min="1" value="1" aria-label="Nombre de pots">
+                        <input type="text" name="pots_reason" placeholder="Motif (ex. geste commercial)" aria-label="Motif">
+                        <button class="button" type="submit">Ajuster</button>
+                    </form>
                     {% if loyalty.entries %}
                         <div class="luziapi-pilotage__table-wrap">
                             <table class="widefat striped">

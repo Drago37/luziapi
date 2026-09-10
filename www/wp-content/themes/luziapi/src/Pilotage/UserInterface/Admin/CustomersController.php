@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsCommand;
+use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
@@ -45,6 +47,7 @@ final readonly class CustomersController
         private ActivityRecorder $activity,
         private ?GetCustomerLoyaltyHandler $getLoyalty = null,
         private ?ApplyThankYouDiscountHandler $applyDiscount = null,
+        private ?AdjustLoyaltyPotsHandler $adjustPots = null,
     ) {
     }
 
@@ -52,6 +55,41 @@ final readonly class CustomersController
     {
         add_action('admin_post_luziapi_assign_customer_category', [$this, 'assignCategory']);
         add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
+        add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
+    }
+
+    public function adjustLoyaltyPots(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_adjust_loyalty_pots');
+        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+
+        try {
+            if (! $this->adjustPots instanceof AdjustLoyaltyPotsHandler) {
+                throw new \RuntimeException('Loyalty adjustment is not available.');
+            }
+            $amount = absint($_POST['pots_amount'] ?? 0);
+            $direction = 'remove' === sanitize_key(wp_unslash((string) ($_POST['pots_direction'] ?? 'add'))) ? -1 : 1;
+            $reason = sanitize_text_field(wp_unslash((string) ($_POST['pots_reason'] ?? '')));
+            $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+            $key = $directory->selectedCustomer instanceof CustomerProfile ? ($directory->selectedCustomer->identityIds[0] ?? '') : '';
+            if ($amount <= 0 || '' === $key) {
+                throw new \InvalidArgumentException('Invalid loyalty adjustment request.');
+            }
+            $this->adjustPots->handle(new AdjustLoyaltyPotsCommand($key, $direction * $amount, $reason, get_current_user_id()));
+            $this->redirectAfterCategory($customerId, 'pots_adjusted');
+        } catch (Throwable) {
+            $this->activity->record(
+                ActivityCategory::Error,
+                'loyalty_adjust_failed',
+                'customer',
+                null,
+                'Ajustement manuel des pots de fidélité échoué',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'pots_error');
+        }
     }
 
     public function applyThankYouDiscount(): void
@@ -131,6 +169,7 @@ final readonly class CustomersController
             'action_url'        => admin_url('admin-post.php'),
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
             'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
+            'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(

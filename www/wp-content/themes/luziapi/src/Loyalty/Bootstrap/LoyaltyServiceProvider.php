@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Bootstrap;
 
+use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
 use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderHandler;
 use LuziApi\Loyalty\Application\Command\RecordRewardConsumption\RecordRewardConsumptionHandler;
 use LuziApi\Loyalty\Application\Command\ReverseOrderCredit\ReverseOrderCreditHandler;
@@ -16,6 +17,7 @@ use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderContactKeys;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Loyalty\Infrastructure\WordPress\WordPressIdGenerator;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
 use wpdb;
 
@@ -28,6 +30,7 @@ final class LoyaltyServiceProvider
     private static bool $booted = false;
     private static ?GetCustomerLoyaltyHandler $customerLoyaltyHandler = null;
     private static ?GetLoyaltyForOrdersHandler $loyaltyForOrdersHandler = null;
+    private static ?AdjustLoyaltyPotsHandler $adjustmentHandler = null;
 
     public static function boot(): void
     {
@@ -51,6 +54,7 @@ final class LoyaltyServiceProvider
             new WooCommerceOrderContactKeys(),
             self::$customerLoyaltyHandler,
         );
+        self::$adjustmentHandler = new AdjustLoyaltyPotsHandler($ledger, $clock, new WordPressIdGenerator());
 
         add_action('init', [$schema, 'migrate'], 1);
         (new WooCommerceLoyaltyEarningSubscriber(
@@ -80,5 +84,14 @@ final class LoyaltyServiceProvider
     public static function loyaltyForOrdersHandler(): ?GetLoyaltyForOrdersHandler
     {
         return self::$loyaltyForOrdersHandler;
+    }
+
+    /**
+     * Handler d'ajustement manuel des pots, partagé avec la fiche client du
+     * Pilotage. `null` avant `boot()`.
+     */
+    public static function loyaltyAdjustmentHandler(): ?AdjustLoyaltyPotsHandler
+    {
+        return self::$adjustmentHandler;
     }
 }

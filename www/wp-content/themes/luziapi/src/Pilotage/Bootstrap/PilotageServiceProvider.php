@@ -177,6 +177,7 @@ final class PilotageServiceProvider
                 $activity,
                 $clock,
             ),
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
         );
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
