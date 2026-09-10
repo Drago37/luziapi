@@ -151,7 +151,12 @@ attrapées + fatals dans Monolog et coupe `log_errors`/`display_errors` : **on n
 `error_log` natif** (il avait atteint 16 Go, inondé par des warnings WooCommerce — voir
 docs/prod-o2switch.md). Processors : Web (URL/méthode/IP/referer/user-agent), Introspection, mémoire.
 Dossier hors du thème, protégé `.htaccess`, non versionné, non déployé (créé au runtime) ; pour lire
-les logs de prod, passer par le script à jeton (§ 4). Évolutions suivies dans l'issue #5.
+les logs de prod, passer par le script à jeton (§ 4). Complété par une **rotation quotidienne**
+(`RotatingFileHandler`, 14 jours), une **alerte e-mail sur `ERROR`** (`WordPressMailerHandler`,
+throttlée à 1 message / 2 min) et le **correctif à la source** du warning WooCommerce
+« Undefined array key state » (filtre `woocommerce_cart_shipping_packages` dans `inc/woocommerce.php`,
+qui garantit `country/state/postcode/city/address` sans changer le matching des zones). L'issue #5
+est **close, ces trois suites étant faites**.
 
 ---
 
