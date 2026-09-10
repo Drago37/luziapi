@@ -134,10 +134,15 @@ Le suivi client sans compte possède en plus son test d’intégration local
 `make e2e-tracking-local` et sa documentation dans
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
 
-**Journalisation.** Le thème a un logger PSR-3 partagé, `luziapi_logger()` (Monolog, `inc/logger.php`),
-qui écrit les anomalies (niveau WARNING) dans `wp-content/luziapi-logs/prod.log` — dossier hors du
-thème, auto-créé et protégé par `.htaccess`, jamais accessible en HTTP ni versionné. Le fichier n'est
-pas déployé (créé au runtime) ; pour lire les logs de prod, passer par le script à jeton (§ 4).
+**Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
+**fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`
+**que si un `ERROR` survient** (le buffer part alors comme contexte) — une requête saine n'écrit rien.
+`luziapi_register_error_handler()` (appelé dans `functions.php`) route erreurs PHP + exceptions non
+attrapées + fatals dans Monolog et coupe `log_errors`/`display_errors` : **on n'utilise plus le
+`error_log` natif** (il avait atteint 16 Go, inondé par des warnings WooCommerce — voir
+docs/prod-o2switch.md). Processors : Web (URL/méthode/IP/referer/user-agent), Introspection, mémoire.
+Dossier hors du thème, protégé `.htaccess`, non versionné, non déployé (créé au runtime) ; pour lire
+les logs de prod, passer par le script à jeton (§ 4). Évolutions suivies dans l'issue #5.
 
 ---
 
