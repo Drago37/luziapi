@@ -20,10 +20,12 @@ use LuziApi\Loyalty\Application\Command\ReverseOrderCredit\ReverseOrderCreditHan
 use LuziApi\Loyalty\Application\Command\ReverseRewardConsumption\ReverseRewardConsumptionHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
+use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use LuziApi\Loyalty\Domain\LoyaltyEntryType;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber;
+use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderContactKeys;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
@@ -158,6 +160,11 @@ try {
     $view = $query->handle(new GetCustomerLoyaltyQuery([$customerKey]));
     $assert('La fiche voit 3 pots et 0 avantage disponible', 3 === $view->netPots && 0 === $view->rewardsAvailable);
     $assert('La fiche liste crédit et consommation', 2 === count($view->entries));
+
+    // Affichage côté client (page de suivi, sans compte) : l'identité se déduit
+    // des commandes accessibles à la session, ici depuis la commande elle-même.
+    $publicView = (new GetLoyaltyForOrdersHandler(new WooCommerceOrderContactKeys(), $query))->handle([$orderId]);
+    $assert('Le suivi client voit la fidélité depuis la commande', 3 === $publicView->netPots);
 
     // Sortie de « Terminée » (annulation) : crédit ET avantage contre-passés.
     $subscriber->orderStatusChanged($orderId, 'completed', 'cancelled', $order);

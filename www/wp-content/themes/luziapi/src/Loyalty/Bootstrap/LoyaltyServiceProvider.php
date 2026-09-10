@@ -9,8 +9,10 @@ use LuziApi\Loyalty\Application\Command\RecordRewardConsumption\RecordRewardCons
 use LuziApi\Loyalty\Application\Command\ReverseOrderCredit\ReverseOrderCreditHandler;
 use LuziApi\Loyalty\Application\Command\ReverseRewardConsumption\ReverseRewardConsumptionHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
+use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber;
+use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderContactKeys;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
@@ -25,6 +27,7 @@ final class LoyaltyServiceProvider
 {
     private static bool $booted = false;
     private static ?GetCustomerLoyaltyHandler $customerLoyaltyHandler = null;
+    private static ?GetLoyaltyForOrdersHandler $loyaltyForOrdersHandler = null;
 
     public static function boot(): void
     {
@@ -44,6 +47,10 @@ final class LoyaltyServiceProvider
         $ledger = new WordPressLoyaltyLedger($wpdb, $schema, wp_timezone());
 
         self::$customerLoyaltyHandler = new GetCustomerLoyaltyHandler($ledger);
+        self::$loyaltyForOrdersHandler = new GetLoyaltyForOrdersHandler(
+            new WooCommerceOrderContactKeys(),
+            self::$customerLoyaltyHandler,
+        );
 
         add_action('init', [$schema, 'migrate'], 1);
         (new WooCommerceLoyaltyEarningSubscriber(
@@ -64,5 +71,14 @@ final class LoyaltyServiceProvider
     public static function customerLoyaltyHandler(): ?GetCustomerLoyaltyHandler
     {
         return self::$customerLoyaltyHandler;
+    }
+
+    /**
+     * Handler de lecture de la fidélité à partir de commandes (page de suivi sans
+     * compte), partagé avec le module OrderTracking. `null` avant `boot()`.
+     */
+    public static function loyaltyForOrdersHandler(): ?GetLoyaltyForOrdersHandler
+    {
+        return self::$loyaltyForOrdersHandler;
     }
 }

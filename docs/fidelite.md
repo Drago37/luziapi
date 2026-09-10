@@ -144,7 +144,23 @@ les valeurs pour l'empêcher.
     devise.
   Les deux nettoient toutes les données créées.
 
-## Reste à faire (lots suivants de l'issue #4)
+## Ce que fait le lot 4 (affichage côté client — en cours)
 
-- **Lot 4** — affichage côté client (compte / e-mails), migration de l'ancien
-  « 1 €/pot » et communication.
+Le client n'a **pas de compte** (site guest-only). Son état fidélité s'affiche donc
+sur la **page de suivi de commande**, une fois identifié (n° + e-mail, ou lien
+magique « toutes mes commandes ») : un bloc « Fidélité » **toujours présent**
+(rappel du programme même à zéro pot), avec pots cumulés, pot(s) offert(s) à
+réclamer et progression vers le suivant. L'identité fidélité est déduite
+**côté serveur** des commandes accessibles à la session (jamais d'e-mail exposé au
+template), via `GetLoyaltyForOrders` (`OrderContactKeys` + `GetCustomerLoyalty`).
+
+**Le « 1 €/pot » n'est PAS touché** : c'est la remise de volume au panier
+(`inc/shop.php`, −1 € par pot dès 2 pots au checkout du site), sans rapport avec la
+fidélité. Aucune migration : elle reste telle quelle.
+
+Reste à faire dans le lot 4 :
+- **Rappel fidélité dans les e-mails de commande** — attention au timing : l'e-mail
+  de statut part en priorité 10, le crédit fidélité en priorité 100 ; un compteur
+  affiché dans l'e-mail « Terminée » serait en retard d'une commande. À cadrer
+  (rappel générique + lien vers le suivi, ou compteur avec correction du timing).
+- **Communication de lancement** (action non-code, à préparer et valider ensemble).

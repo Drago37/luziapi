@@ -77,6 +77,24 @@
                 </form>
             </div>
 
+            {% if tracking.loyalty %}
+                {% set loyalty = tracking.loyalty %}
+                <section class="tracking-loyalty" aria-label="Votre fidélité">
+                    <p class="eyebrow">Fidélité LuziApi</p>
+                    {% if loyalty.rewards_available > 0 %}
+                        <h2>🎉 {{ loyalty.rewards_available }} pot{{ loyalty.rewards_available > 1 ? 's' : '' }} offert{{ loyalty.rewards_available > 1 ? 's' : '' }} à réclamer !</h2>
+                        <p>Signalez-le à LuziApi lors de votre prochaine commande pour en profiter. Vous en êtes à {{ loyalty.pots_toward_next }}/{{ loyalty.pots_per_reward }} vers le suivant.</p>
+                    {% elseif loyalty.net_pots > 0 %}
+                        <h2>{{ loyalty.net_pots }} pot{{ loyalty.net_pots > 1 ? 's' : '' }} de fidélité</h2>
+                        <p>Plus que {{ loyalty.pots_until_next }} pot{{ loyalty.pots_until_next > 1 ? 's' : '' }} avant un pot offert — {{ loyalty.pots_per_reward }} pots achetés, le suivant est offert.</p>
+                    {% else %}
+                        <h2>{{ loyalty.pots_per_reward }} pots achetés, le suivant offert</h2>
+                        <p>Chaque pot de miel acheté vous rapproche d’un pot offert. Vos achats sont comptés automatiquement.</p>
+                    {% endif %}
+                    <div class="tracking-loyalty__gauge" role="img" aria-label="{{ loyalty.pots_toward_next }} sur {{ loyalty.pots_per_reward }}"><span style="width: {{ (loyalty.pots_toward_next / loyalty.pots_per_reward * 100)|round }}%"></span></div>
+                </section>
+            {% endif %}
+
             <div class="tracking-dashboard">
                 <aside class="tracking-orders" aria-label="Liste de vos commandes">
                     <h2>Mes commandes</h2>

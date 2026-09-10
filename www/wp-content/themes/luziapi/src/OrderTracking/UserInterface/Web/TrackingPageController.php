@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\UserInterface\Web;
 
 use InvalidArgumentException;
+use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\CustomerLoyaltyView;
+use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
@@ -34,6 +36,7 @@ final readonly class TrackingPageController
         private TrackingSessionCookie $cookie,
         private WordPressTrackingUrlGenerator $urls,
         private Clock $clock,
+        private ?GetLoyaltyForOrdersHandler $loyalty = null,
     ) {
     }
 
@@ -165,9 +168,43 @@ final readonly class TrackingPageController
             'nonce' => wp_create_nonce(self::FORM_NONCE),
             'prefill_order' => ltrim($orderNumber, '#'),
             'notice' => $this->notice(isset($_GET['suivi']) ? sanitize_key(wp_unslash((string) $_GET['suivi'])) : ''),
+            'loyalty' => $orders instanceof PublicOrderPage ? $this->loyaltyFor($orders) : null,
         ];
 
         return $context;
+    }
+
+    /**
+     * Bloc fidélité du client identifié, agrégé sur toutes ses commandes (les clés
+     * d'identité se déduisent des commandes accessibles à la session). Toujours
+     * affiché une fois identifié — sert de rappel du programme même à zéro pot.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function loyaltyFor(PublicOrderPage $orders): ?array
+    {
+        if (! $this->loyalty instanceof GetLoyaltyForOrdersHandler) {
+            return null;
+        }
+
+        $orderIds = array_map(static fn (PublicOrderView $order): int => $order->id, $orders->orders);
+        if ([] === $orderIds) {
+            return null;
+        }
+
+        return $this->formatLoyalty($this->loyalty->handle($orderIds));
+    }
+
+    /** @return array<string, mixed> */
+    private function formatLoyalty(CustomerLoyaltyView $loyalty): array
+    {
+        return [
+            'net_pots' => $loyalty->netPots,
+            'rewards_available' => $loyalty->rewardsAvailable,
+            'pots_toward_next' => $loyalty->potsTowardNextReward,
+            'pots_until_next' => $loyalty->potsUntilNextReward,
+            'pots_per_reward' => $loyalty->potsPerReward,
+        ];
     }
 
     /** @param array<string, bool> $robots

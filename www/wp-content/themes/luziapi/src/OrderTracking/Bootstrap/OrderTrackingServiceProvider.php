@@ -69,6 +69,7 @@ final class OrderTrackingServiceProvider
             new WordPressTrackingSessionCookie($logger),
             $urls,
             $clock,
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyForOrdersHandler(),
         );
 
         add_action('init', [$schema, 'migrate'], 1);

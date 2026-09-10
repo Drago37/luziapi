@@ -706,6 +706,11 @@ article.page{padding:28px 0 56px}
 .tracking-session-bar h2{font-size:1.55rem;margin-top:.15em}
 .tracking-logout{border:1px solid var(--line);border-radius:999px;padding:.65em 1.1em;background:var(--paper);color:var(--bark);font:inherit;font-weight:700;cursor:pointer}
 .tracking-logout:hover{background:var(--cream-2);border-color:var(--honey)}
+.tracking-loyalty{background:linear-gradient(135deg,var(--cream-2),#fff);border:1px solid var(--honey);border-radius:20px;padding:22px 26px;margin-bottom:24px;box-shadow:0 22px 46px -34px rgba(67,44,22,.55)}
+.tracking-loyalty h2{font-size:1.4rem;margin:.1em 0 .35em}
+.tracking-loyalty p{margin:0;color:var(--bark)}
+.tracking-loyalty__gauge{margin-top:14px;height:10px;border-radius:999px;background:var(--cream-2);border:1px solid var(--line);overflow:hidden}
+.tracking-loyalty__gauge>span{display:block;height:100%;background:var(--honey);border-radius:999px;transition:width .4s ease}
 .tracking-dashboard{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:24px;align-items:start}
 .tracking-orders{padding:22px;position:sticky;top:98px}
 .tracking-orders>h2{font-size:1.35rem;margin:0 0 16px}
