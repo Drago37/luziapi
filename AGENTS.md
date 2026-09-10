@@ -213,6 +213,16 @@ empreintes de fichiers.
 - **Cache navigateur CSS/JS** : le thème enqueue `main.css` / `main.js` avec `filemtime()` comme
   `?ver` (et non plus `LUZIAPI_VERSION`, figé à `1.0.0`). C'était la cause de changements de style
   invisibles. Quand un changement CSS « ne s'affiche pas », vérifier le `?ver` réellement servi.
+- **Déploiement interrompu = prod en 500, masqué par le cache.** Un `make deploy` (mirror de tout le
+  thème) coupé en cours (timeout, réseau, crédits épuisés) laisse `src/` **partiellement** uploadé.
+  Comme `functions.php` boote `PilotageServiceProvider::boot()`, une classe manquante provoque un
+  **fatal sur toute page chargeant le thème** — mais PowerBoost continue de servir la home en 200,
+  cachant la panne. Diagnostic : tester une **URL non cachée** (`/wp-login.php`, `/mon-compte/`, ou la
+  home avec `?nocache=…`) et comparer `find src/ | wc -l` prod vs repo. Réparation : re-`mirror -R`
+  (sans `--delete`) du dossier concerné, `opcache_reset()`, puis vérifier par **SHA-256**. Constaté le
+  10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109 fichiers `src/Pilotage/`, site
+  en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé
+  + vérif SHA** à `make deploy`.
 
 ### Processus de remise en production depuis le 6 septembre 2026
 

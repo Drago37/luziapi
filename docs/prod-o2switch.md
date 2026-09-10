@@ -335,4 +335,39 @@ verification-tools, notes. Pour les statistiques, utiliser Google Search Console
 
 ---
 
+## Déploiement du thème — incident du 10 septembre 2026
+
+Le tableau de pilotage (`src/Pilotage/`) est désormais **intégralement déployé** (109 fichiers),
+avec la **Vente** unifiée : point d'entrée unique de création de commande (l'écran natif WooCommerce
+de création est redirigé, l'édition reste possible), préremplissage client depuis le répertoire et
+listes déroulantes en autocomplete.
+
+**Ce qui s'est passé.** Un `make deploy` lancé la veille (9 septembre) a été **coupé en plein
+transfert** (crédits de l'assistant épuisés). `make deploy` mirror **tout le thème** ; interrompu,
+il a laissé `src/Pilotage/` à **27 fichiers sur 109**. Or `functions.php` appelle
+`PilotageServiceProvider::boot()`, qui instancie des classes parmi les 82 manquantes → **fatal PHP
+sur toute page chargeant le thème**. Le site est resté **en 500 environ 24 h**, masqué en façade
+par le **cache PowerBoost** qui servait encore la home en 200.
+
+**Diagnostic (à refaire tel quel).**
+- Tester une **URL non cachée** :
+  `curl -sL -o /dev/null -w '%{http_code}' 'https://www.luziapi.fr/wp-login.php?x='$RANDOM` (200
+  attendu). Ne **jamais** se fier à la home sans cache-buster.
+- Comparer le nombre de fichiers : `find src/ | wc -l` en prod (FTPS) vs `git ls-files 'www/.../src/**'`.
+
+**Réparation appliquée.**
+1. `mirror -R --no-perms` (sans `--delete`) du dossier complet `src/Pilotage/` → 109/109 (recrée les
+   dossiers manquants) ;
+2. envoi des fichiers runtime restants (CSS / JS / Twig / `inc/woocommerce.php`) ;
+3. `opcache_reset()` via script à jeton (déposé, appelé, supprimé) ;
+4. **vérification SHA-256** local ↔ prod de tous les fichiers déployés (identiques) + santé HTTP sur
+   URL non cachées (`/`, `/wp-login.php`, `/boutique/`, `/mon-compte/`, `/panier/` → 200).
+
+**Leçon.** `make deploy` (mirror de tout le thème) est **fragile à l'interruption** : une coupure
+laisse prod à moitié déployé, donc en 500. Préférer le **FTPS ciblé** des seuls fichiers modifiés
+(voir `AGENTS.md` § 3), avec **vérification SHA-256** et un **contrôle post-déploiement** sur une URL
+non cachée.
+
+---
+
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
