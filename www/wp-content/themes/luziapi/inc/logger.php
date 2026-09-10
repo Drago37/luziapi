@@ -20,7 +20,7 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;
 use Monolog\Handler\FingersCrossedHandler;
 use Monolog\Handler\NullHandler;
-use Monolog\Handler\StreamHandler;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use Monolog\Processor\IntrospectionProcessor;
@@ -69,7 +69,9 @@ function luziapi_logger(): LoggerInterface
             @file_put_contents($directory . '/.htaccess', "Require all denied\nDeny from all\n");
             @file_put_contents($directory . '/index.html', '');
         }
-        $stream = new StreamHandler($directory . '/prod.log', Level::Debug);
+        // Rotation quotidienne (prod-YYYY-MM-DD.log), 14 jours conservés : borne
+        // la taille même en cas de tempête d'erreurs.
+        $stream = new RotatingFileHandler($directory . '/prod.log', 14, Level::Debug);
         $stream->setFormatter(new LineFormatter(
             "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
             'Y-m-d H:i:s',
