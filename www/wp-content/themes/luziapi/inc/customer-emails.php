@@ -148,6 +148,29 @@ function luziapi_email_loyalty_summary(?\WC_Order $order): ?array
 }
 
 /**
+ * Rappel générique du programme de fidélité pour l'e-mail de confirmation (avant
+ * « Terminée » : les pots ne sont pas encore crédités). `null` si le programme
+ * n'est pas actif.
+ *
+ * @return array{reward_threshold:int, next:int, lifetime_years:int}|null
+ */
+function luziapi_email_loyalty_reminder(): ?array
+{
+    if (! class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)
+        || null === \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler()) {
+        return null;
+    }
+
+    $threshold = (new \LuziApi\Loyalty\Domain\LoyaltyProgress(0))->potsPerReward();
+
+    return [
+        'reward_threshold' => $threshold,
+        'next'             => $threshold + 1,
+        'lifetime_years'   => \LuziApi\Loyalty\Domain\LoyaltyProgress::POT_LIFETIME_YEARS,
+    ];
+}
+
+/**
  * Prépare les textes propres à chaque e-mail WooCommerce encore natif.
  *
  * @param array{partial_refund?: bool, customer_note?: string} $context

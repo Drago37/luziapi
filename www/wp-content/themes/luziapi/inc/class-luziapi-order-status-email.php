@@ -304,9 +304,11 @@ final class Luziapi_Order_Status_Email extends \WC_Email
             'email'              => $this,
             'message_lines'      => $this->get_message_lines(),
             'closing_line'       => $this->get_closing_line(),
-            // Rappel fidélité uniquement sur l'e-mail « Terminée » : les pots
-            // viennent d'être crédités, le compteur est donc à jour.
+            // Rappel fidélité chiffré uniquement sur l'e-mail « Terminée » : les
+            // pots viennent d'être crédités, le compteur est à jour.
             'loyalty'            => 'completed' === $this->message ? luziapi_email_loyalty_summary($order) : null,
+            // Rappel générique du programme sur l'e-mail de confirmation.
+            'loyalty_reminder'   => in_array($this->message, ['on_hold', 'processing'], true) ? luziapi_email_loyalty_reminder() : null,
         ], luziapi_customer_email_common_data($order));
     }
 

@@ -23,6 +23,7 @@
  * @var string                      $mediator_url
  * @var string                      $tracking_url
  * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
+ * @var array{reward_threshold:int, next:int, lifetime_years:int}|null $loyalty_reminder
  */
 
 defined('ABSPATH') || exit;
@@ -33,6 +34,7 @@ $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
 $tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
 $loyalty        = isset($loyalty) && is_array($loyalty) ? $loyalty : null;
+$loyalty_reminder = isset($loyalty_reminder) && is_array($loyalty_reminder) ? $loyalty_reminder : null;
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -113,6 +115,14 @@ $loyalty        = isset($loyalty) && is_array($loyalty) ? $loyalty : null;
                             <?php else : ?>
                                 <p><strong><?php echo esc_html((string) $loyalty['pots_per_reward']); ?> pots achetés, le suivant offert.</strong> Chaque pot de miel acheté est compté automatiquement.</p>
                             <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if (! empty($loyalty_reminder)) : ?>
+                    <tr>
+                        <td class="luziapi-email-loyalty">
+                            <p class="luziapi-email-eyebrow">Fidélité LuziApi</p>
+                            <p>Vous cumulez des pots à chaque achat : <strong><?php echo esc_html((string) $loyalty_reminder['reward_threshold']); ?> pots achetés, le <?php echo esc_html((string) $loyalty_reminder['next']); ?>e offert.</strong> Les pots de cette commande seront comptés dès qu’elle sera terminée. Vos pots sont valables <?php echo esc_html((string) $loyalty_reminder['lifetime_years']); ?> ans.</p>
                         </td>
                     </tr>
                 <?php endif; ?>

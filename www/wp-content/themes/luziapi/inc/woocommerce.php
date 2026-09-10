@@ -393,10 +393,23 @@ remove_action('woocommerce_single_product_summary', 'woocommerce_template_single
 // Encart « offre » réutilisable (fiche produit, boutique, panier).
 function luziapi_offer_html(): string
 {
-    return '<div class="product-offer">'
+    $html = '<div class="product-offer">'
         . '<span class="product-offer__badge">Offre</span>'
         . '<span><b>À partir de 2 pots&nbsp;: −1&nbsp;€ sur chaque pot.</b> Livraison à domicile gratuite sur Luzillé et Bléré.</span>'
         . '</div>';
+
+    if (class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)
+        && null !== \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler()) {
+        $threshold = (new \LuziApi\Loyalty\Domain\LoyaltyProgress(0))->potsPerReward();
+        $html .= '<div class="product-offer product-offer--loyalty">'
+            . '<span class="product-offer__badge">Fidélité</span>'
+            . '<span><b>' . esc_html((string) $threshold) . ' pots achetés, le ' . esc_html((string) ($threshold + 1)) . 'e offert.</b> '
+            . 'Comptés automatiquement, sans carte ni inscription — solde sur la '
+            . '<a href="' . esc_url(home_url('/suivi-commande/')) . '">page de suivi</a>, pots valables 2&nbsp;ans.</span>'
+            . '</div>';
+    }
+
+    return $html;
 }
 // Fiche produit : bandeau d'offre en pleine largeur, au-dessus du produit.
 add_action('woocommerce_before_single_product', static function (): void {

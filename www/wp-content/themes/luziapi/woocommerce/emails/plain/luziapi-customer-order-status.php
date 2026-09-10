@@ -22,6 +22,7 @@
  * @var string                      $mediator_url
  * @var string                      $tracking_url
  * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
+ * @var array{reward_threshold:int, next:int, lifetime_years:int}|null $loyalty_reminder
  */
 
 defined('ABSPATH') || exit;
@@ -43,6 +44,7 @@ $action_url     = isset($action_url) ? trim((string) $action_url) : '';
 $action_label   = isset($action_label) ? trim((string) $action_label) : '';
 $tracking_url   = isset($tracking_url) ? trim((string) $tracking_url) : '';
 $loyalty        = isset($loyalty) && is_array($loyalty) ? $loyalty : null;
+$loyalty_reminder = isset($loyalty_reminder) && is_array($loyalty_reminder) ? $loyalty_reminder : null;
 
 if ('' !== $highlight_text) {
     echo "MESSAGE\n";
@@ -69,6 +71,14 @@ if (null !== $loyalty) {
     } else {
         echo $loyalty['pots_per_reward'] . ' pots achetés, le suivant offert. Chaque pot est compté automatiquement.' . "\n";
     }
+}
+
+if (null !== $loyalty_reminder) {
+    echo "\nFIDÉLITÉ LUZIAPI\n";
+    echo "----------------\n";
+    echo 'Vous cumulez des pots à chaque achat : ' . $loyalty_reminder['reward_threshold'] . ' pots achetés, le '
+        . $loyalty_reminder['next'] . 'e offert. Les pots de cette commande seront comptés dès qu\'elle sera terminée. '
+        . 'Vos pots sont valables ' . $loyalty_reminder['lifetime_years'] . ' ans.' . "\n";
 }
 
 if ('' !== $tracking_url) {
