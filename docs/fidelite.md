@@ -1,15 +1,18 @@
 # Programme de fidélité LuziApi
 
-> Suivi de l'implémentation de l'issue #4. Ce document décrit les **lots 1 à 3**
-> (acquisition des pots, utilisation d'un avantage, remise remerciement), en place,
-> et les lots suivants restant à faire.
+> Suivi de l'implémentation de l'issue #4 : acquisition des pots, utilisation d'un
+> avantage, remise remerciement, affichage client et page de pilotage — tout en
+> place. Les évolutions (seuil 15, expiration, réconciliation…) sont résumées en
+> fin de document.
 
 ## Règle métier
 
-« **10 pots achetés, le 11e offert.** » Un pot compte dès que la commande qui le
+« **15 pots achetés, le 16e offert.** » Un pot compte dès que la commande qui le
 contient passe **« Terminée »** (= encaissée, cohérent avec l'auto-encaissement
-de la recette). Chaque tranche de 10 pots nets ouvre **un avantage** (un pot
-offert). Exemple : 23 pots = 2 avantages acquis + 3/10 sur la tranche en cours.
+de la recette). Chaque tranche de 15 pots nets ouvre **un avantage** (un pot
+offert). Exemple : 33 pots = 2 avantages acquis + 3/15 sur la tranche en cours.
+Un pot **expire au bout de 2 ans** : passé ce délai, il ne compte plus dans le
+solde courant (les avantages déjà utilisés, eux, restent définitifs).
 
 Un client est identifié comme dans le tableau de pilotage : **e-mail prioritaire,
 sinon téléphone normalisé**. Un même client peut avoir plusieurs e-mails /
@@ -177,5 +180,27 @@ garantir la fraîcheur, le crédit fidélité passe désormais en **priorité 5*
 donnée vient de `luziapi_email_loyalty_summary()` (`inc/customer-emails.php`),
 rendue dans les deux variantes (HTML + texte).
 
-Reste à faire dans le lot 4 :
+## Évolutions (septembre 2026)
+
+- **Seuil porté à 15** (le 16e offert) : `LoyaltyProgress::POTS_PER_REWARD`. Les
+  textes client suivent la variable ; les libellés en dur ont été mis à jour.
+- **Expiration 2 ans** (`LoyaltyProgress::POT_LIFETIME_YEARS`) : le solde courant
+  ne compte que les pots crédités depuis moins de 2 ans — fenêtre glissante
+  calculée à la lecture (`GetCustomerLoyaltyHandler` reçoit une horloge ; le port
+  du journal borne les pots par date). La page **par année** n'est pas concernée.
+- **Moteur en réconciliation** : le couple crédit / contre-passation est remplacé
+  par une réconciliation (`ReconcileOrderLoyalty`) qui porte le journal de chaque
+  commande à son état cible et n'écrit que l'écart. Couvre uniformément le
+  **remboursement partiel** (hook `woocommerce_order_refunded`), le total,
+  l'annulation et la re-complétion. Convergent et idempotent. `orderTotals()` sur
+  le journal en est la base.
+- **Ajustement manuel** des pots depuis la fiche client (`AdjustLoyaltyPots`,
+  écriture `ManualAdjustment`).
+- **Surfaces client** : rappel du programme dans l'**e-mail de confirmation**
+  (on-hold / processing, `luziapi_email_loyalty_reminder()`), bloc fidélité sur la
+  **boutique / fiche produit / panier** (`luziapi_offer_html`), sur l'**accueil**
+  (section « Nos miels ») et sur la **page de suivi** (visible avant connexion).
+
+## Reste à faire
+
 - **Communication de lancement** (action non-code, à préparer et valider ensemble).
