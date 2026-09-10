@@ -161,6 +161,9 @@ stan: ## Analyse statique (PHPStan)
 qa: cs-check stan ## Lance toutes les vérifications (style + analyse)
 	@printf "\033[1;32m✔  Vérifications terminées\033[0m\n"
 
+test-js: ## Lance les tests JavaScript du thème (jsdom)
+	@cd www/wp-content/themes/luziapi && npm test --silent
+
 ##@ Déploiement (o2switch, FTPS)
 deploy-check: ## Vérifie la config FTPS (.env / .env.local) et la présence de lftp
 	@command -v lftp >/dev/null || { printf "\033[1;31m✗  lftp manquant\033[0m — installe-le : sudo apt-get install -y lftp\n"; exit 1; }

@@ -49,10 +49,25 @@ Vente. Il crée deux commandes invitées et un produit brouillon, puis contrôle
 Toutes les commandes et le produit de test sont supprimés à la fin, même en cas d'échec, et aucun
 e-mail n'est envoyé.
 
+## Tests JavaScript (jsdom)
+
+```bash
+make test-js          # ou, dans le thème : npm test
+```
+
+Runner natif de Node + jsdom (`www/wp-content/themes/luziapi/tests-js/`). Couvre la logique de
+`assets/js/admin-pilotage.js` sans navigateur :
+
+- choisir un client **préremplit** nom / e-mail / téléphone / ville et active l'envoi d'e-mail ;
+- revenir à « Nouveau client » **vide** les champs et coupe l'envoi ;
+- le mode « Livraison » **révèle** le panneau adresse et le rend obligatoire ;
+- le **pont selectWoo** rejoue un `change` natif qui déclenche le préremplissage ;
+- sans jQuery/selectWoo, l'enrichissement ne fait rien (repli natif propre).
+
 ## Hors couverture automatisée (assumé)
 
 - La **redirection HTTP effective** (le `exit`) et le **masquage CSS** du bouton natif en vrai
   navigateur : seule la décision pure (`luziapi_is_native_order_creation_screen()`) et l'URL cible
   sont testées.
-- Le **JavaScript** du sélecteur de client (pas de harnais JS dans le thème) : à vérifier à l'œil
-  sur la page.
+- La **lib selectWoo elle-même** (code tiers WooCommerce) : seul le pont maison est testé ; le
+  rendu réel de l'autocomplete reste à vérifier à l'œil sur la page.
