@@ -19,6 +19,9 @@ final readonly class LoyaltyProgress
 {
     private const POTS_PER_REWARD = 15;
 
+    /** Durée de vie d'un pot dans le solde de fidélité : au-delà, il n'est plus compté. */
+    public const POT_LIFETIME_YEARS = 2;
+
     public int $netPots;
 
     public int $rightsAcquired;

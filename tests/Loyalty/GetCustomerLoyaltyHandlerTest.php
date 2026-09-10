@@ -26,6 +26,25 @@ final class GetCustomerLoyaltyHandlerTest extends TestCase
         $this->query = new GetCustomerLoyaltyHandler($this->ledger);
     }
 
+    public function testPotsOlderThanTwoYearsExpireWhenAClockIsProvided(): void
+    {
+        // Un crédit d'il y a 3 ans et un crédit récent, même client.
+        (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2023-01-01 10:00:00')))
+            ->handle(new RecordCompletedOrderCommand(1, 'key', 6));
+        (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2026-09-10 10:00:00')))
+            ->handle(new RecordCompletedOrderCommand(2, 'key', 4));
+
+        // Sans horloge : tous les pots comptent (10).
+        $allTime = (new GetCustomerLoyaltyHandler($this->ledger))
+            ->handle(new GetCustomerLoyaltyQuery(['key']));
+        self::assertSame(10, $allTime->netPots);
+
+        // Avec horloge à 2026 : le crédit de 2023 (> 2 ans) est expiré, reste 4.
+        $withExpiry = (new GetCustomerLoyaltyHandler($this->ledger, FixedClock::at('2026-09-10 10:00:00')))
+            ->handle(new GetCustomerLoyaltyQuery(['key']));
+        self::assertSame(4, $withExpiry->netPots);
+    }
+
     public function testEmptyWhenNoKeys(): void
     {
         $view = $this->query->handle(new GetCustomerLoyaltyQuery([]));

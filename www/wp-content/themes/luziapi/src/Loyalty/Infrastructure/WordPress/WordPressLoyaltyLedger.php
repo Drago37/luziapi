@@ -89,21 +89,22 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return is_array($row) ? $this->hydrate($row) : null;
     }
 
-    public function totalsForCustomerKeys(array $customerKeys): array
+    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $keys = $this->sanitizeKeys($customerKeys);
         if ([] === $keys) {
             return ['pots' => 0, 'rightsConsumed' => 0, 'entryCount' => 0];
         }
 
+        [$potsExpr, $sinceArgs] = $this->potsExpression($potsSince);
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
         $row = $this->database->get_row($this->database->prepare(
-            'SELECT COALESCE(SUM(pots_delta), 0) AS pots,'
+            'SELECT ' . $potsExpr . ' AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights,'
             . ' COUNT(*) AS entry_count'
             . ' FROM ' . $this->schema->ledgerTableName()
             . " WHERE customer_key IN ({$placeholders})",
-            ...$keys,
+            ...[...$sinceArgs, ...$keys],
         ), ARRAY_A);
 
         return [
@@ -113,22 +114,23 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ];
     }
 
-    public function balancesByCustomerKeys(array $customerKeys): array
+    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $keys = $this->sanitizeKeys($customerKeys);
         if ([] === $keys) {
             return [];
         }
 
+        [$potsExpr, $sinceArgs] = $this->potsExpression($potsSince);
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
         $rows = $this->database->get_results($this->database->prepare(
             'SELECT customer_key,'
-            . ' COALESCE(SUM(pots_delta), 0) AS pots,'
+            . ' ' . $potsExpr . ' AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights'
             . ' FROM ' . $this->schema->ledgerTableName()
             . " WHERE customer_key IN ({$placeholders})"
             . ' GROUP BY customer_key',
-            ...$keys,
+            ...[...$sinceArgs, ...$keys],
         ), ARRAY_A);
 
         $balances = [];
@@ -159,6 +161,24 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ), ARRAY_A);
 
         return array_map($this->hydrate(...), is_array($rows) ? $rows : []);
+    }
+
+    /**
+     * Expression SQL de la somme des pots (bornée à `$potsSince` si fourni) et les
+     * arguments préparés correspondants, à placer AVANT ceux du `IN (...)`.
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    private function potsExpression(?\DateTimeImmutable $potsSince): array
+    {
+        if (null === $potsSince) {
+            return ['COALESCE(SUM(pots_delta), 0)', []];
+        }
+
+        return [
+            'COALESCE(SUM(CASE WHEN occurred_at >= %s THEN pots_delta ELSE 0 END), 0)',
+            [$potsSince->format('Y-m-d H:i:s')],
+        ];
     }
 
     /**

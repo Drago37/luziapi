@@ -29,23 +29,27 @@ interface LoyaltyLedger
      * écrit un delta négatif, sa contre-passation un delta positif : le net revient
      * à zéro).
      *
+     * `$potsSince` (optionnel) borne les **pots** aux écritures survenues depuis
+     * cette date (expiration : un pot acheté avant n'entre plus dans le solde) ;
+     * les avantages consommés/rendus ne sont jamais expirés.
+     *
      * @param list<string> $customerKeys
      *
      * @return array{pots: int, rightsConsumed: int, entryCount: int}
      */
-    public function totalsForCustomerKeys(array $customerKeys): array;
+    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array;
 
     /**
      * Soldes bruts par clé client (une entrée par clé ayant au moins un mouvement) :
      * utilisé pour calculer d'un coup les avantages disponibles de plusieurs clients
-     * (liste de la Vente). `pots` = somme des `pots_delta`, `rights` = somme brute
-     * des `rights_delta`.
+     * (liste de la Vente). `pots` = somme des `pots_delta` (bornée à `$potsSince` si
+     * fourni), `rights` = somme brute des `rights_delta` (jamais expirée).
      *
      * @param list<string> $customerKeys
      *
      * @return array<string, array{pots: int, rights: int}>
      */
-    public function balancesByCustomerKeys(array $customerKeys): array;
+    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array;
 
     /**
      * Écritures d'un ensemble de clés client, les plus récentes d'abord.

@@ -46,7 +46,7 @@ final class LoyaltyServiceProvider
         $schema = new LoyaltySchemaManager($wpdb);
         $ledger = new WordPressLoyaltyLedger($wpdb, $schema, wp_timezone());
 
-        self::$customerLoyaltyHandler = new GetCustomerLoyaltyHandler($ledger);
+        self::$customerLoyaltyHandler = new GetCustomerLoyaltyHandler($ledger, $clock);
         self::$loyaltyForOrdersHandler = new GetLoyaltyForOrdersHandler(
             new WooCommerceOrderContactKeys(),
             self::$customerLoyaltyHandler,

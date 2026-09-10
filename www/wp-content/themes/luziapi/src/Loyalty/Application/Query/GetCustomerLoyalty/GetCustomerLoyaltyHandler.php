@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Query\GetCustomerLoyalty;
 
+use LuziApi\Loyalty\Application\Port\Clock;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\LoyaltyProgress;
 
 final readonly class GetCustomerLoyaltyHandler
 {
-    public function __construct(private LoyaltyLedger $ledger)
-    {
+    /**
+     * @param Clock|null $clock horloge servant à expirer les pots de plus de
+     *                          `LoyaltyProgress::POT_LIFETIME_YEARS` ans ; `null`
+     *                          désactive l'expiration (solde tous millésimes)
+     */
+    public function __construct(
+        private LoyaltyLedger $ledger,
+        private ?Clock $clock = null,
+    ) {
     }
 
     public function handle(GetCustomerLoyaltyQuery $query): CustomerLoyaltyView
@@ -23,7 +31,7 @@ final readonly class GetCustomerLoyaltyHandler
             return CustomerLoyaltyView::empty();
         }
 
-        $totals = $this->ledger->totalsForCustomerKeys($keys);
+        $totals = $this->ledger->totalsForCustomerKeys($keys, $this->potsSince());
         $progress = new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']);
         $entries = $this->ledger->entriesForCustomerKeys($keys);
 
@@ -38,9 +46,14 @@ final readonly class GetCustomerLoyaltyHandler
      */
     public function availableRewards(array $customerKeys): int
     {
-        $totals = $this->ledger->totalsForCustomerKeys($customerKeys);
+        $totals = $this->ledger->totalsForCustomerKeys($customerKeys, $this->potsSince());
 
         return (new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']))->rightsAvailable;
+    }
+
+    private function potsSince(): ?\DateTimeImmutable
+    {
+        return $this->clock?->now()->modify('-' . LoyaltyProgress::POT_LIFETIME_YEARS . ' years');
     }
 
     /**
@@ -65,7 +78,7 @@ final readonly class GetCustomerLoyaltyHandler
             return [];
         }
 
-        $balances = $this->ledger->balancesByCustomerKeys(array_keys($allKeys));
+        $balances = $this->ledger->balancesByCustomerKeys(array_keys($allKeys), $this->potsSince());
 
         $available = [];
         foreach ($keysByCustomer as $customerId => $keys) {

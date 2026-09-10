@@ -61,13 +61,15 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return null;
     }
 
-    public function totalsForCustomerKeys(array $customerKeys): array
+    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $pots = 0;
         $rights = 0;
         $count = 0;
         foreach ($this->forKeys($customerKeys) as $entry) {
-            $pots += $entry->potsDelta;
+            if (null === $potsSince || $entry->occurredAt >= $potsSince) {
+                $pots += $entry->potsDelta;
+            }
             $rights += $entry->rightsDelta;
             ++$count;
         }
@@ -75,12 +77,14 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return ['pots' => $pots, 'rightsConsumed' => max(0, -$rights), 'entryCount' => $count];
     }
 
-    public function balancesByCustomerKeys(array $customerKeys): array
+    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
     {
         $balances = [];
         foreach ($this->forKeys($customerKeys) as $entry) {
             $balances[$entry->customerKey] ??= ['pots' => 0, 'rights' => 0];
-            $balances[$entry->customerKey]['pots'] += $entry->potsDelta;
+            if (null === $potsSince || $entry->occurredAt >= $potsSince) {
+                $balances[$entry->customerKey]['pots'] += $entry->potsDelta;
+            }
             $balances[$entry->customerKey]['rights'] += $entry->rightsDelta;
         }
 
