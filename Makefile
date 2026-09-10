@@ -89,6 +89,12 @@ e2e-prod: ## Test e2e sur la PROD en dry-run (aucun e-mail, dépose→exécute�
 e2e-prod-send: ## Test e2e sur la PROD avec e-mails RÉELS vers l'adresse d'identité
 	@bash scripts/e2e-prod.sh --send
 
+e2e-tracking-prod: ## Test e2e du suivi sur la PROD en dry-run (crée+supprime une commande test, aucun e-mail)
+	@bash scripts/e2e-tracking-prod.sh
+
+e2e-tracking-prod-send: ## Test e2e du suivi sur la PROD, lien magique RÉEL vers l'adresse d'identité
+	@bash scripts/e2e-tracking-prod.sh --send
+
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."
 	@for i in $$(seq 1 30); do [ -f www/wp-settings.php ] && exit 0; sleep 2; done; \
