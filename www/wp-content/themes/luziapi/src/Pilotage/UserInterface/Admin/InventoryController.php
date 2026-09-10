@@ -108,8 +108,8 @@ final readonly class InventoryController
                 get_current_user_id(),
             ));
             $this->redirect($stockAlreadyRecorded ? 'lot_attached' : 'lot_created');
-        } catch (Throwable) {
-            $this->recordFailure('Enregistrement de la récolte échoué');
+        } catch (Throwable $exception) {
+            $this->recordFailure('Enregistrement de la récolte échoué', $exception);
             $this->redirect('error');
         }
     }
@@ -136,8 +136,8 @@ final readonly class InventoryController
                 get_current_user_id(),
             ));
             $this->redirect('movement_recorded');
-        } catch (Throwable) {
-            $this->recordFailure('Enregistrement du mouvement de stock échoué');
+        } catch (Throwable $exception) {
+            $this->recordFailure('Enregistrement du mouvement de stock échoué', $exception);
             $this->redirect('error');
         }
     }
@@ -220,15 +220,17 @@ final readonly class InventoryController
         }
     }
 
-    private function recordFailure(string $summary): void
+    private function recordFailure(string $summary, Throwable $exception): void
     {
+        // Ne plus avaler la cause : on consigne le message d'exception dans le
+        // journal d'activité pour le rendre visible depuis le pilotage.
         $this->activity->record(
             ActivityCategory::Error,
             'inventory_operation_failed',
             'inventory',
             null,
             $summary,
-            [],
+            ['erreur' => $exception->getMessage()],
             get_current_user_id(),
         );
     }

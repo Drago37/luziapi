@@ -38,10 +38,17 @@ final readonly class CreateHarvestLotHandler
         if ($harvestYear < 2000 || $harvestYear > $currentYear) {
             throw new InvalidArgumentException('Invalid harvest date.');
         }
-        if ($command->jarredAt > $this->clock->now()->modify('+5 minutes')) {
+        // Comparaison au jour près : une mise en pots « aujourd'hui » à n'importe
+        // quelle heure reste valable, et une récolte le même jour que la mise en
+        // pots passe (la date de récolte est prise à minuit). Éviter une garde à
+        // la minute, trop sensible aux imprécisions d'horloge et de saisie.
+        $today = $this->clock->now()->format('Y-m-d');
+        $jarDay = $command->jarredAt->format('Y-m-d');
+        $harvestDay = $command->harvestedAt->format('Y-m-d');
+        if ($jarDay > $today) {
             throw new InvalidArgumentException('Jar date cannot be in the future.');
         }
-        if ($command->harvestedAt > $command->jarredAt) {
+        if ($harvestDay > $jarDay) {
             throw new InvalidArgumentException('Harvest date must be before jar date.');
         }
         $product = null;

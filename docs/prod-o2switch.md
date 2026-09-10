@@ -444,4 +444,33 @@ seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais
 
 ---
 
+## Fuseau horaire du site — corrigé le 11 septembre 2026
+
+**Symptôme :** impossible d'enregistrer une récolte (« Stocks et lots » du pilotage) — message
+générique « L'opération n'a pas été enregistrée… ». Aucun lot n'avait jamais pu être créé
+(`wp_luziapi_harvest_lots` à 0 ligne), alors que les mouvements de stock issus des commandes
+passaient.
+
+**Cause racine :** le réglage WordPress du fuseau était **vide** (`timezone_string=''`,
+`gmt_offset=0`) → le site tournait en **UTC** au lieu d'**Europe/Paris**. Les valeurs par défaut du
+formulaire (`date de récolte` = aujourd'hui, `mise en pots` = maintenant) étaient calculées en UTC,
+donc affichées avec ~2 h de retard (et parfois la veille). Dès que l'utilisateur corrigeait
+l'heure/la date pour refléter son heure réelle, la valeur devenait « dans le futur » du point de vue
+de l'horloge serveur UTC, et le handler la rejetait (`CreateHarvestLotHandler` : « Jar date cannot be
+in the future » / « Harvest date must be before jar date »). Le `catch (Throwable)` du contrôleur
+**avalait** l'exception → aucun indice.
+
+**Correctifs :**
+1. **Fuseau réglé sur `Europe/Paris`** via script à jeton (`update_option('timezone_string',
+   'Europe/Paris')`). Corrige aussi l'heure affichée partout ailleurs (commandes, e-mails, journaux),
+   qui était décalée de 2 h. Vérifié : `wp_date()` renvoie désormais l'heure locale correcte.
+2. **Code durci** (commit sur `main`) : validation des dates de récolte comparée **au jour près**
+   (tolère la journée en cours), et le contrôleur **consigne la vraie exception** dans le journal
+   d'activité au lieu de l'avaler.
+
+**Diagnostic** mené entièrement par scripts à jeton en **lecture / rollback** (schéma des tables,
+rejeu du handler avec nettoyage complet), sans résidu en prod.
+
+---
+
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.

@@ -78,6 +78,57 @@ final class CreateHarvestLotHandlerTest extends TestCase
         self::assertFalse($lot->stockAlreadyRecorded);
     }
 
+    public function testJarredLaterTodayIsAccepted(): void
+    {
+        // Horloge à 2026-09-09 10:00 ; une mise en pots le même jour à 23:00 (heure
+        // « future » à la minute mais bien aujourd'hui) doit passer.
+        $handler = new CreateHarvestLotHandler(
+            new HarvestInventoryInMemory(3),
+            new HarvestProductCatalog(10),
+            new HarvestStockGatewaySpy(),
+            new HarvestClock(),
+        );
+
+        $lot = $handler->handle(new CreateHarvestLotCommand(
+            'L2026-TODAY',
+            42,
+            new DateTimeImmutable('2026-09-09', new DateTimeZone('Europe/Paris')),
+            new DateTimeImmutable('2026-09-09 23:00:00', new DateTimeZone('Europe/Paris')),
+            'Luzillé',
+            'Été',
+            6,
+            false,
+            1,
+        ));
+
+        self::assertSame(6, $lot->quantityJarred);
+    }
+
+    public function testJarredOnAFutureDayIsRejected(): void
+    {
+        $handler = new CreateHarvestLotHandler(
+            new HarvestInventoryInMemory(3),
+            new HarvestProductCatalog(10),
+            new HarvestStockGatewaySpy(),
+            new HarvestClock(),
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Jar date cannot be in the future.');
+
+        $handler->handle(new CreateHarvestLotCommand(
+            'L2026-FUTURE',
+            42,
+            new DateTimeImmutable('2026-09-09', new DateTimeZone('Europe/Paris')),
+            new DateTimeImmutable('2026-09-10 08:00:00', new DateTimeZone('Europe/Paris')),
+            'Luzillé',
+            'Été',
+            6,
+            false,
+            1,
+        ));
+    }
+
     private function command(int $quantity, bool $stockAlreadyRecorded): CreateHarvestLotCommand
     {
         return new CreateHarvestLotCommand(
