@@ -41,10 +41,20 @@ final readonly class AssetLoader
                 );
             }
 
+            // Selects enrichis en champs autocomplete : on réutilise selectWoo /
+            // select2 déjà fournis par WooCommerce (aucune dépendance externe).
+            wp_enqueue_style('select2');
+            wp_enqueue_script('selectWoo');
+
+            $scriptDeps = ['selectWoo'];
+            if (is_file($chartPath)) {
+                $scriptDeps[] = 'luziapi-chartjs';
+            }
+
             wp_enqueue_script(
                 'luziapi-admin-pilotage',
                 $this->themeUri . '/assets/js/admin-pilotage.js',
-                is_file($chartPath) ? ['luziapi-chartjs'] : [],
+                $scriptDeps,
                 (string) (@filemtime($jsPath) ?: '1.0.0'),
                 true,
             );

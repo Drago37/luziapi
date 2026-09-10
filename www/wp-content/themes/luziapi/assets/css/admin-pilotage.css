@@ -228,6 +228,28 @@
     align-items: center;
 }
 
+/* Champs autocomplete (selectWoo/select2) alignés sur les autres champs. */
+.luziapi-pilotage .select2-container {
+    width: 100% !important;
+}
+
+.luziapi-pilotage__form .select2-container {
+    margin-top: 4px;
+}
+
+.luziapi-pilotage .select2-container .select2-selection--single {
+    height: 32px;
+    border-color: #8c8f94;
+}
+
+.luziapi-pilotage .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 30px;
+}
+
+.luziapi-pilotage .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 30px;
+}
+
 .luziapi-pilotage__toolbar {
     flex-wrap: wrap;
 }

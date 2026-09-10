@@ -12,6 +12,10 @@ d'un client existant dans deux sens :
 Les clients sont des **invités sans compte** : la source est le répertoire maison
 (`GetCustomerDirectory`), jamais la liste des utilisateurs WordPress.
 
+Les listes déroulantes du tableau de pilotage (dont le sélecteur de client) sont enrichies en
+**champs autocomplete** via `selectWoo`/`select2` fournis par WooCommerce ; sans JavaScript, les
+`<select>` natifs restent pleinement fonctionnels.
+
 ## Suite unitaire
 
 ```bash

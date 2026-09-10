@@ -1,4 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Transforme les listes déroulantes du pilotage en champs autocomplete
+    // (recherche au clavier), via selectWoo/select2 fournis par WooCommerce.
+    // Sans jQuery/selectWoo, les <select> natifs restent pleinement fonctionnels.
+    const jq = window.jQuery;
+    if (jq && jq.fn && jq.fn.selectWoo) {
+        document.querySelectorAll('.luziapi-pilotage select').forEach((select) => {
+            const placeholderOption = select.querySelector('option[value=""]');
+            jq(select).selectWoo({
+                width: '100%',
+                placeholder: placeholderOption ? placeholderOption.textContent : '',
+            });
+            // selectWoo déclenche ses propres évènements : on rejoue un « change »
+            // natif pour que les gestionnaires vanilla ci-dessous restent notifiés.
+            jq(select).on('select2:select select2:unselect select2:clear', () => {
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+    }
+
     const euroFormatter = new Intl.NumberFormat('fr-FR', {
         style: 'currency',
         currency: 'EUR',
