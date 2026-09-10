@@ -166,6 +166,12 @@ Marche à suivre :
 (`make up`), ou faire `composer install --no-dev` en local avant le mirror puis restaurer les
 dépendances de dev (`composer install`).
 
+> **Artefacts de dev/test jamais déployés.** Le mirror `make deploy` exclut, via la variable
+> `DEPLOY_EXCLUDES` du `Makefile`, tout ce qui ne sert pas au runtime : `tools/`, `tests-js/`,
+> `node_modules/`, `package.json` / `package-lock.json`, config CS-Fixer / PHPStan, `README.md`.
+> Ajouter tout nouvel outil ou dossier de test à cette liste. (Piège make corrigé au passage : un
+> glob contenant `#` doit être échappé `\#`, sinon make commente la fin de la ligne.)
+
 ### Un mu-plugin change
 
 Le compte FTP est chrooté sur le thème et ne voit **pas** `wp-content/mu-plugins/`. Déploiement

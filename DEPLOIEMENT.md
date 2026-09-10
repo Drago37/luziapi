@@ -101,8 +101,9 @@ make deploy-dry    # simulation (n'envoie rien) — pour vérifier la connexion/
 ```
 `make deploy` ne pousse **que le thème** (`www/wp-content/themes/luziapi/`, avec son
 `vendor/` en mode prod), via **FTPS** (FTP chiffré par TLS, port 21). Il **ne touche pas**
-au cœur WordPress, à la base ni aux médias — qui vivent sur le serveur. Les outils de
-dev (`tools/`, PHPStan, CS-Fixer, `README.md`) sont exclus de l'envoi.
+au cœur WordPress, à la base ni aux médias — qui vivent sur le serveur. Les artefacts de
+dev/test (`tools/`, `tests-js/`, `node_modules/`, `package.json`/`package-lock.json`, PHPStan,
+CS-Fixer, `README.md`) sont exclus de l'envoi via la variable `DEPLOY_EXCLUDES` du `Makefile`.
 
 > Le SSH/rsync (port 22) est bloqué par le pare-feu o2switch tant que l'IP n'est pas
 > débloquée ; on utilise donc FTPS (port 21), chiffré, qui passe sans déblocage.

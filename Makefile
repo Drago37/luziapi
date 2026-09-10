@@ -18,9 +18,10 @@ DEPLOY_FTP_PORT   ?= 21
 DEPLOY_FTP_VERIFY ?= yes
 THEME_SRC := www/wp-content/themes/luziapi/
 # Exclusions (globs lftp) : outils de dev, dépôt git, modules.
-DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' \
+DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' -X 'tests-js/' \
 	-X '.php-cs-fixer.dist.php' -X '.php-cs-fixer.cache' \
-	-X 'phpstan.neon.dist' -X 'README.md' -X '.~lock.*#'
+	-X 'phpstan.neon.dist' -X 'README.md' \
+	-X 'package.json' -X 'package-lock.json' -X '.~lock.*\#'
 # Réglages lftp : FTPS forcé + chiffrement des données, mode passif, timeouts courts.
 LFTP_SETTINGS := set ftp:ssl-force true; set ftp:ssl-protect-data true; \
 	set ftp:ssl-protect-list true; set ssl:verify-certificate $(DEPLOY_FTP_VERIFY); \
