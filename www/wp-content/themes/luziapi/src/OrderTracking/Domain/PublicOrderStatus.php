@@ -28,6 +28,9 @@ final readonly class PublicOrderStatus
     {
         $description = self::describe($status);
         $progress = $description['progress'];
+        // Une commande terminée est entièrement remise : sa dernière étape est
+        // « faite », pas « en cours ».
+        $isComplete = 'complete' === $description['tone'];
         $thirdLabel = 'pickup' === $fulfillmentMode ? 'Prête au retrait' : 'En livraison';
 
         return array_map(
@@ -35,7 +38,9 @@ final readonly class PublicOrderStatus
                 'label' => $label,
                 'state' => 0 === $progress
                     ? 'inactive'
-                    : ($index < $progress ? 'done' : ($index === $progress ? 'current' : 'upcoming')),
+                    : ($index < $progress
+                        ? 'done'
+                        : ($index === $progress ? ($isComplete ? 'done' : 'current') : 'upcoming')),
             ],
             ['Commande reçue', 'En préparation', $thirdLabel, 'Commande remise'],
             [1, 2, 3, 4],

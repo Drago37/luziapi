@@ -174,18 +174,23 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
     public function purgeExpired(DateTimeImmutable $at): void
     {
         $now = $at->format('Y-m-d H:i:s');
-        $this->database->query($this->database->prepare(
+        $ok = false !== $this->database->query($this->database->prepare(
             'DELETE FROM ' . $this->schema->grantsTableName() . ' WHERE expires_at < %s',
             $now,
         ));
-        $this->database->query($this->database->prepare(
+        $ok = (false !== $this->database->query($this->database->prepare(
             'DELETE FROM ' . $this->schema->sessionsTableName() . ' WHERE expires_at < %s',
             $now,
-        ));
-        $this->database->query($this->database->prepare(
+        ))) && $ok;
+        $ok = (false !== $this->database->query($this->database->prepare(
             'DELETE FROM ' . $this->schema->limitsTableName() . ' WHERE window_started_at < %s',
             $at->modify('-1 day')->format('Y-m-d H:i:s'),
-        ));
+        ))) && $ok;
+        if (! $ok) {
+            // Nettoyage best-effort : on ne casse rien, mais on signale pour que
+            // les tables de suivi ne grossissent pas sans qu'on le sache.
+            $this->logger->warning('Suivi commande : purge des jetons/sessions expirés incomplète.');
+        }
     }
 
     /** @param non-empty-list<int> $orderIds */

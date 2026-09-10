@@ -73,5 +73,9 @@ final class OrderTrackingDomainTest extends TestCase
 
         $cancelled = PublicOrderStatus::steps('cancelled', 'delivery');
         self::assertSame(['inactive', 'inactive', 'inactive', 'inactive'], array_column($cancelled, 'state'));
+
+        // Une commande terminée montre toutes ses étapes « faites », pas « en cours ».
+        $completed = PublicOrderStatus::steps('completed', 'delivery');
+        self::assertSame(['done', 'done', 'done', 'done'], array_column($completed, 'state'));
     }
 }

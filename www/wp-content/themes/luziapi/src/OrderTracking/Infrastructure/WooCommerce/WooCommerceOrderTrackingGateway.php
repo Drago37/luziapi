@@ -23,6 +23,9 @@ final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGat
 
     public function findOrderId(string $orderNumber, string $email): ?int
     {
+        // Hypothèse : le numéro de commande saisi par le client == l'ID interne
+        // WooCommerce (vrai avec la numérotation par défaut, aucune extension de
+        // numérotation séquentielle installée). À revoir si l'on en ajoute une.
         $order = wc_get_order((int) $orderNumber);
         if (! $order instanceof \WC_Order
             || ! hash_equals(mb_strtolower(trim((string) $order->get_billing_email())), mb_strtolower(trim($email)))) {

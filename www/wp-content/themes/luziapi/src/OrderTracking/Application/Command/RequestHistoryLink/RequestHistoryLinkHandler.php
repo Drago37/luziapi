@@ -62,6 +62,9 @@ final readonly class RequestHistoryLinkHandler
             static fn (int $orderId): bool => $orderId > 0,
         )));
         if ([] === $orderIds) {
+            // Canal temporel résiduel accepté : une adresse inconnue répond un peu
+            // plus vite (pas de génération de jeton ni d'envoi). Risque tenu pour
+            // négligeable — la réponse HTTP est identique et le débit est limité.
             return new HistoryLinkRequestResult(false, false);
         }
 
