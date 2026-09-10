@@ -36,7 +36,8 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
         test cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean \
-        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send
+        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
+        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -112,6 +113,9 @@ e2e-tracking-prod: ## Test e2e du suivi sur la PROD en dry-run (crée+supprime u
 
 e2e-tracking-prod-send: ## Test e2e du suivi sur la PROD, lien magique RÉEL vers l'adresse d'identité
 	@bash scripts/e2e-tracking-prod.sh --send
+
+e2e-loyalty-prod: ## Test e2e de la fidélité sur la PROD (produit+commande de test isolés, aucun e-mail, tout nettoyé)
+	@bash scripts/e2e-loyalty-prod.sh
 
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."

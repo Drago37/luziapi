@@ -156,6 +156,21 @@ les valeurs pour l'empêcher.
     **remise a posteriori corrige la recette** au registre (vrai
     `WordPressReceiptRepository`).
   Tous nettoient les données créées.
+- **Bout en bout sur la PRODUCTION** : `make e2e-loyalty-prod` (script
+  `scripts/e2e-loyalty-prod.sh` + runner à jeton `tools/e2e-loyalty-prod.php`).
+  Dépose un script à jeton à usage unique à la racine du thème, l'appelle en
+  HTTPS, affiche le résumé JSON, puis le supprime (vérifie le 404). Il crée un
+  **produit masqué** et **une commande de test isolés** (e-mail aléatoire) puis
+  les supprime : le statut « Terminée » est posé via `set_status` — donc **aucun
+  hook, aucun e-mail, aucune recette, aucun mouvement de stock de complétion** —
+  et une ceinture `pre_wp_mail` bloque tout envoi. Couvre le cycle complet sur les
+  vraies classes et la vraie base : résolution d'identité, compteur (offerts
+  exclus, pot offert fidélité), réconciliation à « Terminée », lecture fiche
+  client **et** suivi sans compte (expiration active), **remboursement partiel**
+  (net = 2), annulation (retour à zéro, avantage rendu), et absence de ligne de
+  journal résiduelle. À rejouer après tout déploiement touchant `src/Loyalty/`.
+  Le runner vit sous `tools/` (exclu du déploiement) et est **uploadé au runtime**
+  par le script : rien de tout cela n'atterrit en prod de façon permanente.
 
 ## Ce que fait le lot 4 (affichage côté client — en cours)
 
