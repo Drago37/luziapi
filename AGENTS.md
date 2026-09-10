@@ -170,9 +170,22 @@ Marche à suivre :
 
 ### Une dépendance Composer change (nouveau `require`)
 
-→ `make deploy` reste le bon outil : il faut régénérer `vendor/` en version prod. Démarrer Docker
-(`make up`), ou faire `composer install --no-dev` en local avant le mirror puis restaurer les
-dépendances de dev (`composer install`).
+Il faut régénérer `vendor/` en version prod **et déployer le vendor _complet_**, pas seulement le
+nouveau paquet + l'autoload. `composer` regénère un **autoload cohérent avec tout le vendor local** :
+si prod a un vendor **incomplet** (séquelle d'un déploiement interrompu), le nouvel autoload va
+`require` en dur des fichiers (ex. `react/promise` en _files-autoload_) **absents de prod** → fatal,
+site en 500. Marche à suivre sûre :
+
+1. `composer install --no-dev --optimize-autoloader` (dans le conteneur : `docker compose exec … `),
+   pour un vendor **prod-only** (~500 fichiers, sans PHPStan/PHPUnit/CS-Fixer).
+2. Mirror FTPS du **vendor entier** (`mirror -R --no-perms`, sans `--delete`) — pas juste le delta.
+3. Vider l'OPcache, puis `make deploy-check-live` (URL non cachées).
+4. Restaurer les dépendances de dev en local : `composer install`.
+
+Constaté le 10 septembre 2026 en déployant Monolog : prod a fait un 500 car son vendor avait perdu
+`react/promise` (déploiement partiel du 9). Détails : [docs/prod-o2switch.md](docs/prod-o2switch.md).
+`make deploy` régénère et mirror aussi, mais son mirror complet du thème est fragile à l'interruption
+(§ ci-dessus) : préférer la régénération `--no-dev` + mirror ciblé du seul `vendor/`.
 
 > **Artefacts de dev/test jamais déployés.** Le mirror `make deploy` exclut, via la variable
 > `DEPLOY_EXCLUDES` du `Makefile`, tout ce qui ne sert pas au runtime : `tools/`, `tests-js/`,

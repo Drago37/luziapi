@@ -381,6 +381,29 @@ non cachée.
 - **État :** l'historique a été rattrapé (4 commandes terminées, **97 €** au registre) via le
   rapprochement assisté. Le futur est automatique.
 
+## Suivi de commande sans compte — mise en ligne (10 septembre 2026)
+
+- **En ligne :** page `/suivi-commande/` publiée (slug `suivi-commande`, gabarit appliqué par le
+  slug). Deux accès invités : numéro + e-mail de facturation, ou lien magique. Rendu vérifié en prod :
+  `200`, **`noindex` + `no-store`** même sur l'URL nue (PowerBoost ne la met pas en cache), aucun
+  e-mail dans l'URL. Le bouton « Suivre ma commande » apparaît désormais dans les e-mails client
+  (conditionné à l'existence de la page).
+- **Tables :** `wp_luziapi_tracking_grants`, `_sessions`, `_rate_limits`, `_status_events`, créées
+  automatiquement par la migration sur `init`.
+- **Créer la page** (fait manuellement, écriture prod bloquée par le garde-fou de l'assistant) :
+  WP admin → Pages → Ajouter, slug **`suivi-commande`**, Publier.
+
+### Rechute vendor lors du déploiement (même racine que l'incident du 9)
+
+Le déploiement de ce lot a **remis prod en 500** quelques minutes : en ajoutant Monolog, l'autoload
+régénéré s'est mis à exiger `react/promise` (une dépendance **prod**), **absente du vendor de prod**
+laissé incomplet par le déploiement interrompu du 9 septembre. Le **contrôle post-déploiement l'a
+détecté immédiatement**. **Correctif :** `composer install --no-dev -o` (vendor prod-only, 517
+fichiers) puis **mirror du vendor complet** → toutes les dépendances présentes → site rétabli.
+
+**Leçon :** quand une dépendance Composer change, déployer le **vendor entier** régénéré, jamais le
+seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais complet et cohérent.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
