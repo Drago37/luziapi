@@ -404,6 +404,25 @@ fichiers) puis **mirror du vendor complet** → toutes les dépendances présent
 **Leçon :** quand une dépendance Composer change, déployer le **vendor entier** régénéré, jamais le
 seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais complet et cohérent.
 
+## Programme de fidélité — mise en ligne (10 septembre 2026)
+
+- **En ligne :** lots 1 à 4 du programme « 10 pots achetés, le 11e offert » (module `src/Loyalty/`,
+  voir [fidelite.md](fidelite.md)). Déploiement **FTPS ciblé** de 56 fichiers thème (aucune nouvelle
+  dépendance Composer : les classes `LuziApi\Loyalty\…` se chargent en PSR-4, l'autoload prod n'est
+  pas `-a`). OPcache vidé, empreintes SHA-256 vérifiées, smoke test `/suivi-commande`, `/wp-login.php`
+  et home en **200 sans erreur**.
+- **Table :** `wp_luziapi_loyalty_ledger` créée automatiquement par la migration sur `init`
+  (schéma v1). Journal append-only.
+- **⚠ Action requise pour activer le comptage :** aucun pot n'est crédité tant que les produits ne
+  portent pas la méta **`_luziapi_pot_admissible = yes`** (case « Pot admissible à la fidélité » dans
+  la fiche produit → « Options LuziApi »). **Cocher les pots de miel en catalogue**, sinon le
+  programme reste dormant. À faire manuellement (ou backfill de la méta).
+- **Pas de rétro-crédit :** le journal démarre vide ; les commandes déjà « Terminée » ne sont pas
+  comptées. Un backfill des « Terminée » passées est possible mais pas encore décidé.
+- **Deux choses distinctes à ne pas confondre** (voir `AGENTS.md` § 5) : le **« 1 €/pot »** est la
+  remise de volume au panier (`inc/shop.php`, inchangée) ; la **fidélité** est le nouveau programme
+  de pots. La **remise remerciement** (lot 3) est encore autre chose (geste monétaire libre).
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
