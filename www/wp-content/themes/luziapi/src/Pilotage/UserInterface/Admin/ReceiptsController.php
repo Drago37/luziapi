@@ -24,6 +24,8 @@ use Timber\Timber;
 
 final readonly class ReceiptsController
 {
+    use SurfacesActionErrors;
+
     private const PAYMENT_METHODS = [
         'cash'          => 'Espèces',
         'cheque'        => 'Chèque',
@@ -88,6 +90,7 @@ final readonly class ReceiptsController
             'entries'             => array_map($this->formatEntry(...), $summary->entries),
             'reconciliations'     => array_map($this->formatReconciliation(...), $register->reconciliations),
             'notice'              => isset($_GET['receipt_notice']) ? sanitize_key(wp_unslash((string) $_GET['receipt_notice'])) : '',
+            'notice_detail'       => $this->takeErrorDetail('receipts'),
         ]);
     }
 
@@ -126,6 +129,7 @@ final readonly class ReceiptsController
             ));
             $this->redirect((int) $occurredAt->format('Y'), 'recorded');
         } catch (Throwable $exception) {
+            $this->rememberErrorDetail('receipts', $exception);
             $this->recordFailure('Enregistrement d’une recette échoué');
             $this->redirect((int) $this->clock->now()->format('Y'), 'error');
         }
@@ -144,6 +148,7 @@ final readonly class ReceiptsController
             ));
             $this->redirect(absint($_POST['year'] ?? 0), 'reversed');
         } catch (Throwable $exception) {
+            $this->rememberErrorDetail('receipts', $exception);
             $this->recordFailure('Contre-écriture d’une recette échouée');
             $this->redirect(absint($_POST['year'] ?? 0), 'error');
         }

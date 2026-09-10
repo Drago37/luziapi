@@ -29,6 +29,8 @@ use Timber\Timber;
 
 final readonly class CustomersController
 {
+    use SurfacesActionErrors;
+
     private const STATUS_LABELS = [
         'pending'          => 'En attente de paiement',
         'on-hold'          => 'Règlement à vérifier',
@@ -78,7 +80,8 @@ final readonly class CustomersController
             }
             $this->adjustPots->handle(new AdjustLoyaltyPotsCommand($key, $direction * $amount, $reason, get_current_user_id()));
             $this->redirectAfterCategory($customerId, 'pots_adjusted');
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
             $this->activity->record(
                 ActivityCategory::Error,
                 'loyalty_adjust_failed',
@@ -109,7 +112,8 @@ final readonly class CustomersController
             }
             $this->applyDiscount->handle(new ApplyThankYouDiscountCommand($orderId, $discount, get_current_user_id()));
             $this->redirectAfterCategory($customerId, 'discount_applied');
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
             $this->activity->record(
                 ActivityCategory::Error,
                 'thankyou_discount_failed',
@@ -193,6 +197,7 @@ final readonly class CustomersController
             ),
             'timeline'          => array_map($this->formatTimeline(...), $directory->timeline),
             'notice'            => isset($_GET['customer_notice']) ? sanitize_key(wp_unslash((string) $_GET['customer_notice'])) : '',
+            'notice_detail'     => $this->takeErrorDetail('customers'),
         ]);
     }
 
@@ -217,7 +222,8 @@ final readonly class CustomersController
                 get_current_user_id(),
             ));
             $this->redirectAfterCategory($customerId, 'category_updated');
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
             $this->activity->record(
                 ActivityCategory::Error,
                 'customer_category_update_failed',

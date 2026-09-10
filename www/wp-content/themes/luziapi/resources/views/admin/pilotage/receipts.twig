@@ -18,7 +18,7 @@
 
     {% if notice == 'recorded' %}<div class="notice notice-success inline"><p>L’écriture a été enregistrée.</p></div>{% endif %}
     {% if notice == 'reversed' %}<div class="notice notice-success inline"><p>La contre-écriture a été enregistrée. L’écriture d’origine est conservée.</p></div>{% endif %}
-    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’écriture n’a pas pu être enregistrée. Vérifie les informations saisies.</p></div>{% endif %}
+    {% if notice == 'error' %}<div class="notice notice-error inline"><p>L’écriture n’a pas pu être enregistrée. Vérifie les informations saisies.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
         <input type="hidden" name="page" value="luziapi-pilotage"><input type="hidden" name="tab" value="receipts">

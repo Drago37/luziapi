@@ -21,11 +21,11 @@
     </nav>
 
     {% if notice == 'category_updated' %}<div class="notice notice-success inline"><p>La catégorie du client a été enregistrée.</p></div>{% endif %}
-    {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p></div>{% endif %}
+    {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'discount_applied' %}<div class="notice notice-success inline"><p>La remise remerciement a été appliquée à la commande.</p></div>{% endif %}
-    {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p></div>{% endif %}
+    {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
-    {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p></div>{% endif %}
+    {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     {% if selected_customer %}
         <section class="luziapi-pilotage__customer-card">

@@ -26,6 +26,8 @@ use Timber\Timber;
 
 final readonly class QuickSaleController
 {
+    use SurfacesActionErrors;
+
     private const PAYMENT_METHODS = [
         'cash'          => 'Espèces',
         'cheque'        => 'Chèque',
@@ -101,6 +103,7 @@ final readonly class QuickSaleController
             'payment_methods'      => self::PAYMENT_METHODS,
             'now'                  => $this->clock->now()->format('Y-m-d\TH:i'),
             'notice'               => isset($_GET['quick_sale_notice']) ? sanitize_key(wp_unslash((string) $_GET['quick_sale_notice'])) : '',
+            'notice_detail'        => $this->takeErrorDetail('quick_sale'),
             'created_order_url'    => isset($_GET['order_id']) ? admin_url('admin.php?page=wc-orders&action=edit&id=' . absint($_GET['order_id'])) : '',
             'clients'              => $clients,
             'prefill'              => $prefill,
@@ -171,6 +174,7 @@ final readonly class QuickSaleController
             $this->recordFailure('Vente créée, mais encaissement non enregistré', $exception->sale->orderId);
             $this->redirect('receipt_error', $exception->sale->orderId);
         } catch (Throwable $exception) {
+            $this->rememberErrorDetail('quick_sale', $exception);
             $this->recordFailure('Création d’une vente échouée');
             $this->redirect('error');
         }
