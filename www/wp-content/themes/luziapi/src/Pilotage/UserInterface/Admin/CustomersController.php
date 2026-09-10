@@ -56,6 +56,7 @@ final readonly class CustomersController
             : null;
         $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery($search, $page, 50, $customerId, $category));
         $pageUrl = admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers');
+        $quickSaleUrl = admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale');
 
         Timber::render('@luziapi_admin/pilotage/customers.twig', [
             'page_url'          => $pageUrl,
@@ -64,10 +65,13 @@ final readonly class CustomersController
             'tax_declaration_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=tax-declaration'),
             'products_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),
             'inventory_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
-            'quick_sale_url'    => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
+            'quick_sale_url'    => $quickSaleUrl,
             'activity_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'        => admin_url('admin.php?page=wc-orders'),
-            'new_order_url'     => admin_url('admin.php?page=wc-orders&action=new'),
+            'new_order_url'     => $quickSaleUrl,
+            'new_order_for_customer_url' => $directory->selectedCustomer
+                ? add_query_arg('customer', $directory->selectedCustomer->id, $quickSaleUrl)
+                : '',
             'action_url'        => admin_url('admin-post.php'),
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
             'search'            => $search,

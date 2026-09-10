@@ -142,6 +142,7 @@ final class PilotageServiceProvider
         $quickSaleController = new QuickSaleController(
             $products,
             new CreateQuickSaleHandler(new WooCommerceQuickSaleOrderWriter(), $recordReceipt, $clock),
+            $customerHandler,
             $clock,
             $activity,
         );

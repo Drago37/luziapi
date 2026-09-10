@@ -241,6 +241,15 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   reçoit jamais). Les e-mails partent en envoi natif `mail()`, signé DKIM par o2switch.
 - **Formulaire natif Brevo `[sibwp_form]`** : inutilisable sur o2switch. Remplacé par un formulaire
   maison + route REST (voir docs/prod-o2switch.md).
+- **Création de commande = point d'entrée unique** : toute commande manuelle passe par la **Vente**
+  du tableau de pilotage (ex-« Vente rapide », renommée). L'écran natif WooCommerce de création
+  (`wc-orders&action=new` et le legacy `post-new.php?post_type=shop_order`) est **redirigé** vers la
+  Vente et son bouton « Ajouter une commande » masqué (`inc/woocommerce.php`) ; l'**édition** et le
+  **remboursement** des commandes existantes restent disponibles. C'est la condition d'une future
+  fidélité fiable (un seul chemin de création). La Vente préremplit les coordonnées depuis le
+  répertoire client (invités sans compte : source = le carnet maison, jamais la liste des
+  utilisateurs WordPress). Ne pas rétablir la création native sans en parler. Test :
+  `make e2e-vente-local` (voir [docs/tests-vente.md](docs/tests-vente.md)).
 
 ---
 

@@ -77,7 +77,7 @@ final readonly class CreateQuickSaleHandler
                 $created->totalCents,
                 $command->paymentMethod,
                 ReceiptEntryType::Collection,
-                'Vente rapide — commande n°' . $created->orderNumber,
+                'Vente — commande n°' . $created->orderNumber,
                 $command->actorId,
             ));
         } catch (Throwable $exception) {

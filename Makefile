@@ -69,6 +69,9 @@ e2e-local: ## Joue le test e2e des commandes en local (identité : tools/.e2e-id
 e2e-clean: ## Supprime toute trace de commande/produit de test e2e resté en base
 	$(DC) run --rm -e LUZIAPI_E2E_PAYLOAD='{"options":{"cleanup_only":true}}' wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orders.php';" --user=admin
 
+e2e-vente-local: ## Teste la Vente (préremplissage client + point d'entrée unique) sur le vrai WooCommerce local
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente.php';" --user=admin
+
 e2e-prod: ## Test e2e sur la PROD en dry-run (aucun e-mail, dépose→exécute→supprime)
 	@bash scripts/e2e-prod.sh
 

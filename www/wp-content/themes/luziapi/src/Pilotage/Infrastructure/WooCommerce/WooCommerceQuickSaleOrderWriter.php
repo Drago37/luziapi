@@ -104,7 +104,7 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
         $order->calculate_totals();
         $order->save();
         wc_reduce_stock_levels($order->get_id());
-        $order->add_order_note('Commande créée depuis la vente rapide LuziApi.', 0);
+        $order->add_order_note('Commande créée depuis la Vente LuziApi.', 0);
         $order->update_status($command->paid ? 'completed' : 'on-hold');
 
         if ($command->sendEmail && '' !== $command->email) {
@@ -117,7 +117,7 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
                     $email->trigger($order->get_id(), $order);
                 }
             } catch (\Throwable) {
-                $order->add_order_note('L’e-mail demandé depuis la vente rapide n’a pas pu être transmis.', 0);
+                $order->add_order_note('L’e-mail demandé depuis la Vente n’a pas pu être transmis.', 0);
             }
         }
 

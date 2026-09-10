@@ -48,6 +48,62 @@ add_action('admin_enqueue_scripts', static function (string $hookSuffix): void {
     );
 });
 
+// Point d'entrée unique pour la création de commande : toute commande manuelle
+// passe par la « Vente » du tableau de pilotage. Cela garantit la cohérence des
+// données (source, stock, recette) et prépare la fidélité, qui ne serait pas
+// fiable si les commandes pouvaient naître par deux chemins. On redirige l'écran
+// natif de création et on masque son bouton ; l'édition et le remboursement des
+// commandes existantes restent, eux, disponibles.
+function luziapi_quick_sale_url(): string
+{
+    return admin_url('admin.php?page=luziapi-pilotage&tab=quick-sale');
+}
+
+/**
+ * Décide si l'écran demandé est la CRÉATION native d'une commande (HPOS ou
+ * historique), à rediriger vers la Vente. Volontairement pure pour être testée
+ * sans WordPress : l'édition (`action=edit`) et la liste ne sont jamais visées.
+ */
+function luziapi_is_native_order_creation_screen(
+    string $pagenow,
+    string $page,
+    string $action,
+    string $postType,
+): bool {
+    $isHposNew = 'admin.php' === $pagenow && 'wc-orders' === $page && 'new' === $action;
+    $isLegacyNew = 'post-new.php' === $pagenow && 'shop_order' === $postType;
+
+    return $isHposNew || $isLegacyNew;
+}
+
+add_action('admin_init', static function (): void {
+    global $pagenow;
+
+    $blocked = luziapi_is_native_order_creation_screen(
+        (string) $pagenow,
+        isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '',
+        isset($_GET['action']) ? sanitize_key(wp_unslash((string) $_GET['action'])) : '',
+        isset($_GET['post_type']) ? sanitize_key(wp_unslash((string) $_GET['post_type'])) : '',
+    );
+
+    if ($blocked) {
+        wp_safe_redirect(luziapi_quick_sale_url());
+        exit;
+    }
+});
+
+add_action('admin_head', static function (): void {
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (! $screen instanceof \WP_Screen) {
+        return;
+    }
+    if ('woocommerce_page_wc-orders' !== $screen->id && 'edit-shop_order' !== $screen->id) {
+        return;
+    }
+
+    echo '<style>.wrap a.page-title-action[href*="action=new"],.wrap a.page-title-action[href*="post-new.php?post_type=shop_order"]{display:none!important;}</style>';
+});
+
 // Retire les wrappers par défaut de WooCommerce.
 remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
 remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);

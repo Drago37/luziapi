@@ -12,7 +12,10 @@ use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLine;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleReceiptFailed;
 use LuziApi\Pilotage\Application\Port\Clock;
+use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
+use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
+use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Product\ProductCatalog;
 use LuziApi\Pilotage\Domain\Product\ProductStockSnapshot;
 use Throwable;
@@ -32,6 +35,7 @@ final readonly class QuickSaleController
     public function __construct(
         private ProductCatalog $products,
         private CreateQuickSaleHandler $createQuickSale,
+        private GetCustomerDirectoryHandler $getCustomers,
         private Clock $clock,
         private ActivityRecorder $activity,
     ) {
@@ -46,6 +50,20 @@ final readonly class QuickSaleController
     {
         $this->assertPermission();
         $sourceOptions = function_exists('luziapi_order_source_options') ? luziapi_order_source_options() : [];
+
+        $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash((string) $_GET['customer'])) : '';
+        $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 100, $customerId));
+        $clients = array_map($this->formatClientOption(...), $directory->customers);
+        $prefill = null;
+        if ($directory->selectedCustomer instanceof CustomerProfile) {
+            $prefill = $this->formatClientOption($directory->selectedCustomer);
+            // Rendre le client présélectionnable même s'il n'est pas dans la
+            // première page de la liste embarquée.
+            $known = array_column($clients, 'id');
+            if (! in_array($prefill['id'], $known, true)) {
+                array_unshift($clients, $prefill);
+            }
+        }
 
         Timber::render('@luziapi_admin/pilotage/quick-sale.twig', [
             'page_url'             => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
@@ -69,6 +87,8 @@ final readonly class QuickSaleController
             'now'                  => $this->clock->now()->format('Y-m-d\TH:i'),
             'notice'               => isset($_GET['quick_sale_notice']) ? sanitize_key(wp_unslash((string) $_GET['quick_sale_notice'])) : '',
             'created_order_url'    => isset($_GET['order_id']) ? admin_url('admin.php?page=wc-orders&action=edit&id=' . absint($_GET['order_id'])) : '',
+            'clients'              => $clients,
+            'prefill'              => $prefill,
         ]);
     }
 
@@ -127,10 +147,10 @@ final readonly class QuickSaleController
 
             $this->redirect($created->alreadyExisted ? 'duplicate' : 'created', $created->orderId);
         } catch (QuickSaleReceiptFailed $exception) {
-            $this->recordFailure('Vente rapide créée, mais encaissement non enregistré', $exception->sale->orderId);
+            $this->recordFailure('Vente créée, mais encaissement non enregistré', $exception->sale->orderId);
             $this->redirect('receipt_error', $exception->sale->orderId);
         } catch (Throwable $exception) {
-            $this->recordFailure('Création d’une vente rapide échouée');
+            $this->recordFailure('Création d’une vente échouée');
             $this->redirect('error');
         }
     }
@@ -143,6 +163,33 @@ final readonly class QuickSaleController
             'name'  => $product->name,
             'price' => html_entity_decode(wp_strip_all_tags(wc_price($product->price->cents() / 100)), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'stock' => $product->stockQuantity,
+        ];
+    }
+
+    /**
+     * Coordonnées d'un client du répertoire, prêtes à préremplir le formulaire.
+     *
+     * @return array{id: string, name: string, email: string, phone: string, city: string, label: string}
+     */
+    private function formatClientOption(CustomerProfile $customer): array
+    {
+        $email = $customer->primaryEmail();
+        $phone = $customer->primaryPhone();
+        $label = $customer->name;
+        if ('' === $label) {
+            $label = $phone !== '' ? $phone : ($email !== '' ? $email : 'Client sans nom');
+        }
+        if ('' !== $customer->city) {
+            $label .= ' — ' . $customer->city;
+        }
+
+        return [
+            'id'    => $customer->id,
+            'name'  => $customer->name,
+            'email' => $email,
+            'phone' => $phone,
+            'city'  => $customer->city,
+            'label' => $label,
         ];
     }
 

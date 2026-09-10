@@ -16,7 +16,7 @@
         <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Clients</a>
         <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
         <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
-        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente rapide</a>
+        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente</a>
         <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
@@ -31,7 +31,10 @@
                     <h2>{{ selected_customer.name|e }}</h2>
                     {% if selected_customer.city %}<p>{{ selected_customer.city|e }}</p>{% endif %}
                 </div>
-                <a class="button" href="{{ page_url|e('html_attr') }}">Fermer la fiche</a>
+                <div class="luziapi-pilotage__panel-actions">
+                    <a class="button button-primary" href="{{ new_order_for_customer_url|e('html_attr') }}">Créer une vente pour ce client</a>
+                    <a class="button" href="{{ page_url|e('html_attr') }}">Fermer la fiche</a>
+                </div>
             </div>
             <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post">
                 <input type="hidden" name="action" value="luziapi_assign_customer_category">

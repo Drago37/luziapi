@@ -57,4 +57,22 @@ final readonly class CustomerProfile
     {
         return $this->orders[0];
     }
+
+    /**
+     * Adresse e-mail à utiliser pour préremplir une nouvelle commande.
+     * La première connue fait foi ; vide si le client n'est identifié que par
+     * téléphone.
+     */
+    public function primaryEmail(): string
+    {
+        return $this->emails[0] ?? '';
+    }
+
+    /**
+     * Téléphone à utiliser pour préremplir une nouvelle commande.
+     */
+    public function primaryPhone(): string
+    {
+        return $this->phones[0] ?? '';
+    }
 }

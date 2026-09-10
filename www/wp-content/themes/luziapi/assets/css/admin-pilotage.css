@@ -221,6 +221,13 @@
     justify-content: flex-start;
 }
 
+.luziapi-pilotage__panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
 .luziapi-pilotage__toolbar {
     flex-wrap: wrap;
 }

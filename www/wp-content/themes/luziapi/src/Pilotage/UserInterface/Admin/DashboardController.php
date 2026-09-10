@@ -94,7 +94,7 @@ final readonly class DashboardController
             'quick_sale_url'    => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'activity_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'        => admin_url('admin.php?page=wc-orders'),
-            'new_order_url'     => admin_url('admin.php?page=wc-orders&action=new'),
+            'new_order_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'metrics'           => [
                 ['label' => 'Recettes encaissées', 'value' => $this->formatMoney($dashboard->receipts->net->cents())],
                 ['label' => 'Commandes validées', 'value' => $this->formatMoney($summary->orderedTotal->cents())],

@@ -62,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sendEmail = quickSale.querySelector('[data-send-email]');
         const fulfillment = quickSale.querySelector('[data-fulfillment]');
         const deliveryAddress = quickSale.querySelector('[data-delivery-address]');
+        const clientPicker = quickSale.querySelector('[data-client-picker]');
+        const nameField = quickSale.querySelector('[name="customer_name"]');
+        const phoneField = quickSale.querySelector('[name="phone"]');
+        const cityField = quickSale.querySelector('[name="city"]');
         const updateEmail = () => {
             sendEmail.disabled = !email.value.trim();
             if (sendEmail.disabled) sendEmail.checked = false;
@@ -73,6 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         email.addEventListener('input', updateEmail);
         fulfillment.addEventListener('change', updateDelivery);
+        if (clientPicker) {
+            clientPicker.addEventListener('change', () => {
+                const data = clientPicker.selectedOptions[0] ? clientPicker.selectedOptions[0].dataset : {};
+                if (nameField) nameField.value = data.name || '';
+                if (email) email.value = data.email || '';
+                if (phoneField) phoneField.value = data.phone || '';
+                if (cityField) cityField.value = data.city || '';
+                updateEmail();
+            });
+        }
         quickSale.addEventListener('submit', () => {
             const button = quickSale.querySelector('.luziapi-pilotage__submit-bar button[type="submit"]');
             if (button) {
