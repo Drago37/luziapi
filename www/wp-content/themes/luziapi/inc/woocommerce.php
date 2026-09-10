@@ -134,6 +134,25 @@ add_action('woocommerce_before_checkout_form', 'luziapi_stock_reservation_notice
 // Nombre de produits par ligne dans la boutique.
 add_filter('loop_shop_columns', static fn (): int => 4);
 
+// WooCommerce lit `state`/`postcode` sur la destination des paquets d'expédition
+// (get_zone_matching_package) ; en France ces clés manquent souvent → warning
+// « Undefined array key state » à chaque calcul de livraison. On garantit les
+// clés attendues, sans changer le matching (WooCommerce lirait '' de toute façon).
+add_filter('woocommerce_cart_shipping_packages', static function (array $packages): array {
+    foreach ($packages as $key => $package) {
+        if (! isset($package['destination']) || ! is_array($package['destination'])) {
+            continue;
+        }
+        $packages[$key]['destination']['country'] = $package['destination']['country'] ?? '';
+        $packages[$key]['destination']['state'] = $package['destination']['state'] ?? '';
+        $packages[$key]['destination']['postcode'] = $package['destination']['postcode'] ?? '';
+        $packages[$key]['destination']['city'] = $package['destination']['city'] ?? '';
+        $packages[$key]['destination']['address'] = $package['destination']['address'] ?? '';
+    }
+
+    return $packages;
+}, 20);
+
 // Quatre produits seulement : conserver leur ordre défini et masquer le tri.
 remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
 

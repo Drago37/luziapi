@@ -15,6 +15,7 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\WordPressMailerHandler;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;
@@ -86,6 +87,23 @@ function luziapi_logger(): LoggerInterface
             new ErrorLevelActivationStrategy(Level::Error),
             200,
         ));
+
+        // Alerte e-mail sur ERROR (via wp_mail, signée DKIM), au plus une toutes
+        // les 2 minutes pour ne pas transformer une panne en tempête d'e-mails.
+        $mailer = new WordPressMailerHandler(
+            'luziapi37150@gmail.com',
+            'LuziApi — erreur en production',
+            $directory . '/alert-throttle',
+            120,
+            Level::Error,
+        );
+        $mailer->setFormatter(new LineFormatter(
+            "[%datetime%] %channel%.%level_name%: %message%\n%context%\n%extra%\n",
+            'Y-m-d H:i:s',
+            true,
+            true,
+        ));
+        $logger->pushHandler($mailer);
     } catch (\Throwable) {
         // La journalisation ne doit jamais casser le site.
         $logger->pushHandler(new NullHandler());
