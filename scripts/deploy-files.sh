@@ -104,38 +104,68 @@ set -a; . ./.env.local; set +a
 : "${DEPLOY_FTP_PASS:?manquant dans .env.local}"
 : "${DEPLOY_FTP_HOST:?manquant dans .env.local}"
 P="${DEPLOY_FTP_PATH:-.}"
-FTP_OPTS="set ftp:ssl-force true; set ssl:verify-certificate yes; set ftp:ssl-protect-data true; set passive-mode true; set net:timeout 20; set net:max-retries 2;"
-ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "$DEPLOY_FTP_HOST" -e "${FTP_OPTS} $1 bye"; }
+# `cmd:fail-exit true` : le lot lftp s'arrête au premier ordre en échec.
+FTP_OPTS="set ftp:ssl-force true; set ssl:verify-certificate yes; set ftp:ssl-protect-data true; set passive-mode true; set net:timeout 20; set net:max-retries 2; set cmd:fail-exit true;"
+ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" -e "${FTP_OPTS} $1 bye"; }
 
-# --- Upload ----------------------------------------------------------------
-echo "→  Upload FTPS…"
-( cd "$THEME_PREFIX"
-  CMDS=""
-  for r in "${REL[@]}"; do CMDS+=" put -O ${P}/$(dirname "$r") $r;"; done
-  lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "$DEPLOY_FTP_HOST" -e "${FTP_OPTS} ${CMDS} bye" )
+# Suffixe des fichiers temporaires : aucun fichier live n'est touché tant que
+# tout n'est pas monté, puis la bascule se fait par rename atomique côté serveur.
+SUFFIX=".deploying-$$"
 
-# --- OPcache + vérif SHA par script à jeton --------------------------------
+cleanup_temps() {
+  local cmds="" r
+  for r in "${REL[@]}"; do cmds+=" rm -f ${P}/${r}${SUFFIX};"; done
+  ftp_do "${cmds}" >/dev/null 2>&1 || true
+}
+
+# --- Upload vers des noms temporaires (prod intacte à ce stade) -------------
+echo "→  Upload FTPS (temporaire)…"
+trap 'cleanup_temps' ERR
+(
+  cd "${THEME_PREFIX}"
+  # Crée au besoin les dossiers cibles (nouveaux répertoires), puis dépose les temp.
+  mkdirs="" puts="" seen=" "
+  for r in "${REL[@]}"; do
+    d="$(dirname "${r}")"
+    if [[ "${seen}" != *" ${d} "* ]]; then mkdirs+=" mkdir -p -f ${P}/${d};"; seen+="${d} "; fi
+    puts+=" put ${r} -o ${P}/${r}${SUFFIX};"
+  done
+  lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" -e "${FTP_OPTS} ${mkdirs} ${puts} bye"
+)
+
+# --- Bascule atomique + OPcache + empreintes, par script à jeton -----------
 TOKEN="$(openssl rand -hex 16)"
-WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
+WORK="$(mktemp -d)"; trap 'rm -rf "${WORK}"' EXIT
 VERIFY="${WORK}/_deploy_verify_run.php"
 {
   echo "<?php declare(strict_types=1); header('Content-Type: application/json');"
   echo "if ((\$_GET['k'] ?? '') !== '${TOKEN}') { http_response_code(403); echo json_encode(['error'=>'forbidden']); exit; }"
+  echo "\$suffix = '${SUFFIX}';"
   echo "\$files = ["
   for r in "${REL[@]}"; do echo "  '${r}',"; done
   echo "];"
-  echo "\$h = []; foreach (\$files as \$f) { \$p = __DIR__.'/'.\$f; \$h[\$f] = is_file(\$p) ? hash_file('sha256', \$p) : 'MISSING'; }"
-  echo "echo json_encode(['opcache_reset'=>function_exists('opcache_reset')?opcache_reset():null,'hashes'=>\$h], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);"
-} > "$VERIFY"
-php -l "$VERIFY" >/dev/null || die "Script de vérif généré invalide."
+  echo "\$h = []; \$errors = [];"
+  echo "foreach (\$files as \$f) {"
+  echo "  \$tmp = __DIR__.'/'.\$f.\$suffix; \$final = __DIR__.'/'.\$f;"
+  echo "  if (is_file(\$tmp)) { if (! @rename(\$tmp, \$final)) { \$errors[] = 'rename: '.\$f; } }"
+  echo "  else { \$errors[] = 'temp-absent: '.\$f; }"
+  echo "  \$h[\$f] = is_file(\$final) ? hash_file('sha256', \$final) : 'MISSING';"
+  echo "}"
+  echo "echo json_encode(['opcache_reset'=>function_exists('opcache_reset')?opcache_reset():null,'errors'=>\$errors,'hashes'=>\$h], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);"
+} > "${VERIFY}"
+php -l "${VERIFY}" >/dev/null || die "Script de vérif généré invalide."
 
 VURL="https://www.luziapi.fr/wp-content/themes/luziapi/_deploy_verify_run.php"
-echo "→  OPcache + empreintes (script à jeton)…"
+echo "→  Bascule atomique + OPcache + empreintes (script à jeton)…"
 ftp_do "put -O . ${VERIFY};" >/dev/null 2>&1
 curl -sS "${VURL}?k=${TOKEN}" -o "${WORK}/prod.json"
 ftp_do "rm _deploy_verify_run.php;" >/dev/null 2>&1 || echo "⚠️  Suppression du script à vérifier."
-CODE="$(curl -s -o /dev/null -w '%{http_code}' "$VURL")"
-[[ "$CODE" == "404" ]] || echo "⚠️  Script encore accessible (HTTP $CODE) — à retirer."
+CODE="$(curl -s -o /dev/null -w '%{http_code}' "${VURL}")"
+[[ "${CODE}" == "404" ]] || echo "⚠️  Script encore accessible (HTTP ${CODE}) — à retirer."
+trap - ERR
+
+RENAME_ERRORS="$(jq -r '.errors | length' "${WORK}/prod.json" 2>/dev/null || echo "?")"
+[[ "${RENAME_ERRORS}" == "0" ]] || die "Bascule incomplète (erreurs: $(jq -c '.errors' "${WORK}/prod.json")) — prod à revérifier."
 
 # --- Comparaison SHA -------------------------------------------------------
 echo "→  Comparaison SHA-256…"
