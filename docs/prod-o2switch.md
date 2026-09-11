@@ -507,6 +507,14 @@ méta `_luziapi_loyalty_excluded` et **recalcule** la fidélité à l'enregistre
 et avantages déjà crédités pour la commande, décocher les réattribue (réconciliation idempotente).
 Note de commande tracée à chaque bascule. OPcache vidé, 2/2 SHA identiques, contrôle live 200 OK.
 
+**Correctif de suivi le 11 septembre 2026** (commit `4c5940e`, `deploy-files.sh`, 1 fichier
+`inc/order-workflow.php`) : la note de commande d'exclusion est reformulée en **intention**
+(« recalcul de la fidélité déclenché ») plutôt qu'en fait accompli, car la réconciliation (prio 25)
+peut échouer et n'est tracée que dans Monolog — la note ne doit pas affirmer un recalcul non garanti.
+OPcache vidé, 1/1 SHA identiques, contrôle live 200 OK. (Revue `check-pr` de la session : aussi
+durci `deploy-files.sh` — refus d'une vérif non-200/JSON inattendu, temporaires en `.ht` non
+servables — hors prod car outil non déployé.)
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
