@@ -74,18 +74,33 @@ fi
 git cat-file -e "${BASE}^{commit}" 2>/dev/null || die "Base invalide : $BASE"
 
 # --- Liste des fichiers de code du thème à déployer -------------------------
-mapfile -t FILES < <(
-  git diff --name-only "${BASE}..HEAD" -- "$THEME_PREFIX" \
-    | grep -Ev "^${THEME_PREFIX}/(tools|tests)/" \
+# `--diff-filter=ACMR` : on ne pousse que les fichiers ajoutés/copiés/modifiés/
+# renommés — les suppressions (D) ne sont pas gérées par un upload et sont
+# signalées à part (à retirer manuellement du serveur).
+theme_code_filter() {
+  grep -Ev "^${THEME_PREFIX}/(tools|tests)/" \
     | grep -Ev '\.(md)$' \
     | grep -Ev "^${THEME_PREFIX}/(composer\.(json|lock)|package(-lock)?\.json|\.php-cs-fixer.*|phpstan.*)$" \
     | grep -E "^${THEME_PREFIX}/" || true
-)
+}
+mapfile -t FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}..HEAD" -- "${THEME_PREFIX}" | theme_code_filter)
+mapfile -t DELETED < <(git diff --name-only --diff-filter=D "${BASE}..HEAD" -- "${THEME_PREFIX}" | theme_code_filter)
 [[ "${#FILES[@]}" -gt 0 ]] || die "Aucun fichier de code du thème entre $BASE et HEAD — rien à déployer."
+if [[ "${#DELETED[@]}" -gt 0 ]]; then
+  echo "⚠️  Fichiers supprimés NON gérés par ce script (à retirer manuellement du serveur) :"
+  printf '     - %s\n' "${DELETED[@]#"${THEME_PREFIX}"/}"
+fi
 
 # chemins relatifs à la racine du thème (le compte FTP y est chrooté)
 REL=(); for f in "${FILES[@]}"; do REL+=("${f#"$THEME_PREFIX"/}"); done
 HAS_PHP=0; for r in "${REL[@]}"; do [[ "$r" == *.php ]] && HAS_PHP=1; done
+
+# Garde de robustesse : les chemins sont interpolés dans le PHP généré et des
+# commandes lftp. On refuse tout caractère hors du jeu attendu des chemins de thème
+# (lettres, chiffres, . _ - /), qui pourrait casser/injecter ces contextes.
+for r in "${REL[@]}"; do
+  [[ "$r" =~ ^[A-Za-z0-9._/-]+$ ]] || die "Chemin non sûr pour le déploiement : « ${r} » (caractères inattendus)."
+done
 
 echo
 echo "Base   : $BASE"
@@ -166,7 +181,7 @@ ftp_do "put -O . ${VERIFY};" >/dev/null 2>&1 || fail_deploy "Échec du dépôt d
 # `|| HTTP=000` : ne pas laisser set -e avaler un échec réseau ici.
 HTTP="$(curl -sS -o "${WORK}/prod.json" -w '%{http_code}' "${VURL}?k=${TOKEN}")" || HTTP="000"
 ftp_do "rm _deploy_verify_run.php;" >/dev/null 2>&1 || echo "⚠️  Suppression du script de vérif à confirmer."
-LEFT="$(curl -s -o /dev/null -w '%{http_code}' "${VURL}")"
+LEFT="$(curl -s -o /dev/null -w '%{http_code}' "${VURL}")" || LEFT="000"
 [[ "${LEFT}" == "404" ]] || echo "⚠️  Script de vérif encore accessible (HTTP ${LEFT}) — à retirer."
 
 # La vérif n'est fiable QUE si c'est un vrai 200 au JSON attendu : une page
