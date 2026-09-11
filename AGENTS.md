@@ -170,6 +170,13 @@ d’intégration `make e2e-exclusion-local` et son test **de bout en bout sur la
 administrateur + nonce + `$_POST`, appel de `luziapi_save_admin_order_workflow`, qui
 pose la méta puis émet `luziapi_loyalty_exclusion_changed` recalculée par l’abonné),
 et vérifient aussi que les hooks sont câblés (isolé, aucun e-mail, tout nettoyé).
+L'**auto-envoi newsletter** (mu-plugin `luziapi-newsletter-autosend`) a de même
+`make e2e-newsletter-local` et `make e2e-newsletter-prod` : ils vérifient que la
+publication **planifie** (sans envoyer), qu'une réédition ne re-planifie pas, et que
+l'exécution différée passe par le bon canal — **en interceptant les appels Brevo**
+(`pre_http_request`) pour qu'**aucun e-mail/SMS ne parte** (le seul canal de sortie
+est court-circuité), l'article de test étant supprimé et l'event dé-planifié. La cible
+locale installe d'abord le mu-plugin dans `www/wp-content/mu-plugins/` (absent en dev).
 
 > **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
 > comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
