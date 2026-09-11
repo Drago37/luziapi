@@ -525,6 +525,18 @@ workflow ». OPcache vidé, 1/1 SHA identiques, contrôle live 200 OK. (2ᵉ rev
 correctif du script `deploy-files.sh` confirmé fail-closed sur les 5 scénarios ; durcissements _low_
 appliqués — chemins validés, suppressions signalées, garde curl — hors prod.)
 
+**Recalcul fidélité ciblé — le 11 septembre 2026** (commit `80da506`, `deploy-files.sh`, 2 fichiers
+`WooCommerceLoyaltyEarningSubscriber` + `inc/order-workflow.php`) : le recalcul de fidélité ne se
+déclenche plus à **chaque** édition de commande, mais **uniquement quand la case « Exclure de la
+fidélité » change** (action `luziapi_loyalty_exclusion_changed` émise par le save handler). Motif
+(revue pré-mise-en-prod `check-pr`) : comme l'éligibilité se calcule sur la config produit **actuelle**,
+recalculer à chaque édition faisait qu'une simple correction d'adresse sur une vieille commande
+pouvait **retirer silencieusement des pots légitimement gagnés** si un produit était devenu
+non-éligible depuis. Bonus : supprime aussi la dépendance à l'ordre des hooks (20↔25). OPcache vidé,
+2/2 SHA identiques, contrôle live 200 OK. (Ajouts hors prod : test du rendu de l'avis admin, rejet de
+`..` dans la garde de chemins de `deploy-files.sh`. Contrôle d'intégrité : 8/8 fichiers de la session
+identiques prod↔repo.)
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
