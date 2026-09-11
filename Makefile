@@ -36,8 +36,8 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
         test cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean \
-        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
-        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod
+        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-exclusion-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
+        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod e2e-exclusion-prod
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -90,6 +90,9 @@ e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Te
 e2e-loyalty-local: ## Teste l'acquisition de fidélité (crédit/contre-passation des pots) au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-loyalty-on-complete.php';" --user=admin
 
+e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-exclusion-on-toggle.php';" --user=admin
+
 e2e-discount-local: ## Teste la remise remerciement (vraie réduction WooCommerce, création et a posteriori)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-thankyou-discount.php';" --user=admin
 
@@ -116,6 +119,9 @@ e2e-tracking-prod-send: ## Test e2e du suivi sur la PROD, lien magique RÉEL ver
 
 e2e-loyalty-prod: ## Test e2e de la fidélité sur la PROD (produit+commande de test isolés, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-loyalty-prod.sh
+
+e2e-exclusion-prod: ## Test e2e de la case « Exclure de la fidélité » sur la PROD (isolé, aucun e-mail, tout nettoyé)
+	@bash scripts/e2e-exclusion-prod.sh
 
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."

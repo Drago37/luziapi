@@ -164,6 +164,21 @@ et ses tests d’intégration locaux `make e2e-loyalty-local` (pots/avantages),
 bout en bout sur la prod** rejouable `make e2e-loyalty-prod` (produit + commande de
 test isolés, statut « Terminée » via `set_status` donc aucun e-mail ni recette,
 tout nettoyé) — voir [docs/fidelite.md](docs/fidelite.md).
+La case « Exclure de la fidélité » de la fiche commande a en plus son e2e
+d’intégration `make e2e-exclusion-local` et son test **de bout en bout sur la prod**
+`make e2e-exclusion-prod` : ils pilotent le **vrai chemin admin** (contexte
+administrateur + nonce + `$_POST`, appel de `luziapi_save_admin_order_workflow`, qui
+pose la méta puis émet `luziapi_loyalty_exclusion_changed` recalculée par l’abonné),
+et vérifient aussi que les hooks sont câblés (isolé, aucun e-mail, tout nettoyé).
+
+> **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
+> comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
+> formulaire admin, ordre/branchement des hooks, capabilities, nonce, `$_POST`) n’est
+> pas couvrable par les tests « logique pure » de `tests/`. On la couvre par un e2e
+> d’intégration qui rejoue ce chemin : un cœur partagé `tools/e2e-*.php`, un wrapper
+> local WP-CLI (`make …-local`) et un wrapper prod à jeton (`scripts/…-prod.sh`,
+> `make …-prod`) — isolé et auto-nettoyé, aucun e-mail. Modèle de référence :
+> `tools/e2e-exclusion*.php` + `scripts/e2e-exclusion-prod.sh`.
 
 **Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
 **fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`
