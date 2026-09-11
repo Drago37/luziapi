@@ -38,6 +38,10 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         add_action('woocommerce_order_status_completed', [$this, 'onCompleted'], 5, 2);
         add_action('woocommerce_order_status_changed', [$this, 'onStatusChanged'], 30, 4);
         add_action('woocommerce_order_refunded', [$this, 'onRefunded'], 20, 2);
+        // Toute édition de commande dans l'admin re-réconcilie (priorité 25,
+        // après l'écriture des métas en 20) : bascule de la case « Exclure de la
+        // fidélité » comme modification des lignes, la fidélité est recalculée.
+        add_action('woocommerce_process_shop_order_meta', [$this, 'onOrderEdited'], 25, 2);
     }
 
     /** @param mixed $order */
@@ -55,6 +59,12 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
     public function onRefunded(int $orderId, int $refundId): void
     {
         $this->reconcile($orderId, null);
+    }
+
+    /** @param mixed $order */
+    public function onOrderEdited(int $orderId, $order = null): void
+    {
+        $this->reconcile($orderId, $order instanceof WC_Order ? $order : null);
     }
 
     public function reconcile(int $orderId, ?WC_Order $order): void

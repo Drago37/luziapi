@@ -57,6 +57,26 @@ final class LoyaltyExclusionGuardTest extends TestCase
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
     }
 
+    public function testTogglingExclusionRecalculatesTheOrder(): void
+    {
+        $subscriber = $this->subscriber(eligible: 2, rewards: 0);
+        $order = $this->order('completed');
+
+        // Crédit initial (commande éditée / enregistrée).
+        $subscriber->onOrderEdited(42, $order);
+        self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
+
+        // On coche « exclure » : recalcul => les pots déjà crédités sont retirés.
+        $order->update_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META, 'yes');
+        $subscriber->onOrderEdited(42, $order);
+        self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
+
+        // On décoche : recalcul => les pots sont réattribués.
+        $order->delete_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META);
+        $subscriber->onOrderEdited(42, $order);
+        self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
+    }
+
     private function order(string $status): WC_Order
     {
         return new WC_Order('', [], '', $status);

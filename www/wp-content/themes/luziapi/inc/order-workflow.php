@@ -521,9 +521,12 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
 add_action('woocommerce_admin_order_data_after_order_details', static function (\WC_Order $order): void {
     $mode           = luziapi_order_fulfillment_mode($order);
     $source         = luziapi_order_source($order);
-    $reason         = (string) $order->get_meta('_luziapi_cancellation_reason');
-    $emailsDisabled = luziapi_order_emails_disabled($order);
-    $modeLocked     = luziapi_order_fulfillment_is_locked($order);
+    $reason          = (string) $order->get_meta('_luziapi_cancellation_reason');
+    $emailsDisabled  = luziapi_order_emails_disabled($order);
+    $modeLocked      = luziapi_order_fulfillment_is_locked($order);
+    $loyaltyExcluded = 'yes' === (string) $order->get_meta(
+        \LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META
+    );
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
     ?>
@@ -557,6 +560,13 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
                 <strong>Ne pas envoyer d’e-mails pour cette commande</strong>
             </label>
             <span class="description">Les statuts et le stock continueront d’évoluer, mais aucun e-mail WooCommerce ne sera envoyé au client ni à LuziApi.</span>
+        </p>
+        <p class="form-field form-field-wide">
+            <label for="luziapi_exclude_from_loyalty" style="display:flex;gap:7px;align-items:flex-start;">
+                <input type="checkbox" id="luziapi_exclude_from_loyalty" name="luziapi_exclude_from_loyalty" value="yes" <?php checked($loyaltyExcluded); ?>>
+                <strong>Exclure cette commande de la fidélité</strong>
+            </label>
+            <span class="description">Aucun pot gagné ni avantage consommé pour cette commande. La fidélité est recalculée à l’enregistrement (les pots déjà crédités sont retirés, et réattribués si la case est décochée).</span>
         </p>
         <p class="form-field form-field-wide">
             <label for="luziapi_cancellation_reason"><strong>Motif d’annulation communiqué au client</strong></label>
@@ -932,6 +942,11 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
     $newEmailsDisabled = isset($_POST['luziapi_disable_order_emails'])
         && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_disable_order_emails']));
 
+    $loyaltyExcludedMeta = \LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META;
+    $oldLoyaltyExcluded  = 'yes' === (string) $order->get_meta($loyaltyExcludedMeta);
+    $newLoyaltyExcluded  = isset($_POST['luziapi_exclude_from_loyalty'])
+        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_exclude_from_loyalty']));
+
     if ('' === $newSource) {
         $order->delete_meta_data(LUZIAPI_ORDER_SOURCE_META);
     } else {
@@ -941,6 +956,11 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
         $order->update_meta_data(LUZIAPI_ORDER_EMAILS_DISABLED_META, 'yes');
     } else {
         $order->delete_meta_data(LUZIAPI_ORDER_EMAILS_DISABLED_META);
+    }
+    if ($newLoyaltyExcluded) {
+        $order->update_meta_data($loyaltyExcludedMeta, 'yes');
+    } else {
+        $order->delete_meta_data($loyaltyExcludedMeta);
     }
     $order->save();
     luziapi_maybe_set_admin_order_attribution($order);
@@ -953,6 +973,14 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
             $newEmailsDisabled
                 ? 'Envoi des e-mails désactivé pour cette commande.'
                 : 'Envoi des e-mails réactivé pour cette commande.',
+            0
+        );
+    }
+    if ($oldLoyaltyExcluded !== $newLoyaltyExcluded) {
+        $order->add_order_note(
+            $newLoyaltyExcluded
+                ? 'Commande exclue de la fidélité (pots recalculés).'
+                : 'Commande réintégrée à la fidélité (pots recalculés).',
             0
         );
     }
