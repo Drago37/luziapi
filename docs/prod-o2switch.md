@@ -499,6 +499,14 @@ local ↔ prod, `post-deploy-check.sh` (URL non cachées) 200 OK. Commits `0254e
 tester la garde d'exclusion). Bascule atomique (temp → rename), OPcache vidé, 7/7 SHA identiques,
 contrôle live 200 OK. Aucun changement fonctionnel visible.
 
+**Exclusion fidélité activable le 11 septembre 2026** (commit `a957070`, `deploy-files.sh`, 2
+fichiers : `inc/order-workflow.php`, `WooCommerceLoyaltyEarningSubscriber`) : nouvelle case
+**« Exclure cette commande de la fidélité »** dans la fiche commande (métabox workflow). Elle pose la
+méta `_luziapi_loyalty_excluded` et **recalcule** la fidélité à l'enregistrement — le subscriber
+écoute désormais aussi `woocommerce_process_shop_order_meta` (priorité 25) : cocher retire les pots
+et avantages déjà crédités pour la commande, décocher les réattribue (réconciliation idempotente).
+Note de commande tracée à chaque bascule. OPcache vidé, 2/2 SHA identiques, contrôle live 200 OK.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
