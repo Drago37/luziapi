@@ -41,11 +41,12 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         add_action('woocommerce_order_status_completed', [$this, 'onCompleted'], 5, 2);
         add_action('woocommerce_order_status_changed', [$this, 'onStatusChanged'], 30, 4);
         add_action('woocommerce_order_refunded', [$this, 'onRefunded'], 20, 2);
-        // Toute édition de commande dans l'admin re-réconcilie (priorité 25,
-        // après l'écriture des métas en 20) : bascule de la case « Exclure de la
-        // fidélité » comme modification des lignes, la fidélité est recalculée.
-        add_action('woocommerce_process_shop_order_meta', [$this, 'onOrderEdited'], 25, 2);
-        // Un opérateur est présent lors d'une édition : lui afficher un avis si le
+        // Recalcul CIBLÉ : uniquement quand la case « Exclure de la fidélité » change
+        // (action émise par le save de la fiche commande), et NON à chaque édition —
+        // sinon corriger une adresse sur une vieille commande la recalculerait sur la
+        // config produit actuelle et pourrait retirer des pots légitimement gagnés.
+        add_action('luziapi_loyalty_exclusion_changed', [$this, 'onExclusionChanged'], 10, 2);
+        // Un opérateur est présent lors du changement : lui afficher un avis si le
         // recalcul a échoué (sinon l'échec ne vit que dans le journal Monolog).
         add_action('admin_notices', [$this, 'renderReconcileFailureNotice']);
     }
@@ -68,13 +69,14 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
     }
 
     /**
-     * Édition admin d'une commande : comme {@see reconcile()}, l'échec ne doit pas
-     * casser l'enregistrement, mais un opérateur est présent — on lui laisse en plus
-     * un avis (transient) pour qu'il sache que le solde de pots peut être incohérent.
+     * La case « Exclure de la fidélité » vient de changer sur une commande : on
+     * recalcule. Comme {@see reconcile()}, l'échec ne doit pas casser l'enregistrement,
+     * mais un opérateur est présent — on lui laisse en plus un avis (transient) pour
+     * qu'il sache que le solde de pots peut être incohérent.
      *
      * @param mixed $order
      */
-    public function onOrderEdited(int $orderId, $order = null): void
+    public function onExclusionChanged(int $orderId, $order = null): void
     {
         try {
             $this->reconcileToTarget($orderId, $order instanceof WC_Order ? $order : null);
@@ -95,7 +97,7 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
 
     /**
      * Affiche, une seule fois, l'avis d'échec de recalcul déposé par
-     * {@see onOrderEdited()} pour l'utilisateur courant.
+     * {@see onExclusionChanged()} pour l'utilisateur courant.
      */
     public function renderReconcileFailureNotice(): void
     {

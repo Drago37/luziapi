@@ -76,6 +76,13 @@ if (!function_exists('current_user_can')) {
     }
 }
 
+if (!function_exists('esc_html')) {
+    function esc_html(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
 if (!function_exists('get_current_user_id')) {
     function get_current_user_id(): int
     {

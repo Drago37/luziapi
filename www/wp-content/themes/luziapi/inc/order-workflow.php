@@ -977,14 +977,17 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
         );
     }
     if ($oldLoyaltyExcluded !== $newLoyaltyExcluded) {
-        // Note écrite avant la réconciliation (priorité 25) : formulée en intention,
-        // car le recalcul peut échouer et n'est tracé que dans le journal Monolog.
+        // Note formulée en intention : le recalcul (déclenché juste après) peut
+        // échouer et n'est alors tracé que dans Monolog + l'avis admin.
         $order->add_order_note(
             $newLoyaltyExcluded
                 ? 'Commande exclue de la fidélité (recalcul de la fidélité déclenché).'
                 : 'Commande réintégrée à la fidélité (recalcul de la fidélité déclenché).',
             0
         );
+        // Recalcul CIBLÉ : uniquement parce que l'exclusion a changé (pas à chaque
+        // édition), pour ne pas réécrire l'historique fidélité sur une simple correction.
+        do_action('luziapi_loyalty_exclusion_changed', $orderId, $order);
     }
 
     if (isset($_POST['luziapi_fulfillment_mode'])) {

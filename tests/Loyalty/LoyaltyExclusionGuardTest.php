@@ -64,20 +64,20 @@ final class LoyaltyExclusionGuardTest extends TestCase
         $subscriber = $this->subscriber(eligible: 2, rewards: 1);
         $order = $this->order('completed');
 
-        // Crédit initial (commande éditée / enregistrée) : 2 pots, 1 avantage consommé.
-        $subscriber->onOrderEdited(42, $order);
+        // Crédit initial au passage « Terminée » (hook automatique) : 2 pots, 1 avantage.
+        $subscriber->reconcile(42, $order);
         self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
         self::assertSame(-1, $this->ledger->orderTotals(42)['rights']);
 
         // On coche « exclure » : recalcul => pots retirés ET avantage restitué.
         $order->update_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META, 'yes');
-        $subscriber->onOrderEdited(42, $order);
+        $subscriber->onExclusionChanged(42, $order);
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
         self::assertSame(0, $this->ledger->orderTotals(42)['rights']);
 
         // On décoche : recalcul => pots et avantage réattribués.
         $order->delete_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META);
-        $subscriber->onOrderEdited(42, $order);
+        $subscriber->onExclusionChanged(42, $order);
         self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
         self::assertSame(-1, $this->ledger->orderTotals(42)['rights']);
     }
@@ -99,15 +99,42 @@ final class LoyaltyExclusionGuardTest extends TestCase
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
     }
 
-    public function testOnOrderEditedRecordsAnAdminNoticeWhenRecalcFails(): void
+    public function testOnExclusionChangedRecordsAnAdminNoticeWhenRecalcFails(): void
     {
         // Un opérateur est présent : l'échec est journalisé ET signalé par un transient.
         $key = 'luziapi_loyalty_reconcile_failed_' . get_current_user_id();
         delete_transient($key);
 
-        $this->throwingSubscriber()->onOrderEdited(42, $this->order('completed'));
+        $this->throwingSubscriber()->onExclusionChanged(42, $this->order('completed'));
 
         self::assertSame(42, (int) get_transient($key));
+    }
+
+    public function testRenderReconcileFailureNoticeShowsOnceThenClears(): void
+    {
+        $key = 'luziapi_loyalty_reconcile_failed_' . get_current_user_id();
+        $subscriber = $this->subscriber(eligible: 0, rewards: 0);
+
+        // Sans avis déposé : rien ne s'affiche.
+        delete_transient($key);
+        self::assertSame('', $this->capture($subscriber));
+
+        // Un avis déposé s'affiche une fois (avec le numéro de commande)…
+        set_transient($key, 42, 120);
+        $first = $this->capture($subscriber);
+        self::assertStringContainsString('#42', $first);
+        self::assertStringContainsString('notice-error', $first);
+
+        // …puis est purgé (pas de bannière collante aux chargements suivants).
+        self::assertSame('', $this->capture($subscriber));
+    }
+
+    private function capture(WooCommerceLoyaltyEarningSubscriber $subscriber): string
+    {
+        ob_start();
+        $subscriber->renderReconcileFailureNotice();
+
+        return (string) ob_get_clean();
     }
 
     private function order(string $status): WC_Order
