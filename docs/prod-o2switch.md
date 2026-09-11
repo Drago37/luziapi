@@ -515,6 +515,16 @@ OPcache vidé, 1/1 SHA identiques, contrôle live 200 OK. (Revue `check-pr` de l
 durci `deploy-files.sh` — refus d'une vérif non-200/JSON inattendu, temporaires en `.ht` non
 servables — hors prod car outil non déployé.)
 
+**Avis d'échec de recalcul le 11 septembre 2026** (commit `76104f1`, `deploy-files.sh`, 1 fichier
+`WooCommerceLoyaltyEarningSubscriber`) : lors d'une édition de commande dans l'admin, si le recalcul
+de fidélité échoue (priorité 25, `\Throwable`), l'opérateur voit désormais un `admin_notice` d'erreur
+sur la commande (« le solde de pots peut être incohérent — voir le journal ») en plus de l'alerte
+Monolog — la note « recalcul déclenché » ne pouvait pas révéler un échec à l'opérateur présent. Les
+hooks automatiques (statut/remboursement) gardent le comportement « journaliser sans casser le
+workflow ». OPcache vidé, 1/1 SHA identiques, contrôle live 200 OK. (2ᵉ revue `check-pr` : le
+correctif du script `deploy-files.sh` confirmé fail-closed sur les 5 scénarios ; durcissements *low*
+appliqués — chemins validés, suppressions signalées, garde curl — hors prod.)
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
