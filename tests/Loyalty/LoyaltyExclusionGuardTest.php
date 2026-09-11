@@ -57,24 +57,37 @@ final class LoyaltyExclusionGuardTest extends TestCase
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
     }
 
-    public function testTogglingExclusionRecalculatesTheOrder(): void
+    public function testTogglingExclusionRecalculatesPotsAndRewards(): void
     {
-        $subscriber = $this->subscriber(eligible: 2, rewards: 0);
+        // rewards:1 => on exerce aussi la restitution d'un avantage consommé.
+        $subscriber = $this->subscriber(eligible: 2, rewards: 1);
         $order = $this->order('completed');
 
-        // Crédit initial (commande éditée / enregistrée).
+        // Crédit initial (commande éditée / enregistrée) : 2 pots, 1 avantage consommé.
         $subscriber->onOrderEdited(42, $order);
         self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
+        self::assertSame(-1, $this->ledger->orderTotals(42)['rights']);
 
-        // On coche « exclure » : recalcul => les pots déjà crédités sont retirés.
+        // On coche « exclure » : recalcul => pots retirés ET avantage restitué.
         $order->update_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META, 'yes');
         $subscriber->onOrderEdited(42, $order);
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
+        self::assertSame(0, $this->ledger->orderTotals(42)['rights']);
 
-        // On décoche : recalcul => les pots sont réattribués.
+        // On décoche : recalcul => pots et avantage réattribués.
         $order->delete_meta_data(WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META);
         $subscriber->onOrderEdited(42, $order);
         self::assertSame(2, $this->ledger->orderTotals(42)['pots']);
+        self::assertSame(-1, $this->ledger->orderTotals(42)['rights']);
+    }
+
+    public function testOrderWithoutResolvableContactEarnsNothing(): void
+    {
+        // resolve() renvoie null (aucun e-mail/téléphone) => sortie anticipée, rien au journal.
+        $this->subscriber(eligible: 2, rewards: 1, contactKey: null)->reconcile(42, $this->order('completed'));
+
+        self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
+        self::assertSame(0, $this->ledger->orderTotals(42)['rights']);
     }
 
     private function order(string $status): WC_Order
@@ -82,7 +95,7 @@ final class LoyaltyExclusionGuardTest extends TestCase
         return new WC_Order('', [], '', $status);
     }
 
-    private function subscriber(int $eligible, int $rewards): WooCommerceLoyaltyEarningSubscriber
+    private function subscriber(int $eligible, int $rewards, ?string $contactKey = 'contact-key'): WooCommerceLoyaltyEarningSubscriber
     {
         $handler = new ReconcileOrderLoyaltyHandler(
             $this->ledger,
@@ -113,10 +126,14 @@ final class LoyaltyExclusionGuardTest extends TestCase
             }
         };
 
-        $resolver = new class implements OrderIdentityResolver {
+        $resolver = new class($contactKey) implements OrderIdentityResolver {
+            public function __construct(private ?string $contactKey)
+            {
+            }
+
             public function resolve(WC_Order $order): ?string
             {
-                return 'contact-key';
+                return $this->contactKey;
             }
         };
 
