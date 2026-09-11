@@ -522,7 +522,7 @@ sur la commande (« le solde de pots peut être incohérent — voir le journal 
 Monolog — la note « recalcul déclenché » ne pouvait pas révéler un échec à l'opérateur présent. Les
 hooks automatiques (statut/remboursement) gardent le comportement « journaliser sans casser le
 workflow ». OPcache vidé, 1/1 SHA identiques, contrôle live 200 OK. (2ᵉ revue `check-pr` : le
-correctif du script `deploy-files.sh` confirmé fail-closed sur les 5 scénarios ; durcissements *low*
+correctif du script `deploy-files.sh` confirmé fail-closed sur les 5 scénarios ; durcissements _low_
 appliqués — chemins validés, suppressions signalées, garde curl — hors prod.)
 
 ---
