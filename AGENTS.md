@@ -380,6 +380,16 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   (€ ou %), porté comme une vraie réduction WooCommerce (jamais des frais négatifs),
   applicable dans la Vente ou a posteriori sur une commande (avec correction de recette
   automatique si déjà encaissée). Tests `make e2e-discount-local`.
+- **PayPal = libellé de moyen de règlement uniquement, pas de gateway client.** Décision explicite de
+  l'utilisateur : il ne veut **pas** de PayPal comme moyen de paiement au checkout sur le site. « PayPal »
+  n'est qu'un **libellé** de règlement dans la Vente / les recettes (pour tracer un encaissement reçu
+  par PayPal). Ne pas installer ni activer de passerelle de paiement PayPal.
+- **Exclure une commande de la fidélité = case sur la fiche commande, avec recalcul.** La méta
+  `_luziapi_loyalty_excluded` est posée par la case « Exclure de la fidélité » (métabox workflow) ; le
+  recalcul est déclenché **uniquement quand la case change** (action `luziapi_loyalty_exclusion_changed`
+  émise par le save handler), **pas** à chaque édition — sinon corriger une adresse recalculerait sur la
+  config produit actuelle et pourrait retirer des pots légitimes. Tests `make e2e-exclusion-local` /
+  `e2e-exclusion-prod`.
 
 ---
 
