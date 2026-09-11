@@ -279,8 +279,8 @@ empreintes de fichiers.
   home avec `?nocache=…`) et comparer `find src/ | wc -l` prod vs repo. Réparation : re-`mirror -R`
   (sans `--delete`) du dossier concerné, `opcache_reset()`, puis vérifier par **SHA-256**. Constaté le
   10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109 fichiers `src/Pilotage/`, site
-  en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé
-  + vérif SHA** à `make deploy`.
+  en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé et
+  vérif SHA** à `make deploy`.
 - **`dbDelta` ne change pas la nullabilité d'une colonne existante.** Constaté le 10 septembre 2026 :
   la colonne `sequence_number` de `luziapi_receipts`, créée jadis en `NOT NULL`, l'est restée malgré
   un schéma passé à `NULL` — le dépôt insérant NULL puis le renseignant, **tout enregistrement de
@@ -337,7 +337,7 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   saisie manuelle restent disponibles pour les cas particuliers, mais ne sont plus la voie normale. Ne
   pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
   `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
-  + `RecordOrderReceiptHandlerTest`.
+  et `RecordOrderReceiptHandlerTest`.
 - **Fidélité : « offert » et « fidélité » sont deux choses distinctes** (décision explicite, ne pas
   fusionner). Depuis la Vente : « **offert** » = geste commercial libre (ligne à 0 €, affichée
   « offert », sortie du stock, **sans** impact fidélité) ; « **Fidélité → offrir un pot** » = pot
