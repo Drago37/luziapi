@@ -108,15 +108,20 @@ P="${DEPLOY_FTP_PATH:-.}"
 FTP_OPTS="set ftp:ssl-force true; set ssl:verify-certificate yes; set ftp:ssl-protect-data true; set passive-mode true; set net:timeout 20; set net:max-retries 2; set cmd:fail-exit true;"
 ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" -e "${FTP_OPTS} $1 bye"; }
 
-# Suffixe des fichiers temporaires : aucun fichier live n'est touché tant que
-# tout n'est pas monté, puis la bascule se fait par rename atomique côté serveur.
-SUFFIX=".deploying-$$"
+# Fichiers temporaires : préfixe `.ht` — Apache refuse `.ht*` par défaut, donc
+# aucune source PHP n'est servable en clair pendant la fenêtre d'upload. La
+# bascule se fait par rename atomique côté serveur une fois tout monté.
+PIDTAG="$$"
+temp_rel() {
+  printf '%s/.ht-deploying-%s-%s' "$(dirname "$1")" "${PIDTAG}" "$(basename "$1")"
+}
 
 cleanup_temps() {
   local cmds="" r
-  for r in "${REL[@]}"; do cmds+=" rm -f ${P}/${r}${SUFFIX};"; done
+  for r in "${REL[@]}"; do cmds+=" rm -f ${P}/$(temp_rel "${r}");"; done
   ftp_do "${cmds}" >/dev/null 2>&1 || true
 }
+fail_deploy() { cleanup_temps; die "$1"; }
 
 # --- Upload vers des noms temporaires (prod intacte à ce stade) -------------
 echo "→  Upload FTPS (temporaire)…"
@@ -128,7 +133,7 @@ trap 'cleanup_temps' ERR
   for r in "${REL[@]}"; do
     d="$(dirname "${r}")"
     if [[ "${seen}" != *" ${d} "* ]]; then mkdirs+=" mkdir -p -f ${P}/${d};"; seen+="${d} "; fi
-    puts+=" put ${r} -o ${P}/${r}${SUFFIX};"
+    puts+=" put ${r} -o ${P}/$(temp_rel "${r}");"
   done
   lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" -e "${FTP_OPTS} ${mkdirs} ${puts} bye"
 )
@@ -140,32 +145,41 @@ VERIFY="${WORK}/_deploy_verify_run.php"
 {
   echo "<?php declare(strict_types=1); header('Content-Type: application/json');"
   echo "if ((\$_GET['k'] ?? '') !== '${TOKEN}') { http_response_code(403); echo json_encode(['error'=>'forbidden']); exit; }"
-  echo "\$suffix = '${SUFFIX}';"
+  echo "\$pidtag = '${PIDTAG}';"
   echo "\$files = ["
   for r in "${REL[@]}"; do echo "  '${r}',"; done
   echo "];"
   echo "\$h = []; \$errors = [];"
   echo "foreach (\$files as \$f) {"
-  echo "  \$tmp = __DIR__.'/'.\$f.\$suffix; \$final = __DIR__.'/'.\$f;"
+  echo "  \$tmp = __DIR__.'/'.dirname(\$f).'/.ht-deploying-'.\$pidtag.'-'.basename(\$f); \$final = __DIR__.'/'.\$f;"
   echo "  if (is_file(\$tmp)) { if (! @rename(\$tmp, \$final)) { \$errors[] = 'rename: '.\$f; } }"
   echo "  else { \$errors[] = 'temp-absent: '.\$f; }"
   echo "  \$h[\$f] = is_file(\$final) ? hash_file('sha256', \$final) : 'MISSING';"
   echo "}"
   echo "echo json_encode(['opcache_reset'=>function_exists('opcache_reset')?opcache_reset():null,'errors'=>\$errors,'hashes'=>\$h], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);"
 } > "${VERIFY}"
-php -l "${VERIFY}" >/dev/null || die "Script de vérif généré invalide."
+php -l "${VERIFY}" >/dev/null || fail_deploy "Script de vérif généré invalide."
 
 VURL="https://www.luziapi.fr/wp-content/themes/luziapi/_deploy_verify_run.php"
 echo "→  Bascule atomique + OPcache + empreintes (script à jeton)…"
-ftp_do "put -O . ${VERIFY};" >/dev/null 2>&1
-curl -sS "${VURL}?k=${TOKEN}" -o "${WORK}/prod.json"
-ftp_do "rm _deploy_verify_run.php;" >/dev/null 2>&1 || echo "⚠️  Suppression du script à vérifier."
-CODE="$(curl -s -o /dev/null -w '%{http_code}' "${VURL}")"
-[[ "${CODE}" == "404" ]] || echo "⚠️  Script encore accessible (HTTP ${CODE}) — à retirer."
-trap - ERR
+ftp_do "put -O . ${VERIFY};" >/dev/null 2>&1 || fail_deploy "Échec du dépôt du script de vérif."
+# `|| HTTP=000` : ne pas laisser set -e avaler un échec réseau ici.
+HTTP="$(curl -sS -o "${WORK}/prod.json" -w '%{http_code}' "${VURL}?k=${TOKEN}")" || HTTP="000"
+ftp_do "rm _deploy_verify_run.php;" >/dev/null 2>&1 || echo "⚠️  Suppression du script de vérif à confirmer."
+LEFT="$(curl -s -o /dev/null -w '%{http_code}' "${VURL}")"
+[[ "${LEFT}" == "404" ]] || echo "⚠️  Script de vérif encore accessible (HTTP ${LEFT}) — à retirer."
 
-RENAME_ERRORS="$(jq -r '.errors | length' "${WORK}/prod.json" 2>/dev/null || echo "?")"
-[[ "${RENAME_ERRORS}" == "0" ]] || die "Bascule incomplète (erreurs: $(jq -c '.errors' "${WORK}/prod.json")) — prod à revérifier."
+# La vérif n'est fiable QUE si c'est un vrai 200 au JSON attendu : une page
+# d'erreur / 403 / 500 / réponse cachée ne doit jamais passer pour un succès
+# (sinon marqueur avancé + prod périmée invisible).
+[[ "${HTTP}" == "200" ]] || fail_deploy "Vérif : HTTP ${HTTP} (attendu 200) — déploiement NON confirmé, prod à revérifier."
+jq -e 'has("errors") and has("hashes")' "${WORK}/prod.json" >/dev/null 2>&1 \
+  || fail_deploy "Vérif : réponse JSON inattendue — déploiement NON confirmé (début: $(head -c 160 "${WORK}/prod.json" | tr -d '\n'))."
+HASH_COUNT="$(jq -r '.hashes | length' "${WORK}/prod.json")"
+[[ "${HASH_COUNT}" == "${#REL[@]}" ]] || fail_deploy "Vérif : ${HASH_COUNT} empreintes pour ${#REL[@]} fichiers attendus — déploiement NON confirmé."
+RENAME_ERRORS="$(jq -r '.errors | length' "${WORK}/prod.json")"
+[[ "${RENAME_ERRORS}" == "0" ]] || fail_deploy "Bascule incomplète (erreurs: $(jq -c '.errors' "${WORK}/prod.json")) — prod à revérifier."
+trap - ERR
 
 # --- Comparaison SHA -------------------------------------------------------
 echo "→  Comparaison SHA-256…"
