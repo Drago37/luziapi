@@ -4,6 +4,37 @@ Ce document décrit les conventions techniques du projet. Il s'adresse aux déve
 agents IA. Lire également `AGENTS.md` avant toute intervention : il contient les règles de
 collaboration, de publication et de déploiement propres à LuziApi.
 
+## Flux Git — GitFlow (OBLIGATOIRE depuis la 1.0.0)
+
+Le projet est **en production depuis la 1.0.0** (11 septembre 2026) : la phase alpha/bêta où l'on
+committait directement sur `main` est **terminée**. À partir de maintenant, **GitFlow est obligatoire**,
+y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `main`.**
+
+**Branches :**
+
+- **`main`** = production. Ne reçoit QUE des merges de `release/*` ou `hotfix/*`, et **chaque merge est
+  tagué `vX.Y.Z`**. Le HEAD de `main` est l'état déployé. Aucun commit direct.
+- **`develop`** = intégration. Base de toutes les fonctionnalités ; c'est là que le travail courant
+  s'accumule entre deux releases.
+- **`feature/<slug>`** : partent de `develop`, y retournent par **Pull Request** (jamais de merge direct).
+- **`release/X.Y.Z`** : partent de `develop` pour préparer une version (gel, bump de version,
+  changelog) → merge dans `main` (**tag**) **puis** back-merge dans `develop`.
+- **`hotfix/X.Y.Z`** : partent de `main` pour un correctif urgent de prod → merge dans `main` (**tag**)
+  **puis** dans `develop`.
+
+**Règles :**
+
+1. Toute modification passe par une branche puis une **Pull Request** (utiliser la skill `/create-pr`).
+   Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
+   branches partagées).
+2. **Versionnage sémantique** `vMAJEUR.MINEUR.CORRECTIF`. La prod est fixée à **`1.0.0`**.
+3. Commits et PR **en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
+4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
+   feu vert explicite (voir la garde de déploiement dans `AGENTS.md`). `scripts/deploy-files.sh`
+   refuse de déployer si `main` n'est pas synchro et la CI verte.
+
+> Cette section **remplace** l'ancienne règle « commit direct sur `main` » : elle n'a plus cours.
+
 ## Architecture cible
 
 Le code PHP métier de LuziApi suit une **architecture hexagonale**, avec un **DDD pragmatique**.

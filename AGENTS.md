@@ -40,15 +40,22 @@ contexte plutôt que l'abandonner.
 _Pourquoi :_ en déplaçant le bouton panier du header vers les boutons flottants, le mini-panier
 déroulant (jugé pratique) a été retiré au passage sans prévenir. Mal pris.
 
-### Git : commit direct sur `main`
+### Git : GitFlow obligatoire (depuis la 1.0.0)
 
-Sur ce dépôt perso, **committer directement sur `main`** — pas de branche de feature, pas de PR.
-Le flux « branche dédiée + PR » des règles globales vise les repos pro et ne s'applique pas ici.
+Le projet est **en production depuis la `1.0.0`** (11 septembre 2026) : la phase alpha/bêta où l'on
+committait directement sur `main` est **terminée**. **GitFlow est désormais obligatoire, y compris
+pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni sur `develop`.**
 
-- Messages de commit en **français** (cohérence avec tout l'historique).
-- **Jamais** de trailer `Co-Authored-By:` — préférence explicite, un commit a déjà été refusé et
-  l'historique nettoyé pour l'enlever.
-- Ne pas pousser sans demande explicite.
+- `main` = production (état déployé, tag `vX.Y.Z` à chaque release) ; ne reçoit que des merges de
+  `release/*` ou `hotfix/*`. `develop` = intégration (base des features).
+- Toute modification → branche `feature/*` (depuis `develop`) → **Pull Request** via `/create-pr` ;
+  release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
+  (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
+  à lire et respecter.**
+- Messages de commit et PR en **français** ; **jamais** de trailer `Co-Authored-By:` (préférence
+  explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- Ne pas pousser sans demande explicite ; on ne déploie que depuis `main` après merge d'une release,
+  CI verte (voir la garde de déploiement plus bas).
 
 ### Déployer = feu vert explicite
 
