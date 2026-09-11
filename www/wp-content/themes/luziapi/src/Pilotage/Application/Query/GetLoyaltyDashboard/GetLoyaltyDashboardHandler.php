@@ -13,8 +13,9 @@ use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 
 /**
  * Construit le récapitulatif de fidélité par client et les classements pour une
- * année civile : pots achetés, pots offerts et remise remerciement, agrégés
- * depuis les commandes **terminées** de l'année.
+ * période (une année, les 2 dernières années, ou tout), à partir des commandes
+ * **terminées**. Fournit aussi les totaux cumulés toutes années pour un encart
+ * de synthèse toujours visible.
  */
 final readonly class GetLoyaltyDashboardHandler
 {
@@ -34,18 +35,34 @@ final readonly class GetLoyaltyDashboardHandler
         $profiles = $this->projector->project($orders);
 
         $availableYears = $this->availableYears($orders, $currentYear);
-        $year = $query->year ?? $currentYear;
-        if (! in_array($year, $availableYears, true)) {
-            $year = $availableYears[0] ?? $currentYear;
-        }
+        [$periodYears, $periodKey, $periodLabel] = $this->resolvePeriod($query->period, $availableYears);
+        $periodSet = array_fill_keys($periodYears, true);
 
         $rows = [];
+        $grandCustomers = 0;
+        $grandPots = 0;
+        $grandOffered = 0;
+        $grandDiscount = 0;
+
         foreach ($profiles as $profile) {
-            $orderIds = $this->completedOrderIdsForYear($profile, $year);
-            if ([] === $orderIds) {
+            // Cumul toutes années (encart de synthèse).
+            $allIds = $this->completedOrderIds($profile, null);
+            if ([] !== $allIds) {
+                $all = $this->economics->forOrderIds($allIds);
+                if ($all['potsBought'] > 0 || $all['offeredPots'] > 0 || $all['discountCents'] > 0) {
+                    $grandCustomers++;
+                    $grandPots += $all['potsBought'];
+                    $grandOffered += $all['offeredPots'];
+                    $grandDiscount += $all['discountCents'];
+                }
+            }
+
+            // Période sélectionnée.
+            $periodIds = $this->completedOrderIds($profile, $periodSet);
+            if ([] === $periodIds) {
                 continue;
             }
-            $economics = $this->economics->forOrderIds($orderIds);
+            $economics = $this->economics->forOrderIds($periodIds);
             if ($economics['potsBought'] <= 0 && $economics['offeredPots'] <= 0 && $economics['discountCents'] <= 0) {
                 continue;
             }
@@ -62,7 +79,8 @@ final readonly class GetLoyaltyDashboardHandler
         $byPots = $this->sorted($rows, static fn (LoyaltyCustomerRow $r): int => $r->potsBought);
 
         return new LoyaltyDashboardView(
-            year: $year,
+            periodKey: $periodKey,
+            periodLabel: $periodLabel,
             availableYears: $availableYears,
             customers: $byPots,
             topBuyers: array_slice($byPots, 0, $query->topSize),
@@ -72,7 +90,35 @@ final readonly class GetLoyaltyDashboardHandler
             totalPots: array_sum(array_map(static fn (LoyaltyCustomerRow $r): int => $r->potsBought, $rows)),
             totalOfferedPots: array_sum(array_map(static fn (LoyaltyCustomerRow $r): int => $r->offeredPots, $rows)),
             totalDiscountCents: array_sum(array_map(static fn (LoyaltyCustomerRow $r): int => $r->discountCents, $rows)),
+            grandCustomers: $grandCustomers,
+            grandPots: $grandPots,
+            grandOfferedPots: $grandOffered,
+            grandDiscountCents: $grandDiscount,
         );
+    }
+
+    /**
+     * @param list<int> $availableYears
+     *
+     * @return array{0: list<int>, 1: string, 2: string}
+     */
+    private function resolvePeriod(?string $period, array $availableYears): array
+    {
+        if (null !== $period && 1 === preg_match('/^\d{4}$/', $period) && in_array((int) $period, $availableYears, true)) {
+            return [[(int) $period], $period, 'Année ' . $period];
+        }
+        if ('all' === $period) {
+            return [$availableYears, 'all', 'Toutes les années'];
+        }
+
+        $lastTwo = array_slice($availableYears, 0, 2);
+        if (count($lastTwo) > 1) {
+            $label = '2 dernières années (' . min($lastTwo) . '–' . max($lastTwo) . ')';
+        } else {
+            $label = 'Année ' . ($lastTwo[0] ?? '');
+        }
+
+        return [$lastTwo, 'last2', $label];
     }
 
     /**
@@ -93,13 +139,22 @@ final readonly class GetLoyaltyDashboardHandler
     }
 
     /**
+     * Ids des commandes terminées du client, filtrées sur un ensemble d'années
+     * (`null` = toutes les années).
+     *
+     * @param array<int, true>|null $yearSet
+     *
      * @return list<int>
      */
-    private function completedOrderIdsForYear(CustomerProfile $profile, int $year): array
+    private function completedOrderIds(CustomerProfile $profile, ?array $yearSet): array
     {
         $ids = [];
         foreach ($profile->orders as $order) {
-            if ('completed' === $order->status && (int) $this->orderDate($order)->format('Y') === $year) {
+            if ('completed' !== $order->status) {
+                continue;
+            }
+            $year = (int) $this->orderDate($order)->format('Y');
+            if (null === $yearSet || isset($yearSet[$year])) {
                 $ids[] = $order->id;
             }
         }

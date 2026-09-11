@@ -2,13 +2,13 @@
     <div class="luziapi-pilotage__header">
         <div>
             <p class="luziapi-pilotage__eyebrow">Programme « 15 pots achetés, le 16e offert »</p>
-            <h1>Fidélité {{ year }}</h1>
-            <p>Récapitulatif par client et classements de l’année — pots achetés, pots offerts et remises remerciement.</p>
+            <h1>Fidélité — {{ period_label|e }}</h1>
+            <p>Récapitulatif par client et classements sur la période — pots achetés, pots offerts et remises remerciement.</p>
         </div>
-        {% if available_years|length > 1 %}
+        {% if periods|length > 1 %}
             <div class="luziapi-pilotage__year-picker">
-                <span>Année</span>
-                {% for item in available_years %}<a class="{{ item.year == year ? 'is-active' : '' }}" href="{{ item.url|e('html_attr') }}">{{ item.year }}</a>{% endfor %}
+                <span>Période</span>
+                {% for item in periods %}<a class="{{ item.active ? 'is-active' : '' }}" href="{{ item.url|e('html_attr') }}">{{ item.label|e }}</a>{% endfor %}
             </div>
         {% endif %}
     </div>
@@ -26,6 +26,14 @@
         <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
+    <div class="luziapi-pilotage__notice notice notice-info inline"><p><strong>Total depuis le début (toutes années)</strong> — synthèse indépendante de la période choisie.</p></div>
+    <div class="luziapi-pilotage__metrics">
+        {% for metric in grand_total %}
+            <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
+        {% endfor %}
+    </div>
+
+    <div class="luziapi-pilotage__notice notice notice-info inline"><p><strong>Période : {{ period_label|e }}</strong> — métriques et classements ci-dessous.</p></div>
     <div class="luziapi-pilotage__metrics">
         {% for metric in metrics %}
             <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
@@ -34,7 +42,7 @@
 
     {% if customers is empty %}
         <section class="luziapi-pilotage__panel">
-            <p>Aucune activité de fidélité en {{ year }}. Les pots se comptent dès qu’une commande « Terminée » contient des produits cochés « Pot admissible à la fidélité ».</p>
+            <p>Aucune activité de fidélité sur la période « {{ period_label|e }} ». Les pots se comptent dès qu’une commande « Terminée » contient des produits cochés « Pot admissible à la fidélité ».</p>
         </section>
     {% else %}
         <div class="luziapi-pilotage__grid">

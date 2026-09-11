@@ -18,11 +18,11 @@ final readonly class LoyaltyController
     public function render(): void
     {
         $this->assertPermission();
-        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
-        $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery($requestedYear ?: null));
+        $requestedPeriod = isset($_GET['period']) ? sanitize_key(wp_unslash((string) $_GET['period'])) : null;
+        $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery('' !== (string) $requestedPeriod ? $requestedPeriod : null));
 
         Timber::render('@luziapi_admin/pilotage/loyalty.twig', [
-            'page_url'            => $this->pageUrl($dashboard->year),
+            'page_url'            => $this->pageUrl($dashboard->periodKey),
             'dashboard_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
             'tax_declaration_url' => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=tax-declaration'),
@@ -32,11 +32,14 @@ final readonly class LoyaltyController
             'quick_sale_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'activity_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=activity'),
             'orders_url'          => admin_url('admin.php?page=wc-orders'),
-            'year'                => $dashboard->year,
-            'available_years'     => array_map(
-                fn (int $year): array => ['year' => $year, 'url' => $this->pageUrl($year)],
-                $dashboard->availableYears,
-            ),
+            'period_label'        => $dashboard->periodLabel,
+            'periods'             => $this->periods($dashboard),
+            'grand_total'         => [
+                ['label' => 'Clients fidélité', 'value' => (string) $dashboard->grandCustomers],
+                ['label' => 'Pots achetés', 'value' => (string) $dashboard->grandPots],
+                ['label' => 'Pots offerts', 'value' => (string) $dashboard->grandOfferedPots],
+                ['label' => 'Remises remerciement', 'value' => $this->formatMoney($dashboard->grandDiscountCents)],
+            ],
             'metrics'             => [
                 ['label' => 'Clients fidélité', 'value' => (string) $dashboard->totalCustomers],
                 ['label' => 'Pots achetés', 'value' => (string) $dashboard->totalPots],
@@ -50,9 +53,33 @@ final readonly class LoyaltyController
         ]);
     }
 
-    private function pageUrl(int $year): string
+    /**
+     * Options du sélecteur de période : 2 dernières années, chaque année, puis tout.
+     *
+     * @return list<array{key: string, label: string, url: string, active: bool}>
+     */
+    private function periods(\LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyDashboardView $dashboard): array
     {
-        return admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty&year=' . $year);
+        $options = [['key' => 'last2', 'label' => '2 dernières années']];
+        foreach ($dashboard->availableYears as $year) {
+            $options[] = ['key' => (string) $year, 'label' => (string) $year];
+        }
+        $options[] = ['key' => 'all', 'label' => 'Tout'];
+
+        return array_map(
+            fn (array $option): array => [
+                'key'    => $option['key'],
+                'label'  => $option['label'],
+                'url'    => $this->pageUrl($option['key']),
+                'active' => $option['key'] === $dashboard->periodKey,
+            ],
+            $options,
+        );
+    }
+
+    private function pageUrl(string $period): string
+    {
+        return admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=loyalty&period=' . $period);
     }
 
     /**

@@ -42,14 +42,20 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
 
     public function testAggregatesAndRanksForTheSelectedYear(): void
     {
-        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(2026));
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('2026'));
 
-        self::assertSame(2026, $view->year);
+        self::assertSame('2026', $view->periodKey);
         self::assertSame([2026, 2025], $view->availableYears);
         self::assertSame(2, $view->totalCustomers);
         self::assertSame(8, $view->totalPots); // 5 (Alice 2026) + 3 (Bob) — la commande 2025 exclue
         self::assertSame(1, $view->totalOfferedPots);
         self::assertSame(250, $view->totalDiscountCents);
+
+        // Encart total toutes années : Alice 5+4=9 + Bob 3 = 12 pots.
+        self::assertSame(2, $view->grandCustomers);
+        self::assertSame(12, $view->grandPots);
+        self::assertSame(1, $view->grandOfferedPots);
+        self::assertSame(250, $view->grandDiscountCents);
 
         self::assertSame('Alice', $view->customers[0]->name);
         self::assertSame(5, $view->customers[0]->potsBought);
@@ -64,19 +70,39 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
 
     public function testYearFilteringIsolatesEachYear(): void
     {
-        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(2025));
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('2025'));
 
-        self::assertSame(2025, $view->year);
+        self::assertSame('2025', $view->periodKey);
         self::assertSame(1, $view->totalCustomers); // seule Alice a une commande 2025
         self::assertSame(4, $view->totalPots);
         self::assertSame('Alice', $view->customers[0]->name);
+        self::assertSame(12, $view->grandPots); // total toutes années inchangé
     }
 
-    public function testUnknownYearFallsBackToMostRecentAvailable(): void
+    public function testDefaultPeriodCoversTheLastTwoYears(): void
     {
-        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery(1999));
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery());
 
-        self::assertSame(2026, $view->year);
+        self::assertSame('last2', $view->periodKey);
+        self::assertSame(2, $view->totalCustomers);
+        self::assertSame(12, $view->totalPots); // Alice 9 (2026+2025) + Bob 3
+        self::assertSame('Alice', $view->topBuyers[0]->name);
+        self::assertSame(9, $view->topBuyers[0]->potsBought);
+    }
+
+    public function testAllPeriodSumsEveryYear(): void
+    {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('all'));
+
+        self::assertSame('all', $view->periodKey);
+        self::assertSame(12, $view->totalPots);
+    }
+
+    public function testUnknownPeriodFallsBackToLastTwoYears(): void
+    {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('1999'));
+
+        self::assertSame('last2', $view->periodKey);
     }
 
     private function order(int $id, string $name, string $email, string $date): OrderSnapshot
