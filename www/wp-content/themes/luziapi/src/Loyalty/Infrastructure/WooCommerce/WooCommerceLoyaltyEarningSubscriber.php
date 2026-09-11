@@ -25,8 +25,8 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
 
     public function __construct(
         private ReconcileOrderLoyaltyHandler $reconcile,
-        private WooCommerceEligiblePotCounter $counter,
-        private WooCommerceOrderIdentityResolver $identityResolver,
+        private EligiblePotCounter $counter,
+        private OrderIdentityResolver $identityResolver,
         private LoggerInterface $logger,
     ) {
     }

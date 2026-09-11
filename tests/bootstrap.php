@@ -69,6 +69,20 @@ if (!function_exists('remove_accents')) {
     }
 }
 
+if (!function_exists('current_user_can')) {
+    function current_user_can(string $capability, ...$args): bool
+    {
+        return false;
+    }
+}
+
+if (!function_exists('get_current_user_id')) {
+    function get_current_user_id(): int
+    {
+        return 0;
+    }
+}
+
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }

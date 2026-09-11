@@ -12,7 +12,7 @@ use WC_Order;
  * son téléphone de facturation, exactement comme le projecteur du Pilotage
  * (e-mail prioritaire, sinon téléphone normalisé). `null` si aucun contact.
  */
-final readonly class WooCommerceOrderIdentityResolver
+final readonly class WooCommerceOrderIdentityResolver implements OrderIdentityResolver
 {
     public function resolve(WC_Order $order): ?string
     {

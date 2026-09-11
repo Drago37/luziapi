@@ -22,7 +22,7 @@ use WC_Order_Item_Product;
  * `_luziapi_loyalty_reward`, qui portent aussi `_luziapi_offert`) est fourni
  * séparément par `countRewardPots()` : ils consomment un avantage.
  */
-final readonly class WooCommerceEligiblePotCounter
+final readonly class WooCommerceEligiblePotCounter implements EligiblePotCounter
 {
     public const PRODUCT_ELIGIBLE_META = '_luziapi_pot_admissible';
     /** Toute ligne offerte (geste libre OU fidélité) — exclue du gain de pots. */
