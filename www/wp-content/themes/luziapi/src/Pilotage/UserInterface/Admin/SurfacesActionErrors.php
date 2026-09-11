@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
-use ReflectionClass;
 use Throwable;
 
 /**
@@ -21,13 +20,7 @@ trait SurfacesActionErrors
     {
         set_transient(
             $this->errorTransientKey($scope),
-            sprintf(
-                '%s (%s @ %s:%d)',
-                $exception->getMessage(),
-                (new ReflectionClass($exception))->getShortName(),
-                basename($exception->getFile()),
-                $exception->getLine(),
-            ),
+            ErrorDetailFormatter::format($exception),
             120,
         );
     }
