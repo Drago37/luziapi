@@ -36,8 +36,8 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
         test cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean \
-        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-exclusion-local e2e-newsletter-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
-        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod e2e-exclusion-prod e2e-newsletter-prod
+        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-exclusion-local e2e-newsletter-local e2e-delivery-zone-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
+        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod e2e-exclusion-prod e2e-newsletter-prod e2e-delivery-zone-prod e2e-receipt-prod
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -97,6 +97,9 @@ e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Br
 	$(DC) run --rm --user root -v "$(CURDIR)/prod-mu-plugins:/mu-src:ro" wpcli cp /mu-src/luziapi-newsletter-autosend.php wp-content/mu-plugins/luziapi-newsletter-autosend.php
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-newsletter-on-publish.php';" --user=admin
 
+e2e-delivery-zone-local: ## Teste la validation de zone de livraison au checkout (rejet hors Bléré/Luzillé 37150)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-delivery-zone-check.php';" --user=admin
+
 e2e-discount-local: ## Teste la remise remerciement (vraie réduction WooCommerce, création et a posteriori)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-thankyou-discount.php';" --user=admin
 
@@ -129,6 +132,12 @@ e2e-exclusion-prod: ## Test e2e de la case « Exclure de la fidélité » sur la
 
 e2e-newsletter-prod: ## Test e2e de l'auto-envoi newsletter sur la PROD (isolé, envoi Brevo intercepté, tout nettoyé)
 	@bash scripts/e2e-newsletter-prod.sh
+
+e2e-delivery-zone-prod: ## Test e2e de la validation de zone de livraison sur la PROD (lecture seule, aucun e-mail)
+	@bash scripts/e2e-delivery-zone-prod.sh
+
+e2e-receipt-prod: ## Test e2e de la recette auto (« Terminée » → recette) sur la PROD (isolé, tout nettoyé)
+	@bash scripts/e2e-receipt-prod.sh
 
 wait: ## Attend que le cœur WordPress soit déposé dans www/
 	@echo "⏳  Attente de l'installation du cœur WordPress..."

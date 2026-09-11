@@ -177,6 +177,12 @@ l'exécution différée passe par le bon canal — **en interceptant les appels 
 (`pre_http_request`) pour qu'**aucun e-mail/SMS ne parte** (le seul canal de sortie
 est court-circuité), l'article de test étant supprimé et l'event dé-planifié. La cible
 locale installe d'abord le mu-plugin dans `www/wp-content/mu-plugins/` (absent en dev).
+La **validation de zone de livraison** au checkout a `make e2e-delivery-zone-local` /
+`e2e-delivery-zone-prod` : ils exécutent le vrai hook `woocommerce_after_checkout_validation`
+(rejet d'une livraison gratuite hors Bléré/Luzillé 37150) — lecture seule, aucune commande,
+aucun e-mail. La **recette auto** au passage « Terminée » a aussi sa variante prod
+`make e2e-receipt-prod` (en plus du local) : commande isolée en `set_status`, subscriber
+invoqué avec le dépôt **non audité** (aucune écriture au journal d'activité), tout nettoyé.
 
 > **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
 > comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
