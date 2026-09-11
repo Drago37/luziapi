@@ -13,7 +13,7 @@ y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `
 **Branches :**
 
 - **`main`** = production. Ne reçoit QUE des merges de `release/*` ou `hotfix/*`, et **chaque merge est
-  tagué `vX.Y.Z`**. Le HEAD de `main` est l'état déployé. Aucun commit direct.
+  tagué `X.Y.Z`** (sans préfixe `v`). Le HEAD de `main` est l'état déployé. Aucun commit direct.
 - **`develop`** = intégration. Base de toutes les fonctionnalités ; c'est là que le travail courant
   s'accumule entre deux releases.
 - **`feature/<slug>`** : partent de `develop`, y retournent par **Pull Request** (jamais de merge direct).
@@ -27,7 +27,7 @@ y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `
 1. Toute modification passe par une branche puis une **Pull Request** (utiliser la skill `/create-pr`).
    Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
    branches partagées).
-2. **Versionnage sémantique** `vMAJEUR.MINEUR.CORRECTIF`. La prod est fixée à **`1.0.0`**.
+2. **Versionnage sémantique** `MAJEUR.MINEUR.CORRECTIF` (tags **sans** préfixe `v`). La prod est fixée à **`1.0.0`**.
 3. Commits et PR **en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
 4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
    feu vert explicite (voir la garde de déploiement dans `AGENTS.md`). `scripts/deploy-files.sh`

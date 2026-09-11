@@ -46,7 +46,7 @@ Le projet est **en production depuis la `1.0.0`** (11 septembre 2026) : la phase
 committait directement sur `main` est **terminée**. **GitFlow est désormais obligatoire, y compris
 pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni sur `develop`.**
 
-- `main` = production (état déployé, tag `vX.Y.Z` à chaque release) ; ne reçoit que des merges de
+- `main` = production (état déployé, tag `X.Y.Z` — sans préfixe `v` — à chaque release) ; ne reçoit que des merges de
   `release/*` ou `hotfix/*`. `develop` = intégration (base des features).
 - Toute modification → branche `feature/*` (depuis `develop`) → **Pull Request** via `/create-pr` ;
   release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
