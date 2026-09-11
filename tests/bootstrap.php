@@ -83,6 +83,30 @@ if (!function_exists('get_current_user_id')) {
     }
 }
 
+/*
+ * Transients en mémoire (durée ignorée) : suffisant pour tester le dépôt/retrait
+ * d'un avis admin. Réinitialisés à chaque processus de test.
+ */
+if (!function_exists('set_transient')) {
+    $GLOBALS['luziapi_test_transients'] = [];
+    function set_transient(string $key, mixed $value, int $ttl = 0): bool
+    {
+        $GLOBALS['luziapi_test_transients'][$key] = $value;
+
+        return true;
+    }
+    function get_transient(string $key): mixed
+    {
+        return $GLOBALS['luziapi_test_transients'][$key] ?? false;
+    }
+    function delete_transient(string $key): bool
+    {
+        unset($GLOBALS['luziapi_test_transients'][$key]);
+
+        return true;
+    }
+}
+
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
