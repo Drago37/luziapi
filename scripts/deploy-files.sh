@@ -99,7 +99,8 @@ HAS_PHP=0; for r in "${REL[@]}"; do [[ "$r" == *.php ]] && HAS_PHP=1; done
 # commandes lftp. On refuse tout caractère hors du jeu attendu des chemins de thème
 # (lettres, chiffres, . _ - /), qui pourrait casser/injecter ces contextes.
 for r in "${REL[@]}"; do
-  [[ "$r" =~ ^[A-Za-z0-9._/-]+$ ]] || die "Chemin non sûr pour le déploiement : « ${r} » (caractères inattendus)."
+  [[ "$r" =~ ^[A-Za-z0-9._/-]+$ && "$r" != *".."* ]] \
+    || die "Chemin non sûr pour le déploiement : « ${r} » (caractères inattendus ou « .. »)."
 done
 
 echo
