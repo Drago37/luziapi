@@ -46,6 +46,10 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         // sinon corriger une adresse sur une vieille commande la recalculerait sur la
         // config produit actuelle et pourrait retirer des pots légitimement gagnés.
         add_action('luziapi_loyalty_exclusion_changed', [$this, 'onExclusionChanged'], 10, 2);
+        // Recalcul CIBLÉ également quand des lignes offertes / fidélité sont ajoutées à
+        // une commande existante (action émise par le save de la fiche commande) : un
+        // pot offert au titre de la fidélité consomme un avantage, à porter au journal.
+        add_action('luziapi_loyalty_order_lines_changed', [$this, 'onExclusionChanged'], 10, 2);
         // Un opérateur est présent lors du changement : lui afficher un avis si le
         // recalcul a échoué (sinon l'échec ne vit que dans le journal Monolog).
         add_action('admin_notices', [$this, 'renderReconcileFailureNotice']);
