@@ -5,12 +5,6 @@
             <h1>Fidélité — {{ period_label|e }}</h1>
             <p>Récapitulatif par client et classements sur la période — pots achetés, pots offerts et remises remerciement.</p>
         </div>
-        {% if periods|length > 1 %}
-            <div class="luziapi-pilotage__year-picker">
-                <span>Période</span>
-                {% for item in periods %}<a class="{{ item.active ? 'is-active' : '' }}" href="{{ item.url|e('html_attr') }}">{{ item.label|e }}</a>{% endfor %}
-            </div>
-        {% endif %}
     </div>
 
     <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
@@ -26,15 +20,14 @@
         <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
     </nav>
 
-    <div class="luziapi-pilotage__notice notice notice-info inline"><p><strong>Total depuis le début (toutes années)</strong> — synthèse indépendante de la période choisie.</p></div>
-    <div class="luziapi-pilotage__metrics">
-        {% for metric in grand_total %}
-            <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
-        {% endfor %}
-    </div>
+    <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+        <input type="hidden" name="page" value="luziapi-pilotage"><input type="hidden" name="tab" value="loyalty">
+        <label for="luziapi-loyalty-period">Période</label>
+        <select id="luziapi-loyalty-period" name="period" onchange="this.form.submit()">{% for item in periods %}<option value="{{ item.key|e('html_attr') }}" {{ item.active ? 'selected' : '' }}>{{ item.label|e }}</option>{% endfor %}</select>
+        <noscript><button class="button" type="submit">Afficher</button></noscript>
+    </form>
 
-    <div class="luziapi-pilotage__notice notice notice-info inline"><p><strong>Période : {{ period_label|e }}</strong> — métriques et classements ci-dessous.</p></div>
-    <div class="luziapi-pilotage__metrics">
+    <div class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four" aria-label="Fidélité — {{ period_label }}">
         {% for metric in metrics %}
             <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
         {% endfor %}
@@ -91,4 +84,15 @@
             </div>
         </section>
     {% endif %}
+
+    <section class="luziapi-pilotage__panel">
+        <div class="luziapi-pilotage__panel-header">
+            <div><p class="luziapi-pilotage__eyebrow">Synthèse</p><h2>Total depuis le début (toutes années)</h2><p>Indépendant de la période sélectionnée ci-dessus.</p></div>
+        </div>
+        <div class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four">
+            {% for metric in grand_total %}
+                <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
+            {% endfor %}
+        </div>
+    </section>
 </div>

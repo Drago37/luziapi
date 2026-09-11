@@ -64,7 +64,7 @@ final readonly class LoyaltyController
         foreach ($dashboard->availableYears as $year) {
             $options[] = ['key' => (string) $year, 'label' => (string) $year];
         }
-        $options[] = ['key' => 'all', 'label' => 'Tout'];
+        $options[] = ['key' => 'all', 'label' => 'Total (toutes années)'];
 
         return array_map(
             fn (array $option): array => [
