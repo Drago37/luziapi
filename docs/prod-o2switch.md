@@ -350,12 +350,14 @@ sur toute page chargeant le thème**. Le site est resté **en 500 environ 24 h**
 par le **cache PowerBoost** qui servait encore la home en 200.
 
 **Diagnostic (à refaire tel quel).**
+
 - Tester une **URL non cachée** :
   `curl -sL -o /dev/null -w '%{http_code}' 'https://www.luziapi.fr/wp-login.php?x='$RANDOM` (200
   attendu). Ne **jamais** se fier à la home sans cache-buster.
 - Comparer le nombre de fichiers : `find src/ | wc -l` en prod (FTPS) vs `git ls-files 'www/.../src/**'`.
 
 **Réparation appliquée.**
+
 1. `mirror -R --no-perms` (sans `--delete`) du dossier complet `src/Pilotage/` → 109/109 (recrée les
    dossiers manquants) ;
 2. envoi des fichiers runtime restants (CSS / JS / Twig / `inc/woocommerce.php`) ;
@@ -461,8 +463,9 @@ in the future » / « Harvest date must be before jar date »). Le `catch (Throw
 **avalait** l'exception → aucun indice.
 
 **Correctifs :**
+
 1. **Fuseau réglé sur `Europe/Paris`** via script à jeton (`update_option('timezone_string',
-   'Europe/Paris')`). Corrige aussi l'heure affichée partout ailleurs (commandes, e-mails, journaux),
+'Europe/Paris')`). Corrige aussi l'heure affichée partout ailleurs (commandes, e-mails, journaux),
    qui était décalée de 2 h. Vérifié : `wp_date()` renvoie désormais l'heure locale correcte.
 2. **Code durci** (commit sur `main`) : validation des dates de récolte comparée **au jour près**
    (tolère la journée en cours), et le contrôleur **consigne la vraie exception** dans le journal
@@ -470,6 +473,23 @@ in the future » / « Harvest date must be before jar date »). Le `catch (Throw
 
 **Diagnostic** mené entièrement par scripts à jeton en **lecture / rollback** (schéma des tables,
 rejeu du handler avec nettoyage complet), sans résidu en prod.
+
+---
+
+## Évolutions pilotage / fidélité — déployées le 11 septembre 2026
+
+Déploiement **FTPS ciblé** de 18 fichiers (PHP + Twig, PSR-4, aucune dépendance Composer donc
+`vendor/` non touché), OPcache vidé par script à jeton, **18/18 empreintes SHA-256 identiques**
+local ↔ prod, `post-deploy-check.sh` (URL non cachées) 200 OK. Commits `0254e09`→`e2cc410` sur `main`.
+
+- **PayPal au checkout** — nouveau moyen de paiement, avec une garde excluant ces commandes du gain
+  de pots fidélité (cohérent avec la distinction offert / fidélité).
+- **Page « Fidélité » du pilotage** — sélecteur de période en **menu déroulant** (comme l'onglet
+  Recettes) et encart « total toutes années » déplacé en bas de page.
+- **Erreurs du pilotage** — le **détail de l'exception** s'affiche désormais sous toutes les erreurs
+  (inventaire, clients, recettes, vente), plus seulement l'inventaire.
+- **Récoltes fiabilisées** — validation des dates au jour près et exception réellement consignée
+  (le code durci de la section « Fuseau horaire » ci-dessus est parti dans ce même déploiement).
 
 ---
 
