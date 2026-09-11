@@ -54,6 +54,18 @@ Le flux « branche dédiée + PR » des règles globales vise les repos pro et n
 
 « Déploie » est une action de publication : elle demande un accord clair, comme le reste.
 
+### Garde de déploiement : code poussé + CI verte (bloquant)
+
+**Ne jamais déployer si le code n'est pas d'abord poussé sur `main` ET la CI verte sur `HEAD`.**
+Ordre imposé : commit → push sur `main` → attendre la CI verte → et alors seulement, sur feu vert
+explicite, déployer. Une vérif locale ne remplace pas la CI. `scripts/deploy-files.sh` applique
+cette garde automatiquement et **refuse** de déployer sinon (arbre propre, `main` synchro avec
+`origin/main`, run CI « Qualité du thème » `success` sur le SHA courant).
+
+_Pourquoi :_ règle posée explicitement — « le code doit être pushé et la CI verte obligatoirement,
+sinon on bloque le déploiement ». Convention actuelle : **`main` = la prod à jour** (pas encore de
+gitflow ni de tag de release ; ça viendra pour les releases).
+
 ### Tenir cette documentation à jour
 
 Ces fichiers **sont** la mémoire du projet : c'est la seule qui soit partagée entre les postes et
@@ -164,7 +176,13 @@ est **close, ces trois suites étant faites**.
 
 ### Quelques fichiers du thème changent, sans nouvelle dépendance Composer
 
-→ **Upload FTPS ciblé**, pas `make deploy`.
+→ **`scripts/deploy-files.sh`** (upload FTPS ciblé), pas `make deploy`.
+
+Le script fait tout le ciblé de bout en bout : garde de déploiement (§ 1 — code poussé + CI verte),
+calcul du delta `git diff <base>..HEAD` (base = dernier déploiement mémorisé dans le fichier local
+non versionné `scripts/.last-deploy`, ou passée en argument), upload des seuls fichiers de code du
+thème, OPcache vidé + comparaison SHA-256 local ↔ prod par script à jeton, puis
+`post-deploy-check.sh`. En cas de doute, la marche à suivre manuelle reste ci-dessous.
 
 _Pourquoi :_ `make deploy` lance `composer-prod` **dans le conteneur Docker `wordpress`** (donc
 échoue si Docker n'est pas démarré : « service wordpress is not running »), puis un

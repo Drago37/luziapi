@@ -28,6 +28,10 @@ node_modules/
 # --- Tests ---
 /.phpunit.cache/
 
+# --- Déploiement ---
+# Dernier commit déployé en prod (repère local de scripts/deploy-files.sh), par poste.
+/scripts/.last-deploy
+
 # --- WordPress core (fourni par Docker / l'hébergeur, non versionné) ---
 /www/wp-admin/
 /www/wp-includes/
