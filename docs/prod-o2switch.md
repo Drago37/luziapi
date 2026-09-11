@@ -482,14 +482,22 @@ Déploiement **FTPS ciblé** de 18 fichiers (PHP + Twig, PSR-4, aucune dépendan
 `vendor/` non touché), OPcache vidé par script à jeton, **18/18 empreintes SHA-256 identiques**
 local ↔ prod, `post-deploy-check.sh` (URL non cachées) 200 OK. Commits `0254e09`→`e2cc410` sur `main`.
 
-- **PayPal au checkout** — nouveau moyen de paiement, avec une garde excluant ces commandes du gain
-  de pots fidélité (cohérent avec la distinction offert / fidélité).
+- **PayPal comme libellé de règlement** — ajouté aux moyens de règlement (Vente, recettes,
+  validation), **pas** comme gateway de paiement client au checkout (décision explicite : pas de
+  PayPal comme moyen de commande sur le site). S'ajoute la méta `_luziapi_loyalty_excluded` qui
+  exclut définitivement une commande du gain de pots (import d'historique).
 - **Page « Fidélité » du pilotage** — sélecteur de période en **menu déroulant** (comme l'onglet
   Recettes) et encart « total toutes années » déplacé en bas de page.
 - **Erreurs du pilotage** — le **détail de l'exception** s'affiche désormais sous toutes les erreurs
   (inventaire, clients, recettes, vente), plus seulement l'inventaire.
 - **Récoltes fiabilisées** — validation des dates au jour près et exception réellement consignée
   (le code durci de la section « Fuseau horaire » ci-dessus est parti dans ce même déploiement).
+
+**Déploiement de suivi le 11 septembre 2026** (commit `87c61b2`, via le nouveau
+`scripts/deploy-files.sh` — 1ᵉʳ vrai run) : 7 fichiers **iso-comportement** (extraction de
+`ErrorDetailFormatter` testable, ports fidélité `EligiblePotCounter` / `OrderIdentityResolver` pour
+tester la garde d'exclusion). Bascule atomique (temp → rename), OPcache vidé, 7/7 SHA identiques,
+contrôle live 200 OK. Aucun changement fonctionnel visible.
 
 ---
 

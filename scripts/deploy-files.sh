@@ -192,3 +192,4 @@ bash scripts/post-deploy-check.sh
 echo "$LOCAL_SHA" > "$MARKER"
 grn "✅  Déploiement terminé. OPcache vidé : $(jq -r '.opcache_reset' "${WORK}/prod.json"). Repère mis à jour ($MARKER)."
 [[ "$HAS_PHP" -eq 1 ]] || echo "ℹ️  (aucun PHP modifié — OPcache vidé par sûreté)"
+printf '\033[1;33m📝  À FAIRE : consigner ce déploiement dans docs/prod-o2switch.md (règle AGENTS.md).\033[0m\n'

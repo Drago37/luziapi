@@ -66,6 +66,16 @@ _Pourquoi :_ règle posée explicitement — « le code doit être pushé et la 
 sinon on bloque le déploiement ». Convention actuelle : **`main` = la prod à jour** (pas encore de
 gitflow ni de tag de release ; ça viendra pour les releases).
 
+### Après chaque déploiement : consigner (obligatoire, sans qu'on le demande)
+
+**Tout déploiement doit être consigné dans [docs/prod-o2switch.md](docs/prod-o2switch.md)** dans la
+foulée, sans attendre qu'on le demande : commit(s) déployé(s), fichiers, résultat des vérifications
+(SHA, OPcache, contrôle live) et ce qui change côté prod. Mettre aussi à jour la mémoire projet si
+utile. Ne jamais laisser un déploiement non documenté.
+
+_Pourquoi :_ demande explicite de l'utilisateur — « il faut le faire après chaque déploiement, me
+répéter c'est pénible ». C'est un automatisme attendu, pas une option.
+
 ### Tenir cette documentation à jour
 
 Ces fichiers **sont** la mémoire du projet : c'est la seule qui soit partagée entre les postes et
