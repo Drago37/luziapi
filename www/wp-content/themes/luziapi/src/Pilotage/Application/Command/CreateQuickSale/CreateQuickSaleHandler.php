@@ -52,7 +52,7 @@ final readonly class CreateQuickSaleHandler
         if (! in_array($command->source, ['online', 'phone', 'market', 'email_form', 'social', 'other'], true)) {
             throw new InvalidArgumentException('Invalid order source.');
         }
-        if (! in_array($command->paymentMethod, ['cash', 'cheque', 'bank_transfer', 'wero', 'card', 'other'], true)) {
+        if (! in_array($command->paymentMethod, ['cash', 'cheque', 'bank_transfer', 'wero', 'card', 'paypal', 'other'], true)) {
             throw new InvalidArgumentException('Invalid payment method.');
         }
         if (! in_array($command->fulfillment, ['immediate', 'pickup', 'delivery'], true)) {

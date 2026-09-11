@@ -32,6 +32,7 @@ final readonly class ReceiptsController
         'bank_transfer' => 'Virement bancaire',
         'wero'          => 'Wero',
         'card'          => 'Carte bancaire',
+        'paypal'        => 'PayPal',
         'other'         => 'Autre',
     ];
 

@@ -24,6 +24,7 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
         'bank_transfer' => 'Virement bancaire',
         'wero'          => 'Wero',
         'card'          => 'Carte bancaire',
+        'paypal'        => 'PayPal',
         'other'         => 'Autre',
     ];
 

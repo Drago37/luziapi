@@ -20,6 +20,9 @@ use WC_Order;
  */
 final readonly class WooCommerceLoyaltyEarningSubscriber
 {
+    /** Méta de commande qui exclut définitivement une commande de la fidélité. */
+    public const LOYALTY_EXCLUDED_META = '_luziapi_loyalty_excluded';
+
     public function __construct(
         private ReconcileOrderLoyaltyHandler $reconcile,
         private WooCommerceEligiblePotCounter $counter,
@@ -66,12 +69,17 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
                 return; // commande sans contact rattachable : pas de fidélité
             }
 
+            // Garde : une commande explicitement exclue (ex. import d'historique)
+            // ne cumule jamais de fidélité — cible à zéro quel que soit son statut,
+            // ce qui la maintient sans crédit même si un hook se déclenche plus tard.
+            $excluded = 'yes' === (string) $order->get_meta(self::LOYALTY_EXCLUDED_META);
+
             $completed = $order->has_status('completed');
             $this->reconcile->handle(new ReconcileOrderLoyaltyCommand(
                 orderId: $orderId,
                 customerKey: $customerKey,
-                targetPots: $completed ? $this->counter->countEligiblePots($order) : 0,
-                targetRewards: $completed ? $this->counter->countRewardPots($order) : 0,
+                targetPots: (! $excluded && $completed) ? $this->counter->countEligiblePots($order) : 0,
+                targetRewards: (! $excluded && $completed) ? $this->counter->countRewardPots($order) : 0,
                 createdBy: current_user_can('edit_shop_orders') ? get_current_user_id() : 0,
             ));
         } catch (\Throwable $exception) {

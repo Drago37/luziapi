@@ -34,6 +34,7 @@ final readonly class QuickSaleController
         'bank_transfer' => 'Virement bancaire',
         'wero'          => 'Wero',
         'card'          => 'Carte bancaire',
+        'paypal'        => 'PayPal',
         'other'         => 'Autre',
     ];
 
