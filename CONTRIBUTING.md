@@ -188,6 +188,30 @@ La forme du test suit la frontière architecturale :
 - PHPStan et PHP-CS-Fixer avant commit ;
 - une régression corrigée doit recevoir un test lorsque cela est raisonnablement possible.
 
+### Toute fonctionnalité est testée à tous les niveaux pertinents
+
+Une nouvelle fonctionnalité (ou une correction) doit apporter **tous** les tests que son risque
+justifie, sans en sauter un niveau :
+
+1. **tests unitaires** de la logique pure (Domain, calculs, VO) ;
+2. **tests d'intégration** avec doubles en mémoire pour les cas d'utilisation ;
+3. **e2e d'intégration local** (`make e2e-<slug>-local`) dès que le comportement passe par le
+   **chemin réel WordPress/WooCommerce** (soumission de formulaire admin, ordre/branchement des
+   hooks, capabilities, nonce, `$_POST`, stock, e-mails) — ce que l'unitaire ne peut pas couvrir ;
+4. **e2e prod** rejouable (`scripts/e2e-<slug>-prod.sh` + cible `make e2e-<slug>-prod`), isolé et
+   auto-nettoyé, aucun e-mail réel. Modèle de référence : `tools/e2e-exclusion*` +
+   `scripts/e2e-exclusion-prod.sh` (voir `AGENTS.md`).
+
+### Les tests tournent en CI — la maintenir à jour
+
+La CI (`.github/workflows/ci.yml`) exécute **PHP-CS-Fixer, PHPStan, PHPUnit, les tests JS et
+toutes les suites e2e locales**. Le runner `scripts/e2e-ci.sh` **découvre automatiquement** les
+cibles `make e2e-*-local` : ajouter un e2e = ajouter sa cible `-local` au `Makefile`, et il tourne
+en CI sans autre modification. Si un changement sort de ce cadre (nouveau job, nouvelle
+dépendance système, nouveau chemin de déclenchement), **modifier la CI en conséquence**. Le test
+`tests/E2eWiringTest.php` garde ce câblage intègre (runner appelé par le workflow, cibles et
+scripts référencés existants, chaque script prod a sa cible Make).
+
 Les doubles de test appartiennent aux tests. Ne pas ajouter de conditions spécifiques aux tests
 dans le code de production.
 
