@@ -28,12 +28,22 @@ y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `
    Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
    branches partagées).
 2. **Versionnage sémantique** `MAJEUR.MINEUR.CORRECTIF` (tags **sans** préfixe `v`). La prod est fixée à **`1.0.0`**.
-3. Commits et PR **en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
+3. **Commits et documentation en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
 4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
    feu vert explicite (voir la garde de déploiement dans `AGENTS.md`). `scripts/deploy-files.sh`
    refuse de déployer si `main` n'est pas synchro et la CI verte.
 
 > Cette section **remplace** l'ancienne règle « commit direct sur `main` » : elle n'a plus cours.
+
+### Conventions de Pull Request
+
+- **Titre et description en anglais** (le reste — commits, code, documentation — reste en français ;
+  cette règle ne concerne que la PR elle-même). Le titre suit le format *conventional commit* et sert
+  de titre au commit de squash au merge.
+- **Assignée à son auteur** (assignee = la personne qui ouvre la PR).
+- **Labellisée selon son type** : `bug` (correctif), `enhancement` (nouveauté), `documentation`
+  (doc seule), etc. — choisir le(s) label(s) qui existe(nt) dans le dépôt.
+- Ouverte via la skill `/create-pr`, qui applique ces conventions.
 
 ## Architecture cible
 

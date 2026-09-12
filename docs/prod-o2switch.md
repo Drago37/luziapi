@@ -383,6 +383,21 @@ non cachée.
 - **État :** l'historique a été rattrapé (4 commandes terminées, **97 €** au registre) via le
   rapprochement assisté. Le futur est automatique.
 
+## Recettes orphelines de commandes supprimées (12 septembre 2026)
+
+- **Constat :** l'encaissé 2026 affichait **404 €** alors que les « Commandes validées » valaient
+  **272 €**. Le delta de **132 €** venait de **5 recettes orphelines** rattachées à des commandes
+  **supprimées** (174, 177, 294 = encaissement auto ; 301, 302 = Vente — vraisemblablement des
+  commandes de test supprimées). Supprimer/corbeiller une commande ne retirait pas sa recette, d'où
+  de l'« argent fantôme » au registre.
+- **Nettoyage ponctuel :** suppression ciblée des 5 lignes (script à jeton `_cleanup-receipts.php`,
+  défensif : ne supprime que si la commande est réellement absente) → registre 2026 ramené à
+  **272 €**.
+- **Correctif systémique :** abonné `WooCommerceOrphanReceiptSubscriber`
+  (`woocommerce_trash_order` + `woocommerce_before_delete_order`) qui **supprime** les recettes d'une
+  commande dès sa mise à la corbeille ou sa suppression (pas de contre-passe : la commande n'existe
+  plus). Idempotent. Tests `make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod`.
+
 ## Suivi de commande sans compte — mise en ligne (10 septembre 2026)
 
 - **En ligne :** page `/suivi-commande/` publiée (slug `suivi-commande`, gabarit appliqué par le
