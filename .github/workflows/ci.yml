@@ -11,6 +11,9 @@ on:
       - "www/wp-content/themes/luziapi/**"
       - "tests/**"
       - "prod-mu-plugins/**"
+      - "scripts/**"
+      - "Makefile"
+      - "docker-compose.yml"
       - "phpunit.xml.dist"
       - "composer.json"
       - ".github/workflows/ci.yml"
@@ -19,6 +22,9 @@ on:
       - "www/wp-content/themes/luziapi/**"
       - "tests/**"
       - "prod-mu-plugins/**"
+      - "scripts/**"
+      - "Makefile"
+      - "docker-compose.yml"
       - "phpunit.xml.dist"
       - "composer.json"
 
@@ -100,3 +106,36 @@ jobs:
 
       - name: Run JS tests
         run: npm test
+
+  tests-e2e:
+    name: e2e (WordPress + WooCommerce)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Le vendor du thème est installé sur l'hôte : il est monté dans le conteneur
+      # WordPress via le volume, ce qui évite de dépendre de composer dans l'image.
+      - name: Setup PHP (hôte)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer (vendor du thème)
+        run: composer install --no-interaction --no-progress --prefer-dist
+        working-directory: www/wp-content/themes/luziapi
+
+      - name: Démarrer la stack Docker
+        run: make up wait
+
+      - name: Installer WordPress + thème + WooCommerce
+        run: make wp-install theme plugins
+
+      - name: Jouer toutes les suites e2e locales
+        run: bash scripts/e2e-ci.sh
+
+      - name: Journaux des conteneurs (en cas d'échec)
+        if: failure()
+        run: docker compose logs --tail=300
