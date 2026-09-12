@@ -27,6 +27,7 @@ on:
       - "docker-compose.yml"
       - "phpunit.xml.dist"
       - "composer.json"
+      - ".github/workflows/ci.yml"
 
 jobs:
   quality:
