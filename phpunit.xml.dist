@@ -11,4 +11,20 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <!--
+        Périmètre de couverture : le cœur métier (DDD) du thème, les fichiers `inc/`
+        réellement exercés par les tests de logique pure (voir tests/bootstrap.php) et
+        le mu-plugin newsletter. On n'inclut pas tout `inc/` (colle WordPress non testée)
+        pour garder un dénominateur de couverture honnête.
+    -->
+    <source>
+        <include>
+            <directory>www/wp-content/themes/luziapi/src</directory>
+            <file>www/wp-content/themes/luziapi/inc/order-workflow.php</file>
+            <file>www/wp-content/themes/luziapi/inc/payment-deadline.php</file>
+            <file>www/wp-content/themes/luziapi/inc/customer-emails.php</file>
+            <file>www/wp-content/themes/luziapi/inc/customer-directory.php</file>
+            <file>prod-mu-plugins/luziapi-newsletter-autosend.php</file>
+        </include>
+    </source>
 </phpunit>

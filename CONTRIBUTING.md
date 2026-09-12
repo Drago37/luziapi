@@ -212,6 +212,16 @@ dépendance système, nouveau chemin de déclenchement), **modifier la CI en con
 `tests/E2eWiringTest.php` garde ce câblage intègre (runner appelé par le workflow, cibles et
 scripts référencés existants, chaque script prod a sa cible Make).
 
+PHPUnit tourne sur une **matrice PHP** (plancher du thème `8.2` + version courante `8.3` ; à aligner
+sur la version réellement en prod si elle diffère) et **mesure la couverture** (pcov, `--coverage-text`).
+Le périmètre de couverture est déclaré dans `phpunit.xml.dist` (`<source>` : cœur DDD `src/`, fichiers
+`inc/` réellement testés, mu-plugin newsletter) — pas tout `inc/`, pour un taux honnête. PHPStan est
+au **niveau `max`** avec une baseline (`phpstan-baseline.neon`) qui gèle la dette existante : tout
+nouveau code doit passer au max, et la baseline est à résorber progressivement (ne pas y ajouter de
+lignes pour contourner une nouvelle erreur). Un job **Audit des dépendances** (`composer audit` +
+`npm audit`) tourne en CI, **non bloquant** pour l'instant (visibilité des CVE ; à rendre bloquant
+une fois la dette éventuelle traitée).
+
 Les doubles de test appartiennent aux tests. Ne pas ajouter de conditions spécifiques aux tests
 dans le code de production.
 
