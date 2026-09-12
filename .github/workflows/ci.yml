@@ -85,8 +85,12 @@ jobs:
           tools: composer:v2
           coverage: pcov
 
+      # --no-dev : les tests n'ont besoin que de l'autoload runtime du thème
+      # (src/, Timber, Monolog — tous >=8.2). Les outils de dev du thème
+      # (php-cs-fixer → sebastian/diff 7.0.0) exigent PHP >=8.3 et casseraient
+      # la matrice 8.2 ; ils ne servent qu'au job PHPStan + CS-Fixer.
       - name: Install theme dependencies (autoload + Timber)
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist
         working-directory: www/wp-content/themes/luziapi
 
       - name: Install test dependencies (PHPUnit)
