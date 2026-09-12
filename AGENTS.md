@@ -52,8 +52,11 @@ pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni su
   release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
   (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
   à lire et respecter.**
-- Messages de commit et PR en **français** ; **jamais** de trailer `Co-Authored-By:` (préférence
-  explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- Messages de commit et documentation en **français** ; **jamais** de trailer `Co-Authored-By:`
+  (préférence explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- **Pull Requests : titre et description en anglais**, **assignées à leur auteur**, **labellisées
+  par type** (`bug`, `enhancement`, `documentation`…). Seule la PR est en anglais ; commits, code et
+  doc restent en français. Détail dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Ne pas pousser sans demande explicite ; on ne déploie que depuis `main` après merge d'une release,
   CI verte (voir la garde de déploiement plus bas).
 
@@ -199,6 +202,13 @@ La **validation de zone de livraison** au checkout a `make e2e-delivery-zone-loc
 aucun e-mail. La **recette auto** au passage « Terminée » a aussi sa variante prod
 `make e2e-receipt-prod` (en plus du local) : commande isolée en `set_status`, subscriber
 invoqué avec le dépôt **non audité** (aucune écriture au journal d'activité), tout nettoyé.
+Le **retrait de la recette à la corbeille / suppression d'une commande** a
+`make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod` : ils créent une commande
+avec une recette, la mettent à la **corbeille** (`woocommerce_trash_order`) puis en
+**suppression** (`woocommerce_before_delete_order`), et vérifient que l'abonné
+`WooCommerceOrphanReceiptSubscriber` a bien retiré la recette du registre (isolé, tout
+nettoyé). _Raison :_ une commande supprimée qui gardait sa recette gonflait l'encaissé
+au-dessus du chiffre vendu (constaté : 132 € de recettes orphelines en 2026).
 
 > **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
 > comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
