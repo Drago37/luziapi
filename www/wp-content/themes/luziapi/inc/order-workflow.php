@@ -528,6 +528,9 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
         \LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META
     );
 
+    $offerProducts        = luziapi_offerable_products();
+    $offerRewardsAvailable = luziapi_order_available_rewards($order);
+
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
     ?>
     <div class="luziapi-order-workflow" data-fulfillment="<?php echo esc_attr($mode); ?>" data-emails-disabled="<?php echo $emailsDisabled ? 'yes' : 'no'; ?>" style="clear:both;padding-top:12px;">
@@ -568,6 +571,25 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
             </label>
             <span class="description">Aucun pot gagné ni avantage consommé pour cette commande. La fidélité est recalculée à l’enregistrement (les pots déjà crédités sont retirés, et réattribués si la case est décochée).</span>
         </p>
+        <?php if ($offerProducts !== []) : ?>
+        <div class="form-field form-field-wide luziapi-offer-pot">
+            <label for="luziapi_offer_product"><strong>Ajouter un pot offert</strong></label>
+            <div class="luziapi-offer-pot__row">
+                <select id="luziapi_offer_product" name="luziapi_offer_product">
+                    <option value="">— Aucun —</option>
+                    <?php foreach ($offerProducts as $offerProduct) : ?>
+                        <option value="<?php echo esc_attr((string) $offerProduct->get_id()); ?>"><?php echo esc_html($offerProduct->get_name()); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <input type="number" id="luziapi_offer_qty" name="luziapi_offer_qty" min="0" value="0" aria-label="Quantité de pots offerts">
+            </div>
+            <p class="luziapi-offer-pot__types">
+                <label><input type="radio" name="luziapi_offer_type" value="gift" checked> Geste commercial</label>
+                <label><input type="radio" name="luziapi_offer_type" value="loyalty" <?php disabled($offerRewardsAvailable <= 0); ?>> Fidélité (<?php echo esc_html((string) $offerRewardsAvailable); ?> avantage<?php echo $offerRewardsAvailable > 1 ? 's' : ''; ?> dispo.)</label>
+            </p>
+            <span class="description">Ajoute une ligne à 0 € (sortie du stock) sans changer le montant ni la recette. « Fidélité » consomme un avantage du client (borné au disponible).</span>
+        </div>
+        <?php endif; ?>
         <p class="form-field form-field-wide">
             <label for="luziapi_cancellation_reason"><strong>Motif d’annulation communiqué au client</strong></label>
             <textarea id="luziapi_cancellation_reason" name="luziapi_cancellation_reason" rows="3" style="width:100%;"><?php echo esc_textarea($reason); ?></textarea>
@@ -575,6 +597,23 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
         </p>
     </div>
     <style>
+        .luziapi-order-workflow .luziapi-offer-pot__row {
+            display: grid;
+            grid-template-columns: 1fr 78px;
+            gap: 8px;
+            align-items: center;
+            margin: 4px 0;
+        }
+        .luziapi-order-workflow .luziapi-offer-pot__row input,
+        .luziapi-order-workflow .luziapi-offer-pot__row select {
+            box-sizing: border-box;
+            margin: 0;
+        }
+        .luziapi-order-workflow .luziapi-offer-pot__types {
+            display: flex;
+            gap: 16px;
+            margin: 6px 0 2px;
+        }
         #order_data .order_data_column .form-field .luziapi-order-datetime {
             display: grid;
             grid-template-columns: 132px 76px;
@@ -996,8 +1035,147 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
             luziapi_update_order_fulfillment_mode($order, $newMode);
         }
     }
+
+    luziapi_maybe_add_offered_pot($order);
 }
 add_action('woocommerce_process_shop_order_meta', 'luziapi_save_admin_order_workflow', 20, 2);
+
+/**
+ * Produits pouvant être offerts sur une commande (pots achetables), pour le
+ * sélecteur « Ajouter un pot offert » de la fiche commande.
+ *
+ * @return list<\WC_Product>
+ */
+function luziapi_offerable_products(): array
+{
+    if (! function_exists('wc_get_products')) {
+        return [];
+    }
+    $products = wc_get_products([
+        'status'  => 'publish',
+        'limit'   => -1,
+        'orderby' => 'title',
+        'order'   => 'ASC',
+        'return'  => 'objects',
+    ]);
+    $offerable = [];
+    foreach (is_array($products) ? $products : [] as $product) {
+        if ($product instanceof \WC_Product && $product->is_purchasable()) {
+            $offerable[] = $product;
+        }
+    }
+
+    return $offerable;
+}
+
+/**
+ * Avantages fidélité disponibles pour le client d'une commande (0 si la commande
+ * n'est pas rattachable à un contact). Déjà net des avantages consommés par cette
+ * commande, la réconciliation étant idempotente.
+ */
+function luziapi_order_available_rewards(\WC_Order $order): int
+{
+    $handler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+    if (null === $handler) {
+        return 0;
+    }
+    $keys = \LuziApi\Loyalty\Domain\LoyaltyIdentity::keysForContact(
+        (string) $order->get_billing_email(),
+        (string) $order->get_billing_phone(),
+    );
+
+    return [] === $keys ? 0 : $handler->availableRewards($keys);
+}
+
+/**
+ * Ajoute, si demandé depuis la fiche commande, un pot offert (geste ou fidélité)
+ * à une commande existante : ligne à 0 € (montant inchangé donc recette intacte),
+ * stock décompté du seul nouvel item, et — pour la fidélité — consommation d'un
+ * avantage portée au journal par une réconciliation ciblée.
+ */
+function luziapi_maybe_add_offered_pot(\WC_Order $order): void
+{
+    $productId = absint($_POST['luziapi_offer_product'] ?? 0);
+    $quantity  = absint($_POST['luziapi_offer_qty'] ?? 0);
+    if ($productId <= 0 || $quantity <= 0) {
+        return;
+    }
+    $loyalty = 'loyalty' === sanitize_key(wp_unslash((string) ($_POST['luziapi_offer_type'] ?? 'gift')));
+
+    $notify = static function (string $message, bool $error) use ($order): void {
+        set_transient('luziapi_offer_pot_notice_' . get_current_user_id(), ['message' => $message, 'error' => $error], 120);
+        $order->add_order_note($message, 0);
+    };
+
+    $product = wc_get_product($productId);
+    if (! $product instanceof \WC_Product || ! $product->is_purchasable()) {
+        $notify('Pot offert non ajouté : produit invalide.', true);
+
+        return;
+    }
+    if ($product->managing_stock() && null !== $product->get_stock_quantity() && $product->get_stock_quantity() < $quantity) {
+        $notify('Pot offert non ajouté : stock insuffisant.', true);
+
+        return;
+    }
+    if ($loyalty && $quantity > luziapi_order_available_rewards($order)) {
+        $notify('Pot offert non ajouté : pas assez d’avantages fidélité disponibles pour ce client.', true);
+
+        return;
+    }
+
+    $totalBefore = (float) $order->get_total();
+    $item = \LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $quantity, $loyalty);
+    $order->calculate_totals(false);
+
+    // Garde-fou : une commande ne doit pas voir son montant changer (recette intacte).
+    if (abs((float) $order->get_total() - $totalBefore) > 0.0001) {
+        $notify('Pot offert non ajouté : il aurait modifié le montant de la commande.', true);
+
+        return; // item non persisté : pas de save()
+    }
+
+    $order->save();
+
+    // Décompte ciblé du stock : seulement le nouvel item (les items d'origine
+    // portent déjà leur `_reduced_stock`). On le marque réduit pour éviter un double
+    // décompte ultérieur et permettre une restitution correcte à l'annulation.
+    if ($product->managing_stock()) {
+        wc_update_product_stock($product, $quantity, 'decrease');
+        $item->add_meta_data('_reduced_stock', (string) $quantity, true);
+        $item->save();
+    }
+
+    $notify(sprintf(
+        'Pot offert ajouté : %d × %s (%s).',
+        $quantity,
+        $product->get_name(),
+        $loyalty ? 'fidélité' : 'geste commercial',
+    ), false);
+
+    if ($loyalty) {
+        // Recalcul ciblé : porte la consommation de l'avantage au journal fidélité.
+        do_action('luziapi_loyalty_order_lines_changed', $order->get_id(), $order);
+    }
+}
+
+/**
+ * Affiche l'issue (succès/échec) d'un ajout de pot offert déposée par
+ * {@see luziapi_maybe_add_offered_pot()} pour l'utilisateur courant.
+ */
+add_action('admin_notices', static function (): void {
+    $key = 'luziapi_offer_pot_notice_' . get_current_user_id();
+    $notice = get_transient($key);
+    if (! is_array($notice) || ! isset($notice['message'])) {
+        return;
+    }
+    delete_transient($key);
+    printf(
+        '<div class="notice %s is-dismissible"><p>%s</p></div>',
+        ! empty($notice['error']) ? 'notice-error' : 'notice-success',
+        esc_html((string) $notice['message']),
+    );
+});
 
 // Le motif est sauvegardé avant la transition de statut afin que l'e-mail
 // transactionnel puisse le lire immédiatement.

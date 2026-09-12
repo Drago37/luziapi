@@ -36,8 +36,8 @@ IN_THEME = $(DC) exec -T $(WP) bash -lc 'cd $(THEME) && $(1)'
 .PHONY: help env up start stop restart down destroy build logs ps install fixtures wait \
         composer composer-prod theme plugins wp-install shell wp db db-reset \
         test cs cs-check stan qa deploy deploy-dry deploy-check e2e-local e2e-clean \
-        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-exclusion-local e2e-orphan-receipt-local e2e-newsletter-local e2e-delivery-zone-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
-        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod e2e-exclusion-prod e2e-orphan-receipt-prod e2e-newsletter-prod e2e-delivery-zone-prod e2e-receipt-prod
+        e2e-tracking-local e2e-vente-local e2e-receipt-local e2e-loyalty-local e2e-exclusion-local e2e-offered-pot-local e2e-orphan-receipt-local e2e-newsletter-local e2e-delivery-zone-local e2e-discount-local e2e-vente-loyalty-local e2e-loyalty-client-local e2e-loyalty-dashboard-local e2e-prod e2e-prod-send \
+        e2e-tracking-prod e2e-tracking-prod-send e2e-loyalty-prod e2e-exclusion-prod e2e-offered-pot-prod e2e-orphan-receipt-prod e2e-newsletter-prod e2e-delivery-zone-prod e2e-receipt-prod
 
 help: ## Affiche cette aide
 	@printf "\n\033[1;33m🐝  LuziApi — commandes disponibles\033[0m\n"
@@ -93,6 +93,9 @@ e2e-loyalty-local: ## Teste l'acquisition de fidélité (crédit/contre-passatio
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-exclusion-on-toggle.php';" --user=admin
 
+e2e-offered-pot-local: ## Teste l'ajout d'un pot offert (geste + fidélité) à une commande existante (vrai chemin admin)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-offered-pot-on-save.php';" --user=admin
+
 e2e-orphan-receipt-local: ## Teste le retrait de la recette quand la commande est mise à la corbeille ou supprimée
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orphan-receipt-on-delete.php';" --user=admin
 
@@ -132,6 +135,9 @@ e2e-loyalty-prod: ## Test e2e de la fidélité sur la PROD (produit+commande de 
 
 e2e-exclusion-prod: ## Test e2e de la case « Exclure de la fidélité » sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-exclusion-prod.sh
+
+e2e-offered-pot-prod: ## Test e2e de l'ajout d'un pot offert à une commande existante sur la PROD (isolé, aucun e-mail, tout nettoyé)
+	@bash scripts/e2e-offered-pot-prod.sh
 
 e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-orphan-receipt-prod.sh

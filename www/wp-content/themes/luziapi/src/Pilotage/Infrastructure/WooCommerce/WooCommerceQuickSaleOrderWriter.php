@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
-use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreatedQuickSale;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Pilotage\Application\Port\QuickSaleOrderWriter;
 use RuntimeException;
 use WC_Order;
-use WC_Order_Item_Product;
 use WC_Order_Item_Shipping;
 use WC_Product;
 
@@ -151,24 +149,12 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
 
     /**
      * Ajoute une ligne **offerte** (0 €) : geste commercial (`$loyalty = false`) ou
-     * pot offert au titre de la fidélité (`$loyalty = true`). La ligne est marquée
-     * pour être exclue du gain de pots et, pour la fidélité, décompter un avantage ;
-     * une méta visible « Offert » l'affiche sur la commande et les e-mails. Le stock
-     * est décompté comme pour toute ligne (via `wc_reduce_stock_levels`).
+     * pot offert au titre de la fidélité (`$loyalty = true`). Le stock est décompté
+     * comme pour toute ligne (via `wc_reduce_stock_levels`), la commande étant neuve.
      */
     private function addOfferedItem(WC_Order $order, WC_Product $product, int $quantity, bool $loyalty): void
     {
-        $item = new WC_Order_Item_Product();
-        $item->set_product($product);
-        $item->set_quantity($quantity);
-        $item->set_subtotal('0');
-        $item->set_total('0');
-        $item->add_meta_data(WooCommerceEligiblePotCounter::OFFERT_LINE_META, 'yes', true);
-        $item->add_meta_data('Offert', $loyalty ? 'Fidélité' : 'Oui', true);
-        if ($loyalty) {
-            $item->add_meta_data(WooCommerceEligiblePotCounter::REWARD_LINE_META, 'yes', true);
-        }
-        $order->add_item($item);
+        OfferedOrderItem::addTo($order, $product, $quantity, $loyalty);
     }
 
     public function markReceiptRecorded(int $orderId): void

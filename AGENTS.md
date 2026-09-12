@@ -180,6 +180,15 @@ d’intégration `make e2e-exclusion-local` et son test **de bout en bout sur la
 administrateur + nonce + `$_POST`, appel de `luziapi_save_admin_order_workflow`, qui
 pose la méta puis émet `luziapi_loyalty_exclusion_changed` recalculée par l’abonné),
 et vérifient aussi que les hooks sont câblés (isolé, aucun e-mail, tout nettoyé).
+L'**ajout d'un pot offert à une commande existante** (bloc « Ajouter un pot offert »
+de la fiche commande, geste **ou** fidélité) a de même `make e2e-offered-pot-local`
+et `make e2e-offered-pot-prod` : ils pilotent le **vrai chemin admin**
+(`luziapi_save_admin_order_workflow` → ajout d'une ligne à 0 € → recalcul fidélité via
+`luziapi_loyalty_order_lines_changed`) et vérifient que la ligne est offerte,
+que le **montant de la commande ne change pas** (recette intacte), que le **stock est
+décompté** du seul nouvel item, que la **fidélité consomme un avantage** (borné au
+disponible, second essai refusé), plus le câblage des hooks (isolé, aucun e-mail, tout
+nettoyé).
 L'**auto-envoi newsletter** (mu-plugin `luziapi-newsletter-autosend`) a de même
 `make e2e-newsletter-local` et `make e2e-newsletter-prod` : ils vérifient que la
 publication **planifie** (sans envoyer), qu'une réédition ne re-planifie pas, et que
