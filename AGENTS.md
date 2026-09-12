@@ -52,8 +52,11 @@ pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni su
   release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
   (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
   à lire et respecter.**
-- Messages de commit et PR en **français** ; **jamais** de trailer `Co-Authored-By:` (préférence
-  explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- Messages de commit et documentation en **français** ; **jamais** de trailer `Co-Authored-By:`
+  (préférence explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- **Pull Requests : titre et description en anglais**, **assignées à leur auteur**, **labellisées
+  par type** (`bug`, `enhancement`, `documentation`…). Seule la PR est en anglais ; commits, code et
+  doc restent en français. Détail dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Ne pas pousser sans demande explicite ; on ne déploie que depuis `main` après merge d'une release,
   CI verte (voir la garde de déploiement plus bas).
 
