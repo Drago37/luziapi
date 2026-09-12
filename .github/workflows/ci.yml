@@ -133,6 +133,13 @@ jobs:
       - name: Installer WordPress + thème + WooCommerce
         run: make wp-install theme plugins
 
+      # Permaliens « jolis » comme en prod : sinon les URL (page de suivi, etc.)
+      # sortent en ?page_id=… et certains e2e vérifient le slug dans l'URL.
+      - name: Activer les permaliens jolis
+        run: |
+          docker compose run --rm wpcli wp rewrite structure '/%postname%/'
+          docker compose run --rm wpcli wp rewrite flush
+
       - name: Jouer toutes les suites e2e locales
         run: bash scripts/e2e-ci.sh
 

@@ -94,7 +94,7 @@ e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemi
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-exclusion-on-toggle.php';" --user=admin
 
 e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Brevo intercepté, aucun e-mail)
-	$(DC) run --rm --user root -v "$(CURDIR)/prod-mu-plugins:/mu-src:ro" wpcli cp /mu-src/luziapi-newsletter-autosend.php wp-content/mu-plugins/luziapi-newsletter-autosend.php
+	$(DC) run --rm --user root -v "$(CURDIR)/prod-mu-plugins:/mu-src:ro" wpcli sh -c 'mkdir -p wp-content/mu-plugins && cp /mu-src/luziapi-newsletter-autosend.php wp-content/mu-plugins/luziapi-newsletter-autosend.php'
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-newsletter-on-publish.php';" --user=admin
 
 e2e-delivery-zone-local: ## Teste la validation de zone de livraison au checkout (rejet hors Bléré/Luzillé 37150)

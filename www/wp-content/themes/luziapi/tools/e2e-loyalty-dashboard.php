@@ -119,8 +119,8 @@ try {
     };
 
     // --- Année en cours ---
-    $view = $handler->handle(new GetLoyaltyDashboardQuery($thisYear));
-    $assert('L\'année affichée est l\'année en cours', $thisYear === $view->year);
+    $view = $handler->handle(new GetLoyaltyDashboardQuery((string) $thisYear));
+    $assert('L\'année affichée est l\'année en cours', (string) $thisYear === $view->periodKey);
     $assert('Les deux années sont proposées au sélecteur', in_array($thisYear, $view->availableYears, true) && in_array($lastYear, $view->availableYears, true));
     $alice = $findRow($view->customers, $nameA);
     $bob = $findRow($view->customers, $nameB);
@@ -131,7 +131,7 @@ try {
     $assert('Top meilleurs clients : Alice en tête', str_contains($view->topBuyers[0]->name ?? '', $nameA));
 
     // --- Année précédente : seule la commande d'Alice de l'an dernier compte ---
-    $viewLast = $handler->handle(new GetLoyaltyDashboardQuery($lastYear));
+    $viewLast = $handler->handle(new GetLoyaltyDashboardQuery((string) $lastYear));
     $assert('L\'an dernier n\'a qu\'un client (Alice)', 1 === $viewLast->totalCustomers);
     $assert('L\'an dernier : Alice a 4 pots, 0 offert, 0 remise', 4 === $viewLast->totalPots && 0 === $viewLast->totalOfferedPots && 0 === $viewLast->totalDiscountCents);
 } catch (Throwable $exception) {
