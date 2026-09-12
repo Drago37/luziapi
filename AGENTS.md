@@ -190,6 +190,13 @@ La **validation de zone de livraison** au checkout a `make e2e-delivery-zone-loc
 aucun e-mail. La **recette auto** au passage « Terminée » a aussi sa variante prod
 `make e2e-receipt-prod` (en plus du local) : commande isolée en `set_status`, subscriber
 invoqué avec le dépôt **non audité** (aucune écriture au journal d'activité), tout nettoyé.
+Le **retrait de la recette à la corbeille / suppression d'une commande** a
+`make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod` : ils créent une commande
+avec une recette, la mettent à la **corbeille** (`woocommerce_trash_order`) puis en
+**suppression** (`woocommerce_before_delete_order`), et vérifient que l'abonné
+`WooCommerceOrphanReceiptSubscriber` a bien retiré la recette du registre (isolé, tout
+nettoyé). _Raison :_ une commande supprimée qui gardait sa recette gonflait l'encaissé
+au-dessus du chiffre vendu (constaté : 132 € de recettes orphelines en 2026).
 
 > **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
 > comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un

@@ -64,4 +64,22 @@ final readonly class AuditedReceiptRepository implements ReceiptRepository
     {
         return $this->inner->netTotalsByOrderIds($orderIds);
     }
+
+    public function deleteByOrderId(int $orderId): int
+    {
+        $removed = $this->inner->deleteByOrderId($orderId);
+        if ($removed > 0) {
+            $this->activity->record(
+                ActivityCategory::Receipt,
+                'receipt_deleted',
+                'order',
+                $orderId,
+                sprintf('%d recette(s) retirée(s) : commande #%d supprimée', $removed, $orderId),
+                [],
+                0,
+            );
+        }
+
+        return $removed;
+    }
 }

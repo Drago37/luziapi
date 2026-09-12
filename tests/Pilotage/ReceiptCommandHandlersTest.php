@@ -132,4 +132,15 @@ final class ReceiptRepositoryForHandlerTest implements ReceiptRepository
     {
         return [];
     }
+
+    public function deleteByOrderId(int $orderId): int
+    {
+        $before = count($this->entries);
+        $this->entries = array_values(array_filter(
+            $this->entries,
+            static fn (ReceiptEntry $entry): bool => $entry->orderId !== $orderId,
+        ));
+
+        return $before - count($this->entries);
+    }
 }
