@@ -601,6 +601,13 @@ contacts Brevo (`make audit-receipts-prod` et `make verify-prod` restent disponi
 la 1.2.0 (bascule doc→anglais, correctif filtre `tests-js`, révision du flux release) est sans
 impact prod runtime.
 
+_Correctif de suivi le 13 septembre 2026 (commit `b617af1`, `inc/order-workflow.php`, 1/1 SHA,
+OPcache vidé, prod saine) :_ le **mode de remise (retrait ⇄ livraison) redevient éditable sur les
+commandes « Terminée »** (verrou levé pour ce statut ; les autres étapes de remise et les états
+finaux restent verrouillés). Décision : seul l'exploitant modifie les commandes et doit pouvoir
+corriger a posteriori. Aussi corrigés en amont, hors prod : la désync des PDF brochure/flyer
+(réalignés en prod, `verify-prod` 300/300).
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
