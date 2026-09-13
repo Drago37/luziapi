@@ -36,6 +36,6 @@ if [ "${fail}" -eq 0 ]; then
   printf '\033[1;32m✅  Production saine\033[0m\n'
 else
   printf '\033[1;31m❌  Production en erreur — déploiement probablement incomplet.\033[0m\n'
-  printf '   Vérifier la complétude : find src/ | wc -l (prod, FTPS) vs le dépôt.\n'
+  printf '   Identifier les fichiers manquants/divergents : make verify-prod\n'
   exit 1
 fi
