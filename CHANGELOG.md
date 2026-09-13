@@ -16,6 +16,9 @@ documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `
   counts and search — read-only (management stays in Brevo).
 - Read-only subscription panel (e-mail / SMS) on the customer fiche, matched by e-mail and
   normalized phone against Brevo.
+- Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
+  Brevo calls intercepted — validates the adapter parsing and blacklist handling.
+- Loyalty social visual (`docs/fidelite/fidelite.png`).
 
 ### Changed
 
