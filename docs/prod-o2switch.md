@@ -608,6 +608,12 @@ finaux restent verrouillés). Décision : seul l'exploitant modifie les commande
 corriger a posteriori. Aussi corrigés en amont, hors prod : la désync des PDF brochure/flyer
 (réalignés en prod, `verify-prod` 300/300).
 
+_Correctif de suivi le 13 septembre 2026 (commit `8e39e79`, `inc/woocommerce.php`, 1/1 SHA, OPcache
+vidé, prod saine) :_ les métas techniques de ligne `_luziapi_offert` / `_luziapi_loyalty_reward`
+sont **masquées** de l'écran de commande admin (`woocommerce_hidden_order_itemmeta`) — seule
+l'étiquette lisible « Offert » reste visible. Ajouté aussi (hors prod) : l'inspecteur lecture seule
+`make loyalty-inspect-prod ORDER=<id>` pour diagnostiquer un comptage fidélité.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
