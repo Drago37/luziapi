@@ -52,6 +52,11 @@ pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni su
   release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
   (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
   à lire et respecter.**
+- **Back-merge `main` → `develop` = AUTOMATIQUE, sans demander.** Juste après avoir tagué `main`
+  (fin de release/hotfix), reporter aussitôt `main` dans `develop` (`git checkout develop && git merge
+  --no-ff origin/main && git push origin develop`). C'est le sens même de GitFlow, pas une décision à
+  valider — ne jamais laisser `main` en avance sur `develop`. Seule exception au « pas de push direct
+  sur `develop` ». Le **déploiement**, lui, garde son feu vert explicite.
 - Messages de commit et documentation en **français** ; **jamais** de trailer `Co-Authored-By:`
   (préférence explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
 - **Pull Requests : titre et description en anglais**, **assignées à leur auteur**, **labellisées

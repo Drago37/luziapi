@@ -22,11 +22,19 @@ y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `
 - **`hotfix/X.Y.Z`** : partent de `main` pour un correctif urgent de prod → merge dans `main` (**tag**)
   **puis** dans `develop`.
 
+> **Le back-merge de `main` dans `develop` est AUTOMATIQUE** : il fait partie intégrante de la
+> clôture d'une release ou d'un hotfix (`main` taguée → retour `develop`), il n'est **pas** une
+> modification à valider. Un agent l'exécute **sans demander confirmation**, juste après le tag :
+> `git checkout develop && git merge --no-ff origin/main && git push origin develop`. Ne jamais
+> laisser `main` en avance sur `develop`. C'est la **seule** exception au « pas de push direct sur
+> `develop` » : elle ne réintroduit que ce qui vient d'être tagué sur `main`. Le **déploiement**,
+> lui, reste soumis à un feu vert explicite (voir la garde de déploiement).
+
 **Règles :**
 
 1. Toute modification passe par une branche puis une **Pull Request** (utiliser la skill `/create-pr`).
-   Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
-   branches partagées).
+   Jamais de push direct sur `main` **ni** sur `develop` — **sauf** le back-merge automatique de fin de
+   release/hotfix décrit ci-dessus, seule exception.
 2. **Versionnage sémantique** `MAJEUR.MINEUR.CORRECTIF` (tags **sans** préfixe `v`). La prod est fixée à **`1.0.0`**.
 3. **Commits et documentation en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
 4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
