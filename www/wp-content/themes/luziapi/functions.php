@@ -15,7 +15,7 @@ if (! defined('ABSPATH')) {
 
 define('LUZIAPI_DIR', get_template_directory());
 define('LUZIAPI_URI', get_template_directory_uri());
-define('LUZIAPI_VERSION', '1.0.0');
+define('LUZIAPI_VERSION', '1.1.0');
 
 // Autoload Composer (Timber). Lancer `composer install` à la racine du thème.
 $autoload = LUZIAPI_DIR . '/vendor/autoload.php';
