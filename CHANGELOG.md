@@ -1,0 +1,45 @@
+# Changelog
+
+All notable changes to this project are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (tags `X.Y.Z`, no `v` prefix).
+
+This file is written in English, like the other process/agent docs. Business and technical
+documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `docs/`).
+
+## [Unreleased]
+
+_Nothing yet._
+
+## [1.1.0] - 2026-09-13
+
+### Added
+
+- Sale: the "of which offered" count is part of the quantity — bill total − offered (#6).
+- Loyalty: add an offered pot (commercial gesture or loyalty reward) to an existing order (#7).
+- Read-only audit of receipt ↔ order drift: `make audit-receipts-local` and `make audit-receipts-prod`
+  (`LUZIAPI_AUDIT_YEAR=YYYY` to target a year) — flags orders without a receipt, divergent amounts,
+  and orphan receipts (a receipt attached to a deleted order) (#15).
+- Whole-theme production integrity verifier: `make verify-prod` — compares the SHA-256 of every
+  tracked theme code file against production and lists missing/divergent files (#16).
+- CI runs all local e2e suites, plus a testing policy in `CONTRIBUTING.md` (#9).
+- CI PHP matrix (8.2 and 8.3), test coverage (pcov) and a dependency-audit job (#12).
+- CI also runs on pushes to `develop`, and on workflow changes in pull requests (#10).
+
+### Changed
+
+- PHPStan raised to level `max`, with a baseline freezing the existing debt (#11).
+- Makefile: `.PHONY` declared per target, ending the shared-line merge conflicts (#14).
+- Documentation language policy: agent/process docs (`AGENTS.md`, `CONTRIBUTING.md`, `CLAUDE.md`,
+  `CHANGELOG.md`), commit messages and pull requests are in English; business and technical
+  documentation stays in French.
+
+### Fixed
+
+- Receipts: the receipt is removed when its order is trashed or deleted, preventing orphan receipts
+  from inflating the recorded income (#8).
+
+## [1.0.0] - 2026-09-11
+
+- Initial production release of the LuziApi theme (storefront + shop, Timber/Twig + WooCommerce).

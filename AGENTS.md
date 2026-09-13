@@ -1,442 +1,449 @@
-# Instructions pour les agents (LuziApi)
+# Instructions for agents (LuziApi)
 
-Ce fichier est la mémoire de travail du dépôt : il rassemble les règles de collaboration et
-les connaissances sur le projet qui ne se déduisent pas du code. Il est destiné à être lu par
-n'importe quel assistant de code (Codex, Claude Code, etc.).
+This file is the repository's working memory: it gathers the collaboration rules and the
+knowledge about the project that cannot be deduced from the code. It is meant to be read by
+any code assistant (Codex, Claude Code, etc.).
 
-> La documentation du dépôt est en **français** (README, DEPLOIEMENT, historique git) ; garder
-> cette langue pour les commits, la doc et les échanges. Le **code** reste en anglais.
+> Agent- and process-facing docs are written in **English**: this file (AGENTS.md),
+> [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CLAUDE.md`](CLAUDE.md) and `CHANGELOG.md`. **Commit
+> messages and pull requests are in English** too. **Business and technical documentation stays
+> in French**: `README.md`, `DEPLOIEMENT.md` and everything under `docs/` (production state,
+> business processes, loyalty, CGV, test procedures, SMS templates, etc.), plus the nested
+> README files (`prod-mu-plugins/README.md`, `www/wp-content/themes/luziapi/README.md`). The
+> **code** stays in English.
 >
-> Avant de modifier le code, lire également **[`CONTRIBUTING.md`](CONTRIBUTING.md)** : il définit
-> l'architecture hexagonale, le DDD pragmatique et les conventions PHP/Composer attendues.
+> Before modifying the code, also read **[`CONTRIBUTING.md`](CONTRIBUTING.md)**: it defines the
+> hexagonal architecture, the pragmatic DDD and the expected PHP/Composer conventions.
 
 ---
 
-## 1. Règles de collaboration (à respecter systématiquement)
+## 1. Collaboration rules (to be respected systematically)
 
-### Confirmer avant toute publication
+### Confirm before any publication
 
-Pour **toute action visible depuis l'extérieur** — publier un article WordPress, envoyer une
-campagne / newsletter Brevo, modifier une page en prod, déployer — : construire d'abord le
-contenu **avec** l'utilisateur, montrer le rendu ou le résultat final, puis **attendre une
-confirmation explicite** avant d'exécuter. Ne jamais mettre en ligne ni déclencher un envoi de
-sa propre initiative.
+For **any action visible from the outside** — publishing a WordPress article, sending a Brevo
+campaign / newsletter, editing a page in production, deploying — : first build the content
+**with** the user, show the rendering or the final result, then **wait for explicit
+confirmation** before executing. Never put anything online nor trigger a send on your own
+initiative.
 
-_Pourquoi :_ l'utilisateur veut garder la main et relire avant. Formulé explicitement :
-« je veux le travailler avec toi avant, comme tout le temps… tu dois avoir ma confirmation pour
-publier ensuite ».
+_Why:_ the user wants to keep control and review beforehand. Stated explicitly: "I want to work
+on it with you first, as always… you must have my confirmation before publishing afterwards."
 
-Vaut aussi pour l'**auto-envoi de la newsletter**, déclenché par la première publication d'un
-article (voir [docs/prod-o2switch.md](docs/prod-o2switch.md)) : publier un article, c'est
-envoyer un e-mail + un SMS à toute la liste.
+This also applies to the **newsletter auto-send**, triggered by the first publication of an
+article (see [docs/prod-o2switch.md](docs/prod-o2switch.md)): publishing an article means
+sending an e-mail + an SMS to the entire list.
 
-### Ne jamais retirer une fonctionnalité sans le dire
+### Never remove a feature without saying so
 
-Ne **jamais supprimer, retirer ou désactiver une fonctionnalité existante** sans demander
-confirmation au préalable — **même comme simple effet de bord** d'une autre modification.
-Par défaut, préserver l'existant : reporter / réimplémenter la fonctionnalité dans le nouveau
-contexte plutôt que l'abandonner.
+**Never delete, remove or disable an existing feature** without asking for confirmation
+beforehand — **even as a mere side effect** of another change. By default, preserve what exists:
+carry over / reimplement the feature in the new context rather than abandoning it.
 
-_Pourquoi :_ en déplaçant le bouton panier du header vers les boutons flottants, le mini-panier
-déroulant (jugé pratique) a été retiré au passage sans prévenir. Mal pris.
+_Why:_ when the cart button was moved from the header to the floating buttons, the drop-down
+mini-cart (deemed handy) was removed in the process without warning. Badly received.
 
-### Git : GitFlow obligatoire (depuis la 1.0.0)
+### Git: GitFlow mandatory (since 1.0.0)
 
-Le projet est **en production depuis la `1.0.0`** (11 septembre 2026) : la phase alpha/bêta où l'on
-committait directement sur `main` est **terminée**. **GitFlow est désormais obligatoire, y compris
-pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni sur `develop`.**
+The project has been **in production since `1.0.0`** (11 September 2026): the alpha/beta phase
+where we committed directly on `main` is **over**. **GitFlow is now mandatory, including for
+agents.** **Never commit or push directly on `main` or on `develop`.**
 
-- `main` = production (état déployé, tag `X.Y.Z` — sans préfixe `v` — à chaque release) ; ne reçoit que des merges de
-  `release/*` ou `hotfix/*`. `develop` = intégration (base des features).
-- Toute modification → branche `feature/*` (depuis `develop`) → **Pull Request** via `/create-pr` ;
-  release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
-  (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
-  à lire et respecter.**
-- **Back-merge `main` → `develop` = AUTOMATIQUE, sans demander.** Juste après avoir tagué `main`
-  (fin de release/hotfix), reporter aussitôt `main` dans `develop` (`git checkout develop && git merge
-  --no-ff origin/main && git push origin develop`). C'est le sens même de GitFlow, pas une décision à
-  valider — ne jamais laisser `main` en avance sur `develop`. Seule exception au « pas de push direct
-  sur `develop` ». Le **déploiement**, lui, garde son feu vert explicite.
-- Messages de commit et documentation en **français** ; **jamais** de trailer `Co-Authored-By:`
-  (préférence explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
-- **Pull Requests : titre et description en anglais**, **assignées à leur auteur**, **labellisées
-  par type** (`bug`, `enhancement`, `documentation`…). Seule la PR est en anglais ; commits, code et
-  doc restent en français. Détail dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
-- Ne pas pousser sans demande explicite ; on ne déploie que depuis `main` après merge d'une release,
-  CI verte (voir la garde de déploiement plus bas).
+- `main` = production (deployed state, tag `X.Y.Z` — without the `v` prefix — at each release); it
+  only receives merges from `release/*` or `hotfix/*`. `develop` = integration (base for features).
+- Any change → `feature/*` branch (from `develop`) → **Pull Request** via `/create-pr`;
+  release `release/X.Y.Z` (develop → tagged main → back to develop); emergency `hotfix/X.Y.Z`
+  (main → tag → develop). **Full and up-to-date details in [`CONTRIBUTING.md`](CONTRIBUTING.md) —
+  to be read and respected.**
+- **Back-merge `main` → `develop` = AUTOMATIC, without asking.** Right after tagging `main`
+  (end of release/hotfix), immediately carry `main` back into `develop` (`git checkout develop && git merge
+  --no-ff origin/main && git push origin develop`). This is the very point of GitFlow, not a decision to
+  validate — never leave `main` ahead of `develop`. The only exception to "no direct push on
+  `develop`". **Deployment**, on the other hand, keeps its explicit green light.
+- Commit messages and pull requests are in **English**; **never** a `Co-Authored-By:` trailer
+  (explicit preference, a commit was already refused and the history cleaned to remove it).
+- **Pull Requests: title and description in English**, **assigned to their author**, **labeled
+  by type** (`bug`, `enhancement`, `documentation`…). Details in
+  [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Do not push without an explicit request; we only deploy from `main` after merging a release,
+  with the CI green (see the deployment gate below).
 
-### Déployer = feu vert explicite
+### Deploy = explicit green light
 
-« Déploie » est une action de publication : elle demande un accord clair, comme le reste.
+"Deploy" is a publication action: it requires clear agreement, like everything else.
 
-### Garde de déploiement : code poussé + CI verte (bloquant)
+### Deployment gate: code pushed + CI green (blocking)
 
-**Ne jamais déployer si le code n'est pas d'abord poussé sur `main` ET la CI verte sur `HEAD`.**
-Ordre imposé : commit → push sur `main` → attendre la CI verte → et alors seulement, sur feu vert
-explicite, déployer. Une vérif locale ne remplace pas la CI. `scripts/deploy-files.sh` applique
-cette garde automatiquement et **refuse** de déployer sinon (arbre propre, `main` synchro avec
-`origin/main`, run CI « Qualité du thème » `success` sur le SHA courant).
+**Never deploy if the code is not first pushed on `main` AND the CI green on `HEAD`.**
+Imposed order: commit → push to `main` → wait for the CI to be green → and only then, on an
+explicit green light, deploy. A local check does not replace the CI. `scripts/deploy-files.sh`
+applies this gate automatically and **refuses** to deploy otherwise (clean tree, `main` in sync
+with `origin/main`, CI run "Qualité du thème" `success` on the current SHA).
 
-_Pourquoi :_ règle posée explicitement — « le code doit être pushé et la CI verte obligatoirement,
-sinon on bloque le déploiement ». Convention actuelle : **`main` = la prod à jour** (pas encore de
-gitflow ni de tag de release ; ça viendra pour les releases).
+_Why:_ rule set explicitly — "the code must be pushed and the CI green mandatorily, otherwise we
+block the deployment". Convention: **`main` = the up-to-date production** (deployed state), tagged
+`X.Y.Z` at each release (GitFlow is now in place; the first tag is `1.0.0`).
 
-### Après chaque déploiement : consigner (obligatoire, sans qu'on le demande)
+### After each deployment: log it (mandatory, without being asked)
 
-**Tout déploiement doit être consigné dans [docs/prod-o2switch.md](docs/prod-o2switch.md)** dans la
-foulée, sans attendre qu'on le demande : commit(s) déployé(s), fichiers, résultat des vérifications
-(SHA, OPcache, contrôle live) et ce qui change côté prod. Mettre aussi à jour la mémoire projet si
-utile. Ne jamais laisser un déploiement non documenté.
+**Every deployment must be logged in [docs/prod-o2switch.md](docs/prod-o2switch.md)** right
+away, without waiting to be asked: commit(s) deployed, files, result of the checks (SHA, OPcache,
+live control) and what changes on the production side. Also update the project memory if useful.
+Never leave a deployment undocumented.
 
-_Pourquoi :_ demande explicite de l'utilisateur — « il faut le faire après chaque déploiement, me
-répéter c'est pénible ». C'est un automatisme attendu, pas une option.
+_Why:_ explicit request from the user — "it must be done after each deployment, having to remind
+me is tiresome". It is an expected reflex, not an option.
 
-### Tenir cette documentation à jour
+### Keep this documentation up to date
 
-Ces fichiers **sont** la mémoire du projet : c'est la seule qui soit partagée entre les postes et
-entre les assistants. Dès qu'une session fait apparaître quelque chose qui mérite d'être retenu —
-préférence de l'utilisateur, piège serveur, décision de configuration, changement d'état de la
-prod — l'écrire ici dans la foulée, sans attendre qu'on le demande :
+These files **are** the project's memory: it is the only one shared between machines and between
+assistants. As soon as a session surfaces something worth remembering — a user preference, a
+server pitfall, a configuration decision, a change in the production state — write it here right
+away, without waiting to be asked:
 
-- règle de comportement, flux git, méthode de déploiement, piège serveur → **`AGENTS.md`** ;
-- état de la production → **`docs/prod-o2switch.md`**.
+- behavior rule, git flow, deployment method, server pitfall → **`AGENTS.md`**;
+- production state → **`docs/prod-o2switch.md`**.
 
-Ne jamais y écrire d'identifiant (voir § 6). `CLAUDE.md` n'est qu'un pointeur vers ce fichier :
-ne rien y dupliquer.
+Never write any credential here (see § 6). `CLAUDE.md` is only a pointer to this file:
+do not duplicate anything in it.
 
 ---
 
-## 2. Carte du projet
+## 2. Project map
 
-- **README.md** — structure du dépôt et installation locale (Docker, `make install`).
-- **CONTRIBUTING.md** — architecture cible, séparation hexagonale, DDD, Composer et conventions de
-  qualité. À lire avant toute modification du code.
-- **DEPLOIEMENT.md** — mise en ligne et mise à jour du thème (`make deploy`, FTPS).
-- **docs/prod-o2switch.md** — état de la prod, architecture fonctionnelle, pièges serveur.
-  À lire avant toute intervention touchant la production.
-- **docs/processus-metier-commandes.md** — processus réel de vente et de traitement des commandes,
-  diagramme, automatismes, notifications et écarts de configuration.
-- **docs/fidelite.md** — programme de fidélité (« 10 pots achetés, le 11e offert »), architecture
-  du module `src/Loyalty/` et suivi des lots de l'issue #4.
-- **docs/modeles-sms-brevo.md** — modèles de SMS.
-- **docs/** — supports imprimés et visuels :
-  - `print/` — brochure, flyer et carte de visite. Deux variantes par document : sans suffixe
-    (destinée au web) et `-print` (fonds perdus / profil pour l'imprimeur).
-  - `sources/` — fichiers éditables zippés dont sont tirés les PDF de `print/`.
-  - `etiquettes/` — étiquettes de pots ; `social/` — visuels des réseaux sociaux.
-- **prod-mu-plugins/** — les mu-plugins de production, versionnés ici mais **déployés à part**
-  (le compte FTP ne les voit pas, voir plus bas).
+- **README.md** — repository structure and local installation (Docker, `make install`).
+- **CONTRIBUTING.md** — target architecture, hexagonal separation, DDD, Composer and quality
+  conventions. To be read before any change to the code.
+- **CHANGELOG.md** — notable changes per version (Keep a Changelog format); updated during each
+  release.
+- **DEPLOIEMENT.md** — going live and updating the theme (`make deploy`, FTPS).
+- **docs/prod-o2switch.md** — production state, functional architecture, server pitfalls.
+  To be read before any intervention touching production.
+- **docs/processus-metier-commandes.md** — the real process for selling and handling orders,
+  diagram, automations, notifications and configuration discrepancies.
+- **docs/fidelite.md** — loyalty program ("10 pots achetés, le 11e offert" / buy 10 jars, the
+  11th free), architecture of the `src/Loyalty/` module and tracking of the batches of issue #4.
+- **docs/modeles-sms-brevo.md** — SMS templates.
+- **docs/** — printed and visual materials:
+  - `print/` — brochure, flyer and business card. Two variants per document: without a suffix
+    (intended for the web) and `-print` (bleed / profile for the printer).
+  - `sources/` — zipped editable files from which the `print/` PDFs are produced.
+  - `etiquettes/` — jar labels; `social/` — social network visuals.
+- **prod-mu-plugins/** — the production mu-plugins, versioned here but **deployed separately**
+  (the FTP account does not see them, see below).
 
-### Brochure et flyer téléchargeables
+### Downloadable brochure and flyer
 
-`docs/print/` est la **source** ; les versions publiées sur le site sont des **copies** dans
-`www/wp-content/themes/luziapi/assets/docs/` (variantes web uniquement, pas les `-print`). Les
-deux se désynchronisent facilement — constaté : le thème et la prod servaient une version plus
-ancienne que les sources. Quand un de ces PDF change :
+`docs/print/` is the **source**; the versions published on the site are **copies** in
+`www/wp-content/themes/luziapi/assets/docs/` (web variants only, not the `-print` ones). The
+two easily drift out of sync — observed: the theme and production were serving an older version
+than the sources. When one of these PDFs changes:
 
-1. recopier `docs/print/LuziApi-{brochure,flyer}.pdf` dans `assets/docs/` ;
-2. corriger la taille annoncée dans la colonne « Documents » de
-   `templates/partials/footer.twig` — elle est **écrite en dur** (convention : base 1024,
-   `Ko` entier, `Mo` à une décimale) ;
-3. déployer les 3 fichiers en FTPS ciblé (§ 3) et vérifier le `content-length` servi.
+1. copy `docs/print/LuziApi-{brochure,flyer}.pdf` back into `assets/docs/`;
+2. correct the announced size in the "Documents" column of
+   `templates/partials/footer.twig` — it is **hard-coded** (convention: base 1024,
+   whole `Ko`, `Mo` to one decimal);
+3. deploy the 3 files via targeted FTPS (§ 3) and check the served `content-length`.
 
-Seul le **thème** `www/wp-content/themes/luziapi/` est versionné : cœur WordPress, plugins et
-médias sont fournis par l'hébergeur ou par Docker.
+Only the **theme** `www/wp-content/themes/luziapi/` is versioned: the WordPress core, plugins and
+media are provided by the host or by Docker.
 
-### Versionner les CGV sans perdre la preuve client
+### Versioning the CGV without losing the customer's proof
 
-Le texte public des CGV vit dans `templates/page-conditions-generales-de-vente.twig`. Sa version
-est déclarée dans `inc/commerce-legal.php` et possède un PDF immuable du même millésime dans
-`assets/docs/` (par exemple `LuziApi-CGV-2026-09-07.pdf`). Lors d'une évolution :
+The public text of the CGV (terms and conditions of sale) lives in
+`templates/page-conditions-generales-de-vente.twig`. Its version is declared in
+`inc/commerce-legal.php` and has an immutable PDF of the same vintage in
+`assets/docs/` (for example `LuziApi-CGV-2026-09-07.pdf`). When evolving it:
 
-1. changer la constante de version et créer un **nouveau** nom de PDF ;
-2. ne jamais écraser ni supprimer un PDF déjà accepté par des clients ;
-3. vérifier que le premier e-mail de confirmation joint la nouvelle version ;
-4. conserver dans la commande la version et l'horodatage d'acceptation ;
-5. déployer le nouveau PDF avec les fichiers PHP/Twig correspondants, puis vider l'OPcache.
+1. change the version constant and create a **new** PDF name;
+2. never overwrite or delete a PDF already accepted by customers;
+3. check that the first confirmation e-mail attaches the new version;
+4. keep the version and the acceptance timestamp in the order;
+5. deploy the new PDF with the corresponding PHP/Twig files, then clear the OPcache.
 
-Les conventions et attestations du médiateur sont confidentielles et restent hors du dépôt. Seules
-ses coordonnées publiques nécessaires aux CGV sont versionnées.
+The mediator's agreements and attestations are confidential and stay out of the repository. Only
+their public contact details needed for the CGV are versioned.
 
-### Nommage des fichiers destinés à un imprimeur
+### Naming files intended for a printer
 
-Pour une variante préparée pour un site d'impression, mettre uniquement le nom du site en
-suffixe final : par exemple `LuziApi-carte-recto-saxoprint.pdf`. Ne pas ajouter au nom les
-détails techniques (`x4`, `vectorise`, etc.), qui se vérifient dans le fichier lui-même.
+For a variant prepared for a print website, put only the site's name as the final suffix: for
+example `LuziApi-carte-recto-saxoprint.pdf`. Do not add technical details to the name (`x4`,
+`vectorise`, etc.), which are checked in the file itself.
 
-Tests : `phpunit.xml.dist` + `tests/` (logique pure). CI : PHPStan + CS-Fixer sur le thème
-(`.github/workflows/ci.yml`). Test **de bout en bout** du process de commande (statuts,
-e-mails, échéance de règlement, annulation, stock) : `tools/e2e-orders.php` + doc
-[docs/tests-e2e-commandes.md](docs/tests-e2e-commandes.md) — à rejouer (local `make e2e-local`
-ou prod) à chaque changement du workflow des commandes.
-Le suivi client sans compte possède en plus son test d’intégration local
-`make e2e-tracking-local` et sa documentation dans
+Tests: `phpunit.xml.dist` + `tests/` (pure logic). CI: PHPStan + CS-Fixer on the theme
+(`.github/workflows/ci.yml`). **End-to-end** test of the order process (statuses,
+e-mails, payment due date, cancellation, stock): `tools/e2e-orders.php` + doc
+[docs/tests-e2e-commandes.md](docs/tests-e2e-commandes.md) — to be replayed (local `make e2e-local`
+or prod) at each change of the order workflow.
+The customer tracking without an account additionally has its local integration test
+`make e2e-tracking-local` and its documentation in
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
-La fidélité (`src/Loyalty/`) a ses tests unitaires `tests/Loyalty/`, `tests/Pilotage/`
-et ses tests d’intégration locaux `make e2e-loyalty-local` (pots/avantages),
-`make e2e-discount-local` (remise remerciement) et `make e2e-vente-loyalty-local`
-(chemin réel de la Vente : offert + fidélité + remise + stock), plus un test **de
-bout en bout sur la prod** rejouable `make e2e-loyalty-prod` (produit + commande de
-test isolés, statut « Terminée » via `set_status` donc aucun e-mail ni recette,
-tout nettoyé) — voir [docs/fidelite.md](docs/fidelite.md).
-La case « Exclure de la fidélité » de la fiche commande a en plus son e2e
-d’intégration `make e2e-exclusion-local` et son test **de bout en bout sur la prod**
-`make e2e-exclusion-prod` : ils pilotent le **vrai chemin admin** (contexte
-administrateur + nonce + `$_POST`, appel de `luziapi_save_admin_order_workflow`, qui
-pose la méta puis émet `luziapi_loyalty_exclusion_changed` recalculée par l’abonné),
-et vérifient aussi que les hooks sont câblés (isolé, aucun e-mail, tout nettoyé).
-L'**ajout d'un pot offert à une commande existante** (bloc « Ajouter un pot offert »
-de la fiche commande, geste **ou** fidélité) a de même `make e2e-offered-pot-local`
-et `make e2e-offered-pot-prod` : ils pilotent le **vrai chemin admin**
-(`luziapi_save_admin_order_workflow` → ajout d'une ligne à 0 € → recalcul fidélité via
-`luziapi_loyalty_order_lines_changed`) et vérifient que la ligne est offerte,
-que le **montant de la commande ne change pas** (recette intacte), que le **stock est
-décompté** du seul nouvel item, que la **fidélité consomme un avantage** (borné au
-disponible, second essai refusé), plus le câblage des hooks (isolé, aucun e-mail, tout
-nettoyé).
-L'**auto-envoi newsletter** (mu-plugin `luziapi-newsletter-autosend`) a de même
-`make e2e-newsletter-local` et `make e2e-newsletter-prod` : ils vérifient que la
-publication **planifie** (sans envoyer), qu'une réédition ne re-planifie pas, et que
-l'exécution différée passe par le bon canal — **en interceptant les appels Brevo**
-(`pre_http_request`) pour qu'**aucun e-mail/SMS ne parte** (le seul canal de sortie
-est court-circuité), l'article de test étant supprimé et l'event dé-planifié. La cible
-locale installe d'abord le mu-plugin dans `www/wp-content/mu-plugins/` (absent en dev).
-La **validation de zone de livraison** au checkout a `make e2e-delivery-zone-local` /
-`e2e-delivery-zone-prod` : ils exécutent le vrai hook `woocommerce_after_checkout_validation`
-(rejet d'une livraison gratuite hors Bléré/Luzillé 37150) — lecture seule, aucune commande,
-aucun e-mail. La **recette auto** au passage « Terminée » a aussi sa variante prod
-`make e2e-receipt-prod` (en plus du local) : commande isolée en `set_status`, subscriber
-invoqué avec le dépôt **non audité** (aucune écriture au journal d'activité), tout nettoyé.
-Le **retrait de la recette à la corbeille / suppression d'une commande** a
-`make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod` : ils créent une commande
-avec une recette, la mettent à la **corbeille** (`woocommerce_trash_order`) puis en
-**suppression** (`woocommerce_before_delete_order`), et vérifient que l'abonné
-`WooCommerceOrphanReceiptSubscriber` a bien retiré la recette du registre (isolé, tout
-nettoyé). _Raison :_ une commande supprimée qui gardait sa recette gonflait l'encaissé
-au-dessus du chiffre vendu (constaté : 132 € de recettes orphelines en 2026).
+Loyalty (`src/Loyalty/`) has its unit tests `tests/Loyalty/`, `tests/Pilotage/`
+and its local integration tests `make e2e-loyalty-local` (jars/benefits),
+`make e2e-discount-local` (thank-you discount) and `make e2e-vente-loyalty-local`
+(real Sale path: free gift + loyalty + discount + stock), plus a replayable
+**end-to-end test on production** `make e2e-loyalty-prod` (isolated test product +
+test order, status "Terminée" (Completed) via `set_status` so no e-mail nor receipt,
+everything cleaned up) — see [docs/fidelite.md](docs/fidelite.md).
+The "Exclure de la fidélité" (Exclude from loyalty) checkbox on the order sheet additionally has
+its integration e2e `make e2e-exclusion-local` and its **end-to-end test on production**
+`make e2e-exclusion-prod`: they drive the **real admin path** (administrator
+context + nonce + `$_POST`, call to `luziapi_save_admin_order_workflow`, which
+sets the meta then emits `luziapi_loyalty_exclusion_changed` recalculated by the subscriber),
+and also check that the hooks are wired (isolated, no e-mail, everything cleaned up).
+The **addition of a free jar to an existing order** ("Ajouter un pot offert" (Add a free jar)
+block on the order sheet, gesture **or** loyalty) likewise has `make e2e-offered-pot-local`
+and `make e2e-offered-pot-prod`: they drive the **real admin path**
+(`luziapi_save_admin_order_workflow` → adding a line at 0 € → loyalty recalculation via
+`luziapi_loyalty_order_lines_changed`) and check that the line is free,
+that the **order amount does not change** (receipt intact), that the **stock is
+decremented** for the new item only, that **loyalty consumes a benefit** (bounded to the
+available amount, second attempt refused), plus the wiring of the hooks (isolated, no e-mail,
+everything cleaned up).
+The **newsletter auto-send** (mu-plugin `luziapi-newsletter-autosend`) likewise has
+`make e2e-newsletter-local` and `make e2e-newsletter-prod`: they check that the
+publication **schedules** (without sending), that a re-edit does not re-schedule, and that
+the deferred execution goes through the right channel — **by intercepting the Brevo calls**
+(`pre_http_request`) so that **no e-mail/SMS goes out** (the only output channel
+is short-circuited), the test article being deleted and the event unscheduled. The local
+target first installs the mu-plugin into `www/wp-content/mu-plugins/` (absent in dev).
+The **delivery zone validation** at checkout has `make e2e-delivery-zone-local` /
+`e2e-delivery-zone-prod`: they run the real hook `woocommerce_after_checkout_validation`
+(rejection of a free delivery outside Bléré/Luzillé 37150) — read-only, no order,
+no e-mail. The **automatic receipt** at the transition to "Terminée" (Completed) also has its prod
+variant `make e2e-receipt-prod` (in addition to the local one): order isolated with `set_status`, subscriber
+invoked with the **unaudited** repository (no writing to the activity journal), everything cleaned up.
+The **removal of the receipt on trashing / deletion of an order** has
+`make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod`: they create an order
+with a receipt, move it to the **trash** (`woocommerce_trash_order`) then to
+**deletion** (`woocommerce_before_delete_order`), and check that the subscriber
+`WooCommerceOrphanReceiptSubscriber` did remove the receipt from the register (isolated, everything
+cleaned up). _Reason:_ a deleted order that kept its receipt inflated the amount collected
+above the amount sold (observed: 132 € of orphan receipts in 2026).
 
-> **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
-> comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
-> formulaire admin, ordre/branchement des hooks, capabilities, nonce, `$_POST`) n’est
-> pas couvrable par les tests « logique pure » de `tests/`. On la couvre par un e2e
-> d’intégration qui rejoue ce chemin : un cœur partagé `tools/e2e-*.php`, un wrapper
-> local WP-CLI (`make …-local`) et un wrapper prod à jeton (`scripts/…-prod.sh`,
-> `make …-prod`) — isolé et auto-nettoyé, aucun e-mail. Modèle de référence :
+> **Cover in e2e what unit tests cannot.** A feature whose
+> behavior goes through the **real WordPress/WooCommerce path** (submission of an
+> admin form, order/wiring of the hooks, capabilities, nonce, `$_POST`) is
+> not coverable by the "pure logic" tests of `tests/`. We cover it with an integration e2e
+> that replays this path: a shared core `tools/e2e-*.php`, a local WP-CLI
+> wrapper (`make …-local`) and a token-based prod wrapper (`scripts/…-prod.sh`,
+> `make …-prod`) — isolated and self-cleaning, no e-mail. Reference model:
 > `tools/e2e-exclusion*.php` + `scripts/e2e-exclusion-prod.sh`.
 
-**Journalisation.** Logger PSR-3 partagé `luziapi_logger()` (Monolog, `inc/logger.php`), en
-**fingers-crossed** : chaque requête bufferise tout mais n'écrit dans `wp-content/luziapi-logs/prod.log`
-**que si un `ERROR` survient** (le buffer part alors comme contexte) — une requête saine n'écrit rien.
-`luziapi_register_error_handler()` (appelé dans `functions.php`) route erreurs PHP + exceptions non
-attrapées + fatals dans Monolog et coupe `log_errors`/`display_errors` : **on n'utilise plus le
-`error_log` natif** (il avait atteint 16 Go, inondé par des warnings WooCommerce — voir
-docs/prod-o2switch.md). Processors : Web (URL/méthode/IP/referer/user-agent), Introspection, mémoire.
-Dossier hors du thème, protégé `.htaccess`, non versionné, non déployé (créé au runtime) ; pour lire
-les logs de prod, passer par le script à jeton (§ 4). Complété par une **rotation quotidienne**
-(`RotatingFileHandler`, 14 jours), une **alerte e-mail sur `ERROR`** (`WordPressMailerHandler`,
-throttlée à 1 message / 2 min) et le **correctif à la source** du warning WooCommerce
-« Undefined array key state » (filtre `woocommerce_cart_shipping_packages` dans `inc/woocommerce.php`,
-qui garantit `country/state/postcode/city/address` sans changer le matching des zones). L'issue #5
-est **close, ces trois suites étant faites**.
+**Logging.** Shared PSR-3 logger `luziapi_logger()` (Monolog, `inc/logger.php`), in
+**fingers-crossed** mode: each request buffers everything but writes to `wp-content/luziapi-logs/prod.log`
+**only if an `ERROR` occurs** (the buffer then goes out as context) — a healthy request writes nothing.
+`luziapi_register_error_handler()` (called in `functions.php`) routes PHP errors + uncaught
+exceptions + fatals into Monolog and turns off `log_errors`/`display_errors`: **we no longer use the
+native `error_log`** (it had reached 16 GB, flooded by WooCommerce warnings — see
+docs/prod-o2switch.md). Processors: Web (URL/method/IP/referer/user-agent), Introspection, memory.
+Folder outside the theme, protected by `.htaccess`, not versioned, not deployed (created at runtime); to read
+the production logs, go through the token-based script (§ 4). Complemented by a **daily rotation**
+(`RotatingFileHandler`, 14 days), an **e-mail alert on `ERROR`** (`WordPressMailerHandler`,
+throttled to 1 message / 2 min) and the **fix at the source** of the WooCommerce warning
+"Undefined array key state" (filter `woocommerce_cart_shipping_packages` in `inc/woocommerce.php`,
+which guarantees `country/state/postcode/city/address` without changing the zone matching). Issue #5
+is **closed, these three suites being done**.
 
 ---
 
-## 3. Déploiement — choisir la bonne méthode
+## 3. Deployment — choosing the right method
 
-### Quelques fichiers du thème changent, sans nouvelle dépendance Composer
+### A few theme files change, without a new Composer dependency
 
-→ **`scripts/deploy-files.sh`** (upload FTPS ciblé), pas `make deploy`.
+→ **`scripts/deploy-files.sh`** (targeted FTPS upload), not `make deploy`.
 
-Le script fait tout le ciblé de bout en bout : garde de déploiement (§ 1 — code poussé + CI verte),
-calcul du delta `git diff <base>..HEAD` (base = dernier déploiement mémorisé dans le fichier local
-non versionné `scripts/.last-deploy`, ou passée en argument), upload des seuls fichiers de code du
-thème, OPcache vidé + comparaison SHA-256 local ↔ prod par script à jeton, puis
-`post-deploy-check.sh`. En cas de doute, la marche à suivre manuelle reste ci-dessous.
+The script does all the targeted work end to end: deployment gate (§ 1 — code pushed + CI green),
+computation of the `git diff <base>..HEAD` delta (base = last deployment recorded in the local
+unversioned file `scripts/.last-deploy`, or passed as an argument), upload of only the theme's
+code files, OPcache cleared + SHA-256 comparison local ↔ prod via the token-based script, then
+`post-deploy-check.sh`. In case of doubt, the manual procedure remains below.
 
-_Pourquoi :_ `make deploy` lance `composer-prod` **dans le conteneur Docker `wordpress`** (donc
-échoue si Docker n'est pas démarré : « service wordpress is not running »), puis un
-`lftp mirror -R --delete` de **tout le thème, `vendor/` inclus** → des milliers de fichiers en
-FTPS, lent et sujet aux timeouts (constaté : timeout à 2 min rien qu'au listing). Disproportionné
-pour 2-3 fichiers.
+_Why:_ `make deploy` runs `composer-prod` **in the `wordpress` Docker container** (so it
+fails if Docker is not started: "service wordpress is not running"), then an
+`lftp mirror -R --delete` of **the whole theme, `vendor/` included** → thousands of files over
+FTPS, slow and prone to timeouts (observed: timeout at 2 min just at the listing). Disproportionate
+for 2-3 files.
 
-Marche à suivre :
+Procedure:
 
-1. Lire les `DEPLOY_FTP_*` dans `.env.local`. Le compte (`luziapi-deploy@luziapi.fr`) est
-   **chrooté sur le dossier du thème** : `DEPLOY_FTP_PATH=.` — la racine FTP **est**
+1. Read the `DEPLOY_FTP_*` in `.env.local`. The account (`luziapi-deploy@luziapi.fr`) is
+   **chrooted to the theme folder**: `DEPLOY_FTP_PATH=.` — the FTP root **is**
    `wp-content/themes/luziapi/`.
-2. Uploader chaque fichier dans son sous-dossier, avec
-   `ftp:ssl-force true; ssl:verify-certificate yes; passive-mode true` :
+2. Upload each file into its subfolder, with
+   `ftp:ssl-force true; ssl:verify-certificate yes; passive-mode true`:
    ```
    lftp … -e "put -O <FTP_PATH>/inc inc/shop.php; put -O <FTP_PATH>/assets/css assets/css/main.css; bye"
    ```
-3. Si des **fichiers PHP** ont changé → **vider l'OPcache** (voir § 4). CSS/Twig seuls : inutile.
-4. **Vérifier** : SHA-256 local vs serveur (`hash_file` via le script à jeton) **et** rendu HTTP
-   réel (curl + grep sur les pages). Attention au cache PowerBoost : tester aussi sans
+3. If **PHP files** changed → **clear the OPcache** (see § 4). CSS/Twig only: unnecessary.
+4. **Verify**: SHA-256 local vs server (`hash_file` via the token-based script) **and** the real
+   HTTP rendering (curl + grep on the pages). Beware of the PowerBoost cache: also test without a
    cache-buster.
 
-### Une dépendance Composer change (nouveau `require`)
+### A Composer dependency changes (new `require`)
 
-Il faut régénérer `vendor/` en version prod **et déployer le vendor _complet_**, pas seulement le
-nouveau paquet + l'autoload. `composer` regénère un **autoload cohérent avec tout le vendor local** :
-si prod a un vendor **incomplet** (séquelle d'un déploiement interrompu), le nouvel autoload va
-`require` en dur des fichiers (ex. `react/promise` en _files-autoload_) **absents de prod** → fatal,
-site en 500. Marche à suivre sûre :
+You must regenerate `vendor/` in the prod version **and deploy the _complete_ vendor**, not just the
+new package + the autoload. `composer` regenerates an **autoload consistent with the whole local vendor**:
+if prod has an **incomplete** vendor (aftermath of an interrupted deployment), the new autoload will
+`require` files hard (e.g. `react/promise` in _files-autoload_) that are **absent from prod** → fatal,
+site in 500. Safe procedure:
 
-1. `composer install --no-dev --optimize-autoloader` (dans le conteneur : `docker compose exec … `),
-   pour un vendor **prod-only** (~500 fichiers, sans PHPStan/PHPUnit/CS-Fixer).
-2. Mirror FTPS du **vendor entier** (`mirror -R --no-perms`, sans `--delete`) — pas juste le delta.
-3. Vider l'OPcache, puis `make deploy-check-live` (URL non cachées).
-4. Restaurer les dépendances de dev en local : `composer install`.
+1. `composer install --no-dev --optimize-autoloader` (in the container: `docker compose exec … `),
+   for a **prod-only** vendor (~500 files, without PHPStan/PHPUnit/CS-Fixer).
+2. FTPS mirror of the **entire vendor** (`mirror -R --no-perms`, without `--delete`) — not just the delta.
+3. Clear the OPcache, then `make deploy-check-live` (uncached URLs).
+4. Restore the dev dependencies locally: `composer install`.
 
-Constaté le 10 septembre 2026 en déployant Monolog : prod a fait un 500 car son vendor avait perdu
-`react/promise` (déploiement partiel du 9). Détails : [docs/prod-o2switch.md](docs/prod-o2switch.md).
-`make deploy` régénère et mirror aussi, mais son mirror complet du thème est fragile à l'interruption
-(§ ci-dessus) : préférer la régénération `--no-dev` + mirror ciblé du seul `vendor/`.
+Observed on 10 September 2026 while deploying Monolog: prod threw a 500 because its vendor had lost
+`react/promise` (partial deployment of the 9th). Details: [docs/prod-o2switch.md](docs/prod-o2switch.md).
+`make deploy` regenerates and mirrors too, but its full theme mirror is fragile to interruption
+(§ above): prefer the `--no-dev` regeneration + targeted mirror of `vendor/` only.
 
-> **Artefacts de dev/test jamais déployés.** Le mirror `make deploy` exclut, via la variable
-> `DEPLOY_EXCLUDES` du `Makefile`, tout ce qui ne sert pas au runtime : `tools/`, `tests-js/`,
-> `node_modules/`, `package.json` / `package-lock.json`, config CS-Fixer / PHPStan, `README.md`.
-> Ajouter tout nouvel outil ou dossier de test à cette liste. (Piège make corrigé au passage : un
-> glob contenant `#` doit être échappé `\#`, sinon make commente la fin de la ligne.)
+> **Dev/test artifacts never deployed.** The `make deploy` mirror excludes, via the
+> `DEPLOY_EXCLUDES` variable of the `Makefile`, everything that does not serve the runtime: `tools/`, `tests-js/`,
+> `node_modules/`, `package.json` / `package-lock.json`, CS-Fixer / PHPStan config, `README.md`.
+> Add any new tool or test folder to this list. (Make pitfall fixed in passing: a
+> glob containing `#` must be escaped `\#`, otherwise make comments out the rest of the line.)
 
-### Un mu-plugin change
+### A mu-plugin changes
 
-Le compte FTP est chrooté sur le thème et ne voit **pas** `wp-content/mu-plugins/`. Déploiement
-par **script à jeton** (§ 4) : push FTPS d'un `_deploy.php` + payload base64 dans le dossier du
-thème, appel HTTPS avec le jeton, écriture dans `WPMU_PLUGIN_DIR` avec sauvegarde
-`.bak-<horodatage>` et `opcache_reset()`, puis suppression du script.
+The FTP account is chrooted to the theme and does **not** see `wp-content/mu-plugins/`. Deployment
+via **token-based script** (§ 4): FTPS push of a `_deploy.php` + base64 payload into the theme
+folder, HTTPS call with the token, writing into `WPMU_PLUGIN_DIR` with a
+`.bak-<timestamp>` backup and `opcache_reset()`, then deletion of the script.
 
 ---
 
-## 4. Exécuter une action sur le serveur (ni SSH ni cPanel)
+## 4. Running an action on the server (neither SSH nor cPanel)
 
-Technique du **script PHP à jeton** :
+The **token-based PHP script** technique:
 
-1. Déposer un petit script PHP protégé par un jeton dans le dossier du thème (`lftp put`).
-2. L'appeler en HTTPS : `/wp-content/themes/luziapi/_xxx.php?k=TOKEN`. Le script fait
-   `require ../../../wp-load.php` pour disposer de tout WordPress / WooCommerce.
-3. **Le supprimer** une fois l'opération terminée.
+1. Drop a small token-protected PHP script into the theme folder (`lftp put`).
+2. Call it over HTTPS: `/wp-content/themes/luziapi/_xxx.php?k=TOKEN`. The script does
+   `require ../../../wp-load.php` to have all of WordPress / WooCommerce available.
+3. **Delete it** once the operation is finished.
 
-Permet : créer/mettre à jour du contenu via l'API WP/WooCommerce, lire des options ou les logs
-(`../../../error_log`), écrire dans `WPMU_PLUGIN_DIR`, appeler `opcache_reset()`, comparer des
-empreintes de fichiers.
+This allows: creating/updating content via the WP/WooCommerce API, reading options or logs
+(`../../../error_log`), writing into `WPMU_PLUGIN_DIR`, calling `opcache_reset()`, comparing file
+fingerprints.
 
-> `wp-config.php` n'est pas modifiable par FTP → passer par un **mu-plugin** pour définir des
-> constantes.
+> `wp-config.php` is not editable via FTP → go through a **mu-plugin** to define
+> constants.
 
-### Pièges serveur à connaître
+### Server pitfalls to know
 
-- **OPcache** sert l'ancienne version d'un fichier PHP modifié. Après tout déploiement de PHP du
-  thème (`inc/*.php`, `functions.php`…), appeler `opcache_reset()`. Constaté : un nouveau hook
-  WooCommerce restait invisible tant que l'OPcache n'était pas vidé. **Vaut aussi pour
+- **OPcache** serves the old version of a modified PHP file. After any deployment of theme PHP
+  (`inc/*.php`, `functions.php`…), call `opcache_reset()`. Observed: a new WooCommerce
+  hook stayed invisible as long as the OPcache was not cleared. **This also applies to
   `make deploy`.**
-- **Liste des commandes WooCommerce** : la production utilise **HPOS**. Avec WordPress 7.1 et
-  WooCommerce 10.8.1, cliquer une case de sélection peut ouvrir la commande au lieu de la cocher
-  (même symptôme que le bug amont `woocommerce/woocommerce#67906`). Le contournement ciblé dans
-  `inc/woocommerce.php` couvre les écrans HPOS et historique, bloque uniquement la remontée du
-  clic de la case et conserve le reste de la ligne cliquable. Ne le retirer qu'après vérification
-  d'un correctif amont.
-- **Cache PowerBoost** (o2switch) sert parfois une page périmée.
-- **Cache navigateur CSS/JS** : le thème enqueue `main.css` / `main.js` avec `filemtime()` comme
-  `?ver` (et non plus `LUZIAPI_VERSION`, figé à `1.0.0`). C'était la cause de changements de style
-  invisibles. Quand un changement CSS « ne s'affiche pas », vérifier le `?ver` réellement servi.
-- **Déploiement interrompu = prod en 500, masqué par le cache.** Un `make deploy` (mirror de tout le
-  thème) coupé en cours (timeout, réseau, crédits épuisés) laisse `src/` **partiellement** uploadé.
-  Comme `functions.php` boote `PilotageServiceProvider::boot()`, une classe manquante provoque un
-  **fatal sur toute page chargeant le thème** — mais PowerBoost continue de servir la home en 200,
-  cachant la panne. Diagnostic : tester une **URL non cachée** (`/wp-login.php`, `/mon-compte/`, ou la
-  home avec `?nocache=…`) et lancer **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) qui
-  compare le SHA-256 de **tout** le thème (les ~288 fichiers de code suivis) entre le dépôt et la prod
-  et **liste précisément les fichiers manquants/divergents** (remplace le `find src/ | wc -l` manuel).
-  Réparation : re-`mirror -R` (sans `--delete`) du dossier concerné, `opcache_reset()`, puis relancer
-  `make verify-prod`. Constaté le 10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109
-  fichiers `src/Pilotage/`, site en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md).
-  Préférer le **FTPS ciblé et vérif SHA** (`scripts/deploy-files.sh`) à `make deploy`.
-- **`dbDelta` ne change pas la nullabilité d'une colonne existante.** Constaté le 10 septembre 2026 :
-  la colonne `sequence_number` de `luziapi_receipts`, créée jadis en `NOT NULL`, l'est restée malgré
-  un schéma passé à `NULL` — le dépôt insérant NULL puis le renseignant, **tout enregistrement de
-  recette échouait** silencieusement. Pour un changement de nullabilité (ou de type), ajouter un
-  `ALTER TABLE … MODIFY` explicite dans la migration versionnée (`PilotageSchemaManager`), jamais se
-  fier au seul `dbDelta`.
+- **WooCommerce orders list**: production uses **HPOS**. With WordPress 7.1 and
+  WooCommerce 10.8.1, clicking a selection checkbox may open the order instead of ticking it
+  (same symptom as the upstream bug `woocommerce/woocommerce#67906`). The targeted workaround in
+  `inc/woocommerce.php` covers the HPOS and legacy screens, blocks only the propagation of the
+  checkbox click and keeps the rest of the row clickable. Only remove it after verifying
+  an upstream fix.
+- **PowerBoost cache** (o2switch) sometimes serves a stale page.
+- **CSS/JS browser cache**: the theme enqueues `main.css` / `main.js` with `filemtime()` as
+  `?ver` (and no longer `LUZIAPI_VERSION`, frozen at `1.0.0`). This was the cause of invisible style
+  changes. When a CSS change "does not show up", check the `?ver` actually served.
+- **Interrupted deployment = prod in 500, masked by the cache.** A `make deploy` (mirror of the whole
+  theme) cut off in progress (timeout, network, exhausted credits) leaves `src/` **partially** uploaded.
+  Since `functions.php` boots `PilotageServiceProvider::boot()`, a missing class causes a
+  **fatal on every page loading the theme** — but PowerBoost keeps serving the home in 200,
+  hiding the failure. Diagnosis: test an **uncached URL** (`/wp-login.php`, `/mon-compte/`, or the
+  home with `?nocache=…`) and run **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) which
+  compares the SHA-256 of **all** the theme (the ~288 tracked code files) between the repository and prod
+  and **lists precisely the missing/divergent files** (replaces the manual `find src/ | wc -l`).
+  Repair: re-`mirror -R` (without `--delete`) of the affected folder, `opcache_reset()`, then re-run
+  `make verify-prod`. Observed on 10 September 2026 (deploy interrupted for lack of credits, prod at 27/109
+  files `src/Pilotage/`, site in 500 ~24 h). Details in [docs/prod-o2switch.md](docs/prod-o2switch.md).
+  Prefer **targeted FTPS and SHA check** (`scripts/deploy-files.sh`) over `make deploy`.
+- **`dbDelta` does not change the nullability of an existing column.** Observed on 10 September 2026:
+  the `sequence_number` column of `luziapi_receipts`, created long ago as `NOT NULL`, stayed so despite
+  a schema switched to `NULL` — the repository inserting NULL then filling it, **every receipt
+  record failed** silently. For a nullability (or type) change, add an
+  explicit `ALTER TABLE … MODIFY` in the versioned migration (`PilotageSchemaManager`), never rely
+  on `dbDelta` alone.
 
-### Processus de remise en production depuis le 6 septembre 2026
+### Production go-live process since 6 September 2026
 
-- Deux choix au checkout : **retrait au domicile de LuziApi à Luzillé sur rendez-vous** et
-  **livraison gratuite à Luzillé ou Bléré sur rendez-vous**.
-- Le code postal 37150 couvre d'autres communes : la livraison doit être validée sur le triplet
-  pays France + code postal 37150 + ville normalisée (`Bléré` ou `Luzillé`), jamais sur le seul
-  code postal.
-- Le retrait reste disponible hors de ces deux villes ; son lieu est fixe. Seuls le jour et
-  l'heure du rendez-vous sont à convenir.
-- L'e-mail de retrait lit l'adresse de la boutique depuis les réglages WooCommerce : ne pas la
-  dupliquer dans le code du workflow des commandes.
-- Après **En cours**, le traitement se sépare en **En cours de livraison** ou **Prête au retrait**,
-  puis revient à **Terminée** après la remise effective.
-- Les textes validés, leurs déclencheurs et le diagramme sont consignés dans
+- Two choices at checkout: **pickup at the LuziApi home in Luzillé by appointment** and
+  **free delivery to Luzillé or Bléré by appointment**.
+- The postal code 37150 covers other municipalities: delivery must be validated on the triple
+  country France + postal code 37150 + normalized city (`Bléré` or `Luzillé`), never on the
+  postal code alone.
+- Pickup remains available outside these two towns; its location is fixed. Only the day and
+  time of the appointment are to be agreed.
+- The pickup e-mail reads the shop address from the WooCommerce settings: do not
+  duplicate it in the order workflow code.
+- After **En cours** (In progress), processing splits into **En cours de livraison** (Out for
+  delivery) or **Prête au retrait** (Ready for pickup), then returns to **Terminée** (Completed)
+  after the actual handover.
+- The validated texts, their triggers and the diagram are recorded in
   `docs/processus-metier-commandes.md`.
 
 ---
 
-## 5. Ce qu'il ne faut pas refaire
+## 5. What not to redo
 
-Décisions prises volontairement — ne pas les défaire sans en parler :
+Decisions made deliberately — do not undo them without discussing:
 
-- **TranslatePress** : à ne pas réinstaller. Récursion infinie via le hook `gettext` quand
-  Contact Form 7 est rendu par `do_shortcode` dans Twig → erreur 500. Le multilingue passe par une
-  page `/en/` dédiée.
-- **Modules de tracking Jetpack** (`stats`, `woocommerce-analytics`, `blaze`, `subscriptions`) :
-  désactivés pour raison RGPD (données envoyées à Automattic/USA sans consentement). Ne pas les
-  réactiver sans mettre à jour la politique de confidentialité.
-- **cookieadmin + cookieadmin-pro** : c'est un combo gratuit + extension, **pas** un doublon.
-- **SMTP authentifié `mail.luziapi.fr:465`** : ne fonctionne pas (Exim répond 250 OK mais Gmail ne
-  reçoit jamais). Les e-mails partent en envoi natif `mail()`, signé DKIM par o2switch.
-- **Formulaire natif Brevo `[sibwp_form]`** : inutilisable sur o2switch. Remplacé par un formulaire
-  maison + route REST (voir docs/prod-o2switch.md).
-- **Création de commande = point d'entrée unique** : toute commande manuelle passe par la **Vente**
-  du tableau de pilotage (ex-« Vente rapide », renommée). L'écran natif WooCommerce de création
-  (`wc-orders&action=new` et le legacy `post-new.php?post_type=shop_order`) est **redirigé** vers la
-  Vente et son bouton « Ajouter une commande » masqué (`inc/woocommerce.php`) ; l'**édition** et le
-  **remboursement** des commandes existantes restent disponibles. C'est la condition d'une future
-  fidélité fiable (un seul chemin de création). La Vente préremplit les coordonnées depuis le
-  répertoire client (invités sans compte : source = le carnet maison, jamais la liste des
-  utilisateurs WordPress). Ne pas rétablir la création native sans en parler. Test :
-  `make e2e-vente-local` (voir [docs/tests-vente.md](docs/tests-vente.md)).
-- **Recette = commande « Terminée » (enregistrement automatique).** Règle métier validée : le statut
-  « Terminée » vaut preuve d'encaissement. Un subscriber (`WooCommerceReceiptSubscriber`) porte donc
-  automatiquement la recette au registre au passage à ce statut, idempotent (solde manquant seulement),
-  en excluant les commandes issues de la Vente qui gèrent déjà la leur. Le rapprochement assisté et la
-  saisie manuelle restent disponibles pour les cas particuliers, mais ne sont plus la voie normale. Ne
-  pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
-  `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
-  et `RecordOrderReceiptHandlerTest`. **Surveillance de dérive** (lecture seule) : `make audit-receipts-local`
-  et `make audit-receipts-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) comparent, sur la période, les
-  recettes enregistrées aux commandes et listent trois anomalies — commande valide sans recette, montant
-  divergent, **recette orpheline** (commande disparue, le cas des 132 € de 2026). Cœur `AuditReceiptDriftHandler`
-  + `ReceiptDriftAuditor` ; tests `AuditReceiptDriftHandlerTest`, `ReceiptDriftAuditorTest`.
-- **Fidélité : « offert » et « fidélité » sont deux choses distinctes** (décision explicite, ne pas
-  fusionner). Depuis la Vente : « **offert** » = geste commercial libre (ligne à 0 €, affichée
-  « offert », sortie du stock, **sans** impact fidélité) ; « **Fidélité → offrir un pot** » = pot
-  offert au titre du programme (0 €, sorti du stock **et** consomme un avantage, borné aux avantages
-  disponibles). Les deux sont exclus du gain de pots. Détails et métas de ligne dans
-  [docs/fidelite.md](docs/fidelite.md). Module `src/Loyalty/`, tests `make e2e-loyalty-local`.
-  La **remise remerciement** (lot 3) est encore autre chose : un geste monétaire libre
-  (€ ou %), porté comme une vraie réduction WooCommerce (jamais des frais négatifs),
-  applicable dans la Vente ou a posteriori sur une commande (avec correction de recette
-  automatique si déjà encaissée). Tests `make e2e-discount-local`.
-- **PayPal = libellé de moyen de règlement uniquement, pas de gateway client.** Décision explicite de
-  l'utilisateur : il ne veut **pas** de PayPal comme moyen de paiement au checkout sur le site. « PayPal »
-  n'est qu'un **libellé** de règlement dans la Vente / les recettes (pour tracer un encaissement reçu
-  par PayPal). Ne pas installer ni activer de passerelle de paiement PayPal.
-- **Exclure une commande de la fidélité = case sur la fiche commande, avec recalcul.** La méta
-  `_luziapi_loyalty_excluded` est posée par la case « Exclure de la fidélité » (métabox workflow) ; le
-  recalcul est déclenché **uniquement quand la case change** (action `luziapi_loyalty_exclusion_changed`
-  émise par le save handler), **pas** à chaque édition — sinon corriger une adresse recalculerait sur la
-  config produit actuelle et pourrait retirer des pots légitimes. Tests `make e2e-exclusion-local` /
-  `e2e-exclusion-prod`.
+- **TranslatePress**: not to be reinstalled. Infinite recursion via the `gettext` hook when
+  Contact Form 7 is rendered by `do_shortcode` in Twig → error 500. The multilingual setup goes
+  through a dedicated `/en/` page.
+- **Jetpack tracking modules** (`stats`, `woocommerce-analytics`, `blaze`, `subscriptions`):
+  disabled for GDPR reasons (data sent to Automattic/USA without consent). Do not
+  re-enable them without updating the privacy policy.
+- **cookieadmin + cookieadmin-pro**: it is a free + extension combo, **not** a duplicate.
+- **Authenticated SMTP `mail.luziapi.fr:465`**: does not work (Exim answers 250 OK but Gmail never
+  receives). E-mails go out via native `mail()`, signed with DKIM by o2switch.
+- **Native Brevo form `[sibwp_form]`**: unusable on o2switch. Replaced by a home-made form
+  + REST route (see docs/prod-o2switch.md).
+- **Order creation = single entry point**: any manual order goes through the **Vente** (Sale)
+  of the management dashboard (formerly "Vente rapide" (Quick sale), renamed). The native WooCommerce
+  creation screen (`wc-orders&action=new` and the legacy `post-new.php?post_type=shop_order`) is
+  **redirected** to the Vente and its "Ajouter une commande" (Add an order) button hidden
+  (`inc/woocommerce.php`); the **editing** and the **refund** of existing orders remain available.
+  This is the condition for a future reliable loyalty (a single creation path). The Vente prefills
+  the contact details from the customer directory (guests without an account: source = the in-house
+  address book, never the list of WordPress users). Do not restore native creation without
+  discussing it. Test: `make e2e-vente-local` (see [docs/tests-vente.md](docs/tests-vente.md)).
+- **Receipt = "Terminée" (Completed) order (automatic recording).** Validated business rule: the
+  "Terminée" status counts as proof of payment. A subscriber (`WooCommerceReceiptSubscriber`) thus
+  automatically carries the receipt to the register at the transition to this status, idempotent (missing
+  balance only), excluding orders coming from the Vente which already manage their own. The assisted
+  reconciliation and manual entry remain available for special cases, but are no longer the normal
+  route. Do not go back to a mandatory manual reconciliation without discussing it. Historical
+  catch-up: `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` to simulate). Tests: `make e2e-receipt-local`
+  and `RecordOrderReceiptHandlerTest`. **Drift monitoring** (read-only): `make audit-receipts-local`
+  and `make audit-receipts-prod` (`LUZIAPI_AUDIT_YEAR=2026` for a given year) compare, over the period, the
+  recorded receipts to the orders and list three anomalies — valid order without a receipt, divergent amount,
+  **orphan receipt** (order gone, the 132 € case of 2026). Core `AuditReceiptDriftHandler`
+  + `ReceiptDriftAuditor`; tests `AuditReceiptDriftHandlerTest`, `ReceiptDriftAuditorTest`.
+- **Loyalty: "offert" (free gift) and "fidélité" (loyalty) are two distinct things** (explicit
+  decision, do not merge them). From the Vente: "**offert**" = free commercial gesture (line at 0 €,
+  displayed "offert", removed from stock, **without** loyalty impact); "**Fidélité → offrir un pot**"
+  (Loyalty → offer a jar) = jar offered under the program (0 €, removed from stock **and** consumes a
+  benefit, bounded to the available benefits). Both are excluded from earning jars. Details and line
+  metas in [docs/fidelite.md](docs/fidelite.md). Module `src/Loyalty/`, tests `make e2e-loyalty-local`.
+  The **thank-you discount** (batch 3) is yet another thing: a free monetary gesture
+  (€ or %), carried as a real WooCommerce reduction (never negative fees),
+  applicable in the Vente or afterwards on an order (with automatic receipt correction
+  if already collected). Tests `make e2e-discount-local`.
+- **PayPal = payment method label only, not a customer gateway.** Explicit decision of
+  the user: he does **not** want PayPal as a payment method at checkout on the site. "PayPal"
+  is only a **label** for payment in the Vente / the receipts (to trace a payment received
+  via PayPal). Do not install or enable a PayPal payment gateway.
+- **Excluding an order from loyalty = checkbox on the order sheet, with recalculation.** The meta
+  `_luziapi_loyalty_excluded` is set by the "Exclure de la fidélité" (Exclude from loyalty) checkbox
+  (workflow metabox); the recalculation is triggered **only when the checkbox changes** (action
+  `luziapi_loyalty_exclusion_changed` emitted by the save handler), **not** at every edit — otherwise
+  correcting an address would recalculate on the current product config and could remove legitimate
+  jars. Tests `make e2e-exclusion-local` / `e2e-exclusion-prod`.
 
 ---
 
 ## 6. Secrets
 
-Aucun identifiant ne doit être versionné. Les accès de déploiement et les clés d'API vivent dans
-`.env.local` (ignoré par git) ; `.env` ne contient que des valeurs par défaut sans secret.
+No credential must be versioned. The deployment accesses and the API keys live in
+`.env.local` (ignored by git); `.env` contains only default values without secrets.
