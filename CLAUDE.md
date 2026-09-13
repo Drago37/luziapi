@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Les instructions de ce dépôt sont dans **[AGENTS.md](AGENTS.md)**, au format commun à tous les
-assistants de code. Ne pas dupliquer le contenu ici : modifier `AGENTS.md`.
+This repository's instructions live in **[AGENTS.md](AGENTS.md)**, in the format shared by every
+coding assistant (Codex, Claude Code, etc.). Do not duplicate the content here — edit `AGENTS.md`.
 
 @AGENTS.md
