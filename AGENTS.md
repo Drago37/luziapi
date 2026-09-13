@@ -60,6 +60,8 @@ agents.** **Never commit or push directly on `main` or on `develop`.**
   from the open `release/*` branch (keeps the changelog available, allows fixes on the branch), then
   merge into `main` + tag only **after** a successful deployment and on an **explicit go-ahead** —
   the agent asks and waits, it never merges the release on its own.
+- **The `CHANGELOG.md` version section is composed ON the release branch** (from the PRs since the
+  last tag). **Feature PRs never edit the changelog** — `[Unreleased]` stays empty on `develop`.
 - **Back-merge `main` → `develop` = AUTOMATIC, without asking.** Right after tagging `main`
   (end of release/hotfix), immediately carry `main` back into `develop` (`git checkout develop && git merge
   --no-ff origin/main && git push origin develop`). This is the very point of GitFlow, not a decision to
