@@ -52,9 +52,14 @@ agents.** **Never commit or push directly on `main` or on `develop`.**
 - `main` = production (deployed state, tag `X.Y.Z` — without the `v` prefix — at each release); it
   only receives merges from `release/*` or `hotfix/*`. `develop` = integration (base for features).
 - Any change → `feature/*` branch (from `develop`) → **Pull Request** via `/create-pr`;
-  release `release/X.Y.Z` (develop → tagged main → back to develop); emergency `hotfix/X.Y.Z`
-  (main → tag → develop). **Full and up-to-date details in [`CONTRIBUTING.md`](CONTRIBUTING.md) —
-  to be read and respected.**
+  release `release/X.Y.Z` (develop → PR to main → **deploy from the still-open release branch** →
+  merge + tag on explicit go → back to develop); emergency `hotfix/X.Y.Z` (main → deploy →
+  tag → develop). **Full and up-to-date details in [`CONTRIBUTING.md`](CONTRIBUTING.md) — to be
+  read and respected.**
+- **The release PR stays open during deployment; it is NOT merged automatically.** Deploy to prod
+  from the open `release/*` branch (keeps the changelog available, allows fixes on the branch), then
+  merge into `main` + tag only **after** a successful deployment and on an **explicit go-ahead** —
+  the agent asks and waits, it never merges the release on its own.
 - **Back-merge `main` → `develop` = AUTOMATIC, without asking.** Right after tagging `main`
   (end of release/hotfix), immediately carry `main` back into `develop` (`git checkout develop && git merge
   --no-ff origin/main && git push origin develop`). This is the very point of GitFlow, not a decision to
@@ -74,11 +79,13 @@ agents.** **Never commit or push directly on `main` or on `develop`.**
 
 ### Deployment gate: code pushed + CI green (blocking)
 
-**Never deploy if the code is not first pushed on `main` AND the CI green on `HEAD`.**
-Imposed order: commit → push to `main` → wait for the CI to be green → and only then, on an
-explicit green light, deploy. A local check does not replace the CI. `scripts/deploy-files.sh`
-applies this gate automatically and **refuses** to deploy otherwise (clean tree, `main` in sync
-with `origin/main`, CI run "Qualité du thème" `success` on the current SHA).
+**Never deploy unless the code is pushed AND the CI is green on `HEAD`.** Deployment runs from
+`main`, or from a still-open `release/*` / `hotfix/*` branch (release flow above). Imposed order:
+commit → push the branch → wait for the CI to be green → and only then, on an explicit green light,
+deploy. A local check does not replace the CI. `scripts/deploy-files.sh` applies this gate
+automatically and **refuses** to deploy otherwise (clean tree, current branch is
+`main`/`release/*`/`hotfix/*` and in sync with its origin, CI run "Qualité du thème" `success` on
+the current SHA).
 
 _Why:_ rule set explicitly — "the code must be pushed and the CI green mandatorily, otherwise we
 block the deployment". Convention: **`main` = the up-to-date production** (deployed state), tagged
