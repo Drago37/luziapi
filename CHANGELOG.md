@@ -10,7 +10,17 @@ documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- Dashboard "Abonnés" tab listing Brevo newsletter (e-mail) and SMS subscribers, with
+  counts and search — read-only (management stays in Brevo).
+- Read-only subscription panel (e-mail / SMS) on the customer fiche, matched by e-mail and
+  normalized phone against Brevo.
+
+### Changed
+
+- Pilotage tab bar factored into a single source (`PilotageTabs`) and a shared `_nav.twig`
+  partial, replacing the navigation duplicated across every dashboard view.
 
 ## [1.1.0] - 2026-09-13
 

@@ -44,6 +44,8 @@ final readonly class TaxDeclarationController
         }
 
         Timber::render('@luziapi_admin/pilotage/tax-declaration.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('tax-declaration'),
             'year'                 => $estimate->declarationYear,
             'available_years'      => $taxDeclaration->availableYears,
             'activity_start_year'  => $taxDeclaration->activityStartYear,

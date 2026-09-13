@@ -1,0 +1,6 @@
+{# Navigation partagée du tableau de pilotage. Source des onglets : PilotageTabs::links(). #}
+<nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
+    {%- for tab in pilotage_tabs -%}
+        <a class="nav-tab{% if tab.active %} nav-tab-active{% endif %}" href="{{ tab.url|e('html_attr') }}">{{ tab.label }}</a>
+    {%- endfor -%}
+</nav>

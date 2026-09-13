@@ -61,6 +61,8 @@ final readonly class ReceiptsController
         $summary = $register->summary;
 
         Timber::render('@luziapi_admin/pilotage/receipts.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('receipts'),
             'year'                => $summary->year,
             'available_years'     => $register->availableYears,
             'page_url'            => $this->pageUrl($summary->year),

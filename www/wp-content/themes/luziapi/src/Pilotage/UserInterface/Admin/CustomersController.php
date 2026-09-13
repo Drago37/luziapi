@@ -9,6 +9,7 @@ use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandl
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
+use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
@@ -50,6 +51,7 @@ final readonly class CustomersController
         private ?GetCustomerLoyaltyHandler $getLoyalty = null,
         private ?ApplyThankYouDiscountHandler $applyDiscount = null,
         private ?AdjustLoyaltyPotsHandler $adjustPots = null,
+        private ?SubscriberDirectory $subscribers = null,
     ) {
     }
 
@@ -156,6 +158,8 @@ final readonly class CustomersController
         $quickSaleUrl = admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale');
 
         Timber::render('@luziapi_admin/pilotage/customers.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('customers'),
             'page_url'          => $pageUrl,
             'dashboard_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
@@ -274,8 +278,35 @@ final readonly class CustomersController
         $formatted = $this->formatCustomer($customer);
         $formatted['orders'] = array_map($this->formatOrder(...), $customer->orders);
         $formatted['loyalty'] = $this->formatLoyalty($customer);
+        $formatted['subscription'] = $this->subscriptionStatus($customer);
 
         return $formatted;
+    }
+
+    /**
+     * État d'abonnement (Brevo, lecture seule) du client affiché. `available` = false
+     * quand le répertoire n'est pas configuré (dev sans clé) : l'encart est alors masqué.
+     *
+     * @return array{available: bool, known: bool, email: bool, sms: bool}
+     */
+    private function subscriptionStatus(CustomerProfile $customer): array
+    {
+        if (! $this->subscribers instanceof SubscriberDirectory || ! $this->subscribers->isConfigured()) {
+            return ['available' => false, 'known' => false, 'email' => false, 'sms' => false];
+        }
+
+        $email = $customer->emails[0] ?? null;
+        $rawPhone = $customer->phones[0] ?? null;
+        $phone = null !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : null;
+
+        $status = $this->subscribers->statusFor($email, $phone);
+
+        return [
+            'available' => true,
+            'known'     => null !== $status,
+            'email'     => null !== $status && $status->emailSubscribed,
+            'sms'       => null !== $status && $status->smsSubscribed,
+        ];
     }
 
     /**
