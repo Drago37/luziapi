@@ -18,9 +18,17 @@ for AI agents. **Never commit or push directly to `main`.**
   between two releases.
 - **`feature/<slug>`**: branch off `develop` and return to it through a **Pull Request** (never a direct merge).
 - **`release/X.Y.Z`**: branch off `develop` to prepare a version (freeze, version bump,
-  changelog) → merge into `main` (**tag**) **then** back-merge into `develop`.
-- **`hotfix/X.Y.Z`**: branch off `main` for an urgent production fix → merge into `main` (**tag**)
-  **then** into `develop`.
+  changelog) and open a PR to `main`. **Deploy to production from the still-open release branch**
+  (`scripts/deploy-files.sh` allows `release/*`), then — **only after** the deployment succeeds and
+  on an **explicit go-ahead** — merge into `main` (**tag**) and back-merge into `develop`.
+- **`hotfix/X.Y.Z`**: branch off `main` for an urgent production fix, deploy from the hotfix branch,
+  then merge into `main` (**tag**) and into `develop`.
+
+> **The release PR stays open during deployment.** It is not merged automatically: deploying from
+> the release branch keeps the frozen changelog available for the production write-up and lets us
+> push fixes onto the branch if the deployment surfaces a problem. The merge into `main` + tag are a
+> **separate, human-approved step after a successful deployment** — an agent asks and waits for the
+> go-ahead, it never merges the release on its own.
 
 > **The back-merge of `main` into `develop` is AUTOMATIC**: it is an integral part of closing out a
 > release or a hotfix (`main` tagged → back to `develop`), it is **not** a change to be reviewed. An
@@ -40,9 +48,10 @@ for AI agents. **Never commit or push directly to `main`.**
    messages and pull requests are in English**; business and technical documentation stays in French
    (`README.md`, `DEPLOIEMENT.md` and everything under `docs/`, including the nested README files).
    Code stays in English. **Never** a `Co-Authored-By` trailer (long-standing preference).
-4. **Deployment**: we only deploy from `main`, after merging a release/hotfix, with a green CI and
-   an explicit go-ahead (see the deployment gate in `AGENTS.md`). `scripts/deploy-files.sh`
-   refuses to deploy if `main` is not in sync and the CI green.
+4. **Deployment**: we deploy from `main`, or from a still-open `release/*` / `hotfix/*` branch
+   (see the release flow above), with the branch pushed (in sync with its origin), a green CI on
+   HEAD and an **explicit go-ahead** (see the deployment gate in `AGENTS.md`).
+   `scripts/deploy-files.sh` enforces this and refuses otherwise.
 
 > This section **replaces** the former "direct commit on `main`" rule: it no longer applies.
 

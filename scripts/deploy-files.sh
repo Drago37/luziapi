@@ -14,8 +14,10 @@
 #     explicitement le dernier commit déployé.
 #   - Après un déploiement réussi, HEAD est enregistré dans scripts/.last-deploy.
 #
-# GARDE DE DÉPLOIEMENT (bloquante) : on ne déploie QUE si le code est poussé sur
-# main ET que la CI est verte sur HEAD. Sinon on refuse.
+# GARDE DE DÉPLOIEMENT (bloquante) : on ne déploie QUE depuis main, release/* ou
+# hotfix/*, avec la branche poussée (synchro avec son origin) ET la CI verte sur HEAD.
+# Sinon on refuse. Le flux release déploie depuis la branche release/* encore ouverte ;
+# le merge dans main + le tag suivent, après le déploiement, sur feu vert explicite.
 
 set -euo pipefail
 
@@ -47,16 +49,23 @@ done
 # --- Garde 1 : arbre propre ------------------------------------------------
 [[ -z "$(git status --porcelain)" ]] || die "Arbre de travail non propre — commit/stash avant de déployer."
 
-# --- Garde 2 : code poussé sur main (rien en avance ni en retard) -----------
+# --- Garde 2 : branche autorisée, poussée (rien en avance ni en retard) ------
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-[[ "$BRANCH" == "main" ]] || die "Déploiement uniquement depuis main (branche courante : $BRANCH)."
-git fetch --quiet origin main
+# On déploie depuis `main` (prod à jour) OU depuis une branche `release/*` / `hotfix/*`
+# encore ouverte : c'est le nouveau flux (la release reste ouverte pendant le déploiement,
+# on garde le changelog et on peut corriger sur la branche ; le merge dans `main` + le tag
+# n'ont lieu qu'après le déploiement, sur feu vert explicite).
+case "$BRANCH" in
+  main | release/* | hotfix/*) ;;
+  *) die "Déploiement uniquement depuis main, release/* ou hotfix/* (branche courante : $BRANCH)." ;;
+esac
+git fetch --quiet origin "$BRANCH"
 LOCAL_SHA="$(git rev-parse @)"
 REMOTE_SHA="$(git rev-parse @{u})"
-[[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || die "main n'est pas synchronisé avec origin/main — pousse (ou pull) avant de déployer."
+[[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || die "$BRANCH n'est pas synchronisé avec origin/$BRANCH — pousse (ou pull) avant de déployer."
 
 # --- Garde 3 : CI verte sur HEAD -------------------------------------------
-RUN="$(gh run list --branch main --workflow "$WORKFLOW" --limit 20 \
+RUN="$(gh run list --branch "$BRANCH" --workflow "$WORKFLOW" --limit 20 \
         --json headSha,status,conclusion,databaseId \
         | jq -c --arg sha "$LOCAL_SHA" 'map(select(.headSha == $sha)) | first')"
 [[ "$RUN" != "null" && -n "$RUN" ]] || die "Aucun run CI « $WORKFLOW » pour HEAD ($LOCAL_SHA) — attends que la CI démarre/finisse."
@@ -64,7 +73,7 @@ STATUS="$(jq -r '.status' <<<"$RUN")"
 CONCLUSION="$(jq -r '.conclusion' <<<"$RUN")"
 [[ "$STATUS" == "completed" ]]  || die "CI pas terminée sur HEAD (status=$STATUS) — attends la fin de la CI."
 [[ "$CONCLUSION" == "success" ]] || die "CI NON verte sur HEAD (conclusion=$CONCLUSION) — déploiement bloqué."
-grn "✓ Gardes OK : arbre propre, main poussé, CI verte sur ${LOCAL_SHA:0:8}."
+grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé, CI verte sur ${LOCAL_SHA:0:8}."
 
 # --- Base de calcul du delta -----------------------------------------------
 if [[ -z "$BASE" ]]; then
