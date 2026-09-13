@@ -552,6 +552,30 @@ non-éligible depuis. Bonus : supprime aussi la dépendance à l'ordre des hooks
 `..` dans la garde de chemins de `deploy-files.sh`. Contrôle d'intégrité : 8/8 fichiers de la session
 identiques prod↔repo.)
 
+## Mise en production 1.1.0 — le 13 septembre 2026
+
+Première release GitFlow depuis la 1.0.0 : branche `release/1.1.0` → `main`, **tag `1.1.0`** (sans
+préfixe `v`), back-merge dans `develop`. Déploiement **FTPS ciblé** (`deploy-files.sh --yes`), delta
+`80da506 → 776b13c`, **22 fichiers** de code du thème, aucune suppression, aucune nouvelle dépendance
+Composer. Bascule atomique `.ht-*`, **OPcache vidé**, **22/22 SHA-256 identiques** prod↔repo, contrôle
+post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`.
+
+Changements runtime en prod :
+
+- Vente : « dont offert » fait partie de la quantité (facturer total − offert) — PR #6 ;
+- ajout d'un **pot offert** (geste **ou** fidélité) à une commande **existante** depuis la fiche
+  commande — PR #7 ;
+- **recette retirée automatiquement** quand une commande passe à la corbeille ou est supprimée
+  (`WooCommerceOrphanReceiptSubscriber`) — PR #8, corrige le gonflement de l'encaissé par des recettes
+  orphelines (cf. section « Recettes orphelines… » plus haut) ;
+- version du thème `1.0.0 → 1.1.0` (`functions.php`, `style.css`).
+
+**Aucune migration de schéma.** Outillage ajouté (hors runtime, à lancer manuellement) :
+`make audit-receipts-prod` (audit de dérive recette↔commandes, lecture seule — utile pour repérer
+d'anciennes recettes orphelines) et `make verify-prod` (intégrité SHA-256 de **tout** le thème).
+Le reste de la 1.1.0 (durcissements CI — PHPStan `max`, matrice PHP 8.2/8.3, couverture, audit des
+dépendances — et passage de la doc process/agents en anglais) est sans impact prod.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
