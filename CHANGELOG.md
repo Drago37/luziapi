@@ -39,6 +39,12 @@ _Nothing yet._
 - The handover mode (pickup ⇄ delivery) stays editable on **completed** orders, so a mistake can be
   corrected after the fact (only the shop owner edits orders).
 
+### Removed
+
+- Legacy "Répertoire clients" admin page (`inc/customer-directory.php`), superseded by the pilotage
+  **Clients** tab — which opens the customer fiche (history, loyalty, subscription) instead of
+  landing on an order. Removes the duplicate customer listing.
+
 ### Fixed
 
 - Prod integrity and targeted-deploy filters exclude `tests-js/` (dev-only), removing a false
