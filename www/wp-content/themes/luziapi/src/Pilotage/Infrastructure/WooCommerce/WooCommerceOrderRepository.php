@@ -64,6 +64,32 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
         return $this->immutableDate($order->get_date_created()->getTimestamp());
     }
 
+    public function existingOrderIds(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        // Les statuts wc_get_order_statuses() n'incluent pas « trash » : une commande
+        // à la corbeille (ou supprimée) n'est donc pas retournée et sera vue comme absente.
+        $found = wc_get_orders([
+            'limit'   => -1,
+            'type'    => 'shop_order',
+            'status'  => array_keys(wc_get_order_statuses()),
+            'include' => array_values($ids),
+            'return'  => 'objects',
+        ]);
+
+        $existing = [];
+        foreach (is_array($found) ? $found : [] as $order) {
+            if ($order instanceof WC_Order) {
+                $existing[] = $order->get_id();
+            }
+        }
+
+        return $existing;
+    }
+
     private function toSnapshot(WC_Order $order): ?OrderSnapshot
     {
         $createdAt = $order->get_date_created();

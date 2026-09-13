@@ -401,7 +401,11 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   saisie manuelle restent disponibles pour les cas particuliers, mais ne sont plus la voie normale. Ne
   pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
   `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
-  et `RecordOrderReceiptHandlerTest`.
+  et `RecordOrderReceiptHandlerTest`. **Surveillance de dérive** (lecture seule) : `make audit-receipts-local`
+  et `make audit-receipts-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) comparent, sur la période, les
+  recettes enregistrées aux commandes et listent trois anomalies — commande valide sans recette, montant
+  divergent, **recette orpheline** (commande disparue, le cas des 132 € de 2026). Cœur `AuditReceiptDriftHandler`
+  + `ReceiptDriftAuditor` ; tests `AuditReceiptDriftHandlerTest`, `ReceiptDriftAuditorTest`.
 - **Fidélité : « offert » et « fidélité » sont deux choses distinctes** (décision explicite, ne pas
   fusionner). Depuis la Vente : « **offert** » = geste commercial libre (ligne à 0 €, affichée
   « offert », sortie du stock, **sans** impact fidélité) ; « **Fidélité → offrir un pot** » = pot

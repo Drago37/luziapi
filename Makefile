@@ -88,6 +88,14 @@ backfill-receipts-local: ## Porte au registre l'encaissement des commandes déj�
 backfill-loyalty-local: ## Rétro-crédite les pots des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
 	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-loyalty.php';" --user=admin
 
+.PHONY: audit-receipts-local
+audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-receipt-drift.php';" --user=admin
+
+.PHONY: audit-receipts-prod
+audit-receipts-prod: ## Audite la dérive recette↔commandes sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	@bash scripts/audit-receipts-prod.sh
+
 .PHONY: e2e-receipt-local
 e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-receipt-on-complete.php';" --user=admin
