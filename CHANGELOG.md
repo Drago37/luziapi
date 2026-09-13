@@ -43,6 +43,10 @@ _Nothing yet._
 
 - Prod integrity and targeted-deploy filters exclude `tests-js/` (dev-only), removing a false
   "missing file" report from `make verify-prod`.
+- Hide the internal offered-line metas (`_luziapi_offert`, `_luziapi_loyalty_reward`) from the admin
+  order screen — only the readable `Offert` label shows.
+- Read-only loyalty order inspector: `make loyalty-inspect-prod ORDER=<id>` (lines, offered/loyalty/
+  eligible metas, computed counts, loyalty-ledger entries) to diagnose a suspect pot count.
 
 ## [1.1.0] - 2026-09-13
 

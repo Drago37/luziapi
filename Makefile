@@ -96,6 +96,10 @@ audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI
 audit-receipts-prod: ## Audite la dérive recette↔commandes sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	@bash scripts/audit-receipts-prod.sh
 
+.PHONY: loyalty-inspect-prod
+loyalty-inspect-prod: ## Inspecte une commande côté fidélité sur la PROD (lecture seule) — ex : make loyalty-inspect-prod ORDER=106
+	@LUZIAPI_ORDER=$(ORDER) bash scripts/loyalty-inspect-prod.sh
+
 .PHONY: e2e-receipt-local
 e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-receipt-on-complete.php';" --user=admin
