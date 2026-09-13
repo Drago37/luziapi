@@ -340,11 +340,13 @@ empreintes de fichiers.
   Comme `functions.php` boote `PilotageServiceProvider::boot()`, une classe manquante provoque un
   **fatal sur toute page chargeant le thème** — mais PowerBoost continue de servir la home en 200,
   cachant la panne. Diagnostic : tester une **URL non cachée** (`/wp-login.php`, `/mon-compte/`, ou la
-  home avec `?nocache=…`) et comparer `find src/ | wc -l` prod vs repo. Réparation : re-`mirror -R`
-  (sans `--delete`) du dossier concerné, `opcache_reset()`, puis vérifier par **SHA-256**. Constaté le
-  10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109 fichiers `src/Pilotage/`, site
-  en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé et
-  vérif SHA** à `make deploy`.
+  home avec `?nocache=…`) et lancer **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) qui
+  compare le SHA-256 de **tout** le thème (les ~288 fichiers de code suivis) entre le dépôt et la prod
+  et **liste précisément les fichiers manquants/divergents** (remplace le `find src/ | wc -l` manuel).
+  Réparation : re-`mirror -R` (sans `--delete`) du dossier concerné, `opcache_reset()`, puis relancer
+  `make verify-prod`. Constaté le 10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109
+  fichiers `src/Pilotage/`, site en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md).
+  Préférer le **FTPS ciblé et vérif SHA** (`scripts/deploy-files.sh`) à `make deploy`.
 - **`dbDelta` ne change pas la nullabilité d'une colonne existante.** Constaté le 10 septembre 2026 :
   la colonne `sequence_number` de `luziapi_receipts`, créée jadis en `NOT NULL`, l'est restée malgré
   un schéma passé à `NULL` — le dépôt insérant NULL puis le renseignant, **tout enregistrement de

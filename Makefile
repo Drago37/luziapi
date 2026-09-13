@@ -328,3 +328,7 @@ deploy: deploy-check composer-prod ## Déploie le thème sur o2switch (FTPS) pui
 .PHONY: deploy-check-live
 deploy-check-live: ## Vérifie que la prod répond (URL non cachées) — à lancer après tout déploiement
 	@bash scripts/post-deploy-check.sh
+
+.PHONY: verify-prod
+verify-prod: ## Vérifie l'intégrité de TOUT le thème en prod (SHA-256 local↔prod, fichiers manquants/divergents)
+	@bash scripts/verify-prod-integrity.sh
