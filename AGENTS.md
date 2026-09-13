@@ -121,8 +121,9 @@ do not duplicate anything in it.
   To be read before any intervention touching production.
 - **docs/processus-metier-commandes.md** — the real process for selling and handling orders,
   diagram, automations, notifications and configuration discrepancies.
-- **docs/fidelite.md** — loyalty program ("10 pots achetés, le 11e offert" / buy 10 jars, the
-  11th free), architecture of the `src/Loyalty/` module and tracking of the batches of issue #4.
+- **docs/fidelite.md** — loyalty program ("15 pots achetés, le 16e offert" / buy 15 jars, the
+  16th free; a jar expires after 2 years — see `LoyaltyProgress::POTS_PER_REWARD` /
+  `POT_LIFETIME_YEARS`), architecture of the `src/Loyalty/` module and tracking of issue #4.
 - **docs/modeles-sms-brevo.md** — SMS templates.
 - **docs/** — printed and visual materials:
   - `print/` — brochure, flyer and business card. Two variants per document: without a suffix
