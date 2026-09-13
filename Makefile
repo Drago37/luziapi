@@ -116,6 +116,10 @@ e2e-offered-pot-local: ## Teste l'ajout d'un pot offert (geste + fidélité) à 
 e2e-orphan-receipt-local: ## Teste le retrait de la recette quand la commande est mise à la corbeille ou supprimée
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orphan-receipt-on-delete.php';" --user=admin
 
+.PHONY: e2e-subscribers-local
+e2e-subscribers-local: ## Teste le répertoire d'abonnés Brevo (lecture seule, appels Brevo interceptés)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-subscribers-directory.php';" --user=admin
+
 .PHONY: e2e-newsletter-local
 e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Brevo intercepté, aucun e-mail)
 	$(DC) run --rm --user root -v "$(CURDIR)/prod-mu-plugins:/mu-src:ro" wpcli sh -c 'mkdir -p wp-content/mu-plugins && cp /mu-src/luziapi-newsletter-autosend.php wp-content/mu-plugins/luziapi-newsletter-autosend.php'
@@ -172,6 +176,10 @@ e2e-offered-pot-prod: ## Test e2e de l'ajout d'un pot offert à une commande exi
 .PHONY: e2e-orphan-receipt-prod
 e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-orphan-receipt-prod.sh
+
+.PHONY: e2e-subscribers-prod
+e2e-subscribers-prod: ## Test e2e du répertoire d'abonnés Brevo sur la PROD (lecture seule, appels Brevo interceptés)
+	@bash scripts/e2e-subscribers-prod.sh
 
 .PHONY: e2e-newsletter-prod
 e2e-newsletter-prod: ## Test e2e de l'auto-envoi newsletter sur la PROD (isolé, envoi Brevo intercepté, tout nettoyé)
