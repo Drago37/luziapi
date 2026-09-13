@@ -23,4 +23,13 @@ interface ReceiptRepository
      * @return array<int, int> Total net encaissé en centimes, indexé par commande.
      */
     public function netTotalsByOrderIds(array $orderIds): array;
+
+    /**
+     * Supprime toutes les recettes rattachées à une commande. Utilisé quand la
+     * commande est mise à la corbeille ou supprimée : sa recette ne doit plus
+     * compter au registre (une commande disparue n'est plus un encaissement).
+     *
+     * @return int Nombre de lignes supprimées.
+     */
+    public function deleteByOrderId(int $orderId): int;
 }

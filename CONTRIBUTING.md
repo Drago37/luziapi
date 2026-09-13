@@ -28,12 +28,22 @@ y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `
    Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
    branches partagées).
 2. **Versionnage sémantique** `MAJEUR.MINEUR.CORRECTIF` (tags **sans** préfixe `v`). La prod est fixée à **`1.0.0`**.
-3. Commits et PR **en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
+3. **Commits et documentation en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
 4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
    feu vert explicite (voir la garde de déploiement dans `AGENTS.md`). `scripts/deploy-files.sh`
    refuse de déployer si `main` n'est pas synchro et la CI verte.
 
 > Cette section **remplace** l'ancienne règle « commit direct sur `main` » : elle n'a plus cours.
+
+### Conventions de Pull Request
+
+- **Titre et description en anglais** (le reste — commits, code, documentation — reste en français ;
+  cette règle ne concerne que la PR elle-même). Le titre suit le format *conventional commit* et sert
+  de titre au commit de squash au merge.
+- **Assignée à son auteur** (assignee = la personne qui ouvre la PR).
+- **Labellisée selon son type** : `bug` (correctif), `enhancement` (nouveauté), `documentation`
+  (doc seule), etc. — choisir le(s) label(s) qui existe(nt) dans le dépôt.
+- Ouverte via la skill `/create-pr`, qui applique ces conventions.
 
 ## Architecture cible
 
@@ -177,6 +187,40 @@ La forme du test suit la frontière architecturale :
   paiements ou e-mails ;
 - PHPStan et PHP-CS-Fixer avant commit ;
 - une régression corrigée doit recevoir un test lorsque cela est raisonnablement possible.
+
+### Toute fonctionnalité est testée à tous les niveaux pertinents
+
+Une nouvelle fonctionnalité (ou une correction) doit apporter **tous** les tests que son risque
+justifie, sans en sauter un niveau :
+
+1. **tests unitaires** de la logique pure (Domain, calculs, VO) ;
+2. **tests d'intégration** avec doubles en mémoire pour les cas d'utilisation ;
+3. **e2e d'intégration local** (`make e2e-<slug>-local`) dès que le comportement passe par le
+   **chemin réel WordPress/WooCommerce** (soumission de formulaire admin, ordre/branchement des
+   hooks, capabilities, nonce, `$_POST`, stock, e-mails) — ce que l'unitaire ne peut pas couvrir ;
+4. **e2e prod** rejouable (`scripts/e2e-<slug>-prod.sh` + cible `make e2e-<slug>-prod`), isolé et
+   auto-nettoyé, aucun e-mail réel. Modèle de référence : `tools/e2e-exclusion*` +
+   `scripts/e2e-exclusion-prod.sh` (voir `AGENTS.md`).
+
+### Les tests tournent en CI — la maintenir à jour
+
+La CI (`.github/workflows/ci.yml`) exécute **PHP-CS-Fixer, PHPStan, PHPUnit, les tests JS et
+toutes les suites e2e locales**. Le runner `scripts/e2e-ci.sh` **découvre automatiquement** les
+cibles `make e2e-*-local` : ajouter un e2e = ajouter sa cible `-local` au `Makefile`, et il tourne
+en CI sans autre modification. Si un changement sort de ce cadre (nouveau job, nouvelle
+dépendance système, nouveau chemin de déclenchement), **modifier la CI en conséquence**. Le test
+`tests/E2eWiringTest.php` garde ce câblage intègre (runner appelé par le workflow, cibles et
+scripts référencés existants, chaque script prod a sa cible Make).
+
+PHPUnit tourne sur une **matrice PHP** (plancher du thème `8.2` + version courante `8.3` ; à aligner
+sur la version réellement en prod si elle diffère) et **mesure la couverture** (pcov, `--coverage-text`).
+Le périmètre de couverture est déclaré dans `phpunit.xml.dist` (`<source>` : cœur DDD `src/`, fichiers
+`inc/` réellement testés, mu-plugin newsletter) — pas tout `inc/`, pour un taux honnête. PHPStan est
+au **niveau `max`** avec une baseline (`phpstan-baseline.neon`) qui gèle la dette existante : tout
+nouveau code doit passer au max, et la baseline est à résorber progressivement (ne pas y ajouter de
+lignes pour contourner une nouvelle erreur). Un job **Audit des dépendances** (`composer audit` +
+`npm audit`) tourne en CI, **non bloquant** pour l'instant (visibilité des CVE ; à rendre bloquant
+une fois la dette éventuelle traitée).
 
 Les doubles de test appartiennent aux tests. Ne pas ajouter de conditions spécifiques aux tests
 dans le code de production.

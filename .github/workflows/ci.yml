@@ -6,21 +6,30 @@ name: Qualité du thème
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "www/wp-content/themes/luziapi/**"
       - "tests/**"
       - "prod-mu-plugins/**"
+      - "scripts/**"
+      - "Makefile"
+      - "docker-compose.yml"
       - "phpunit.xml.dist"
       - "composer.json"
+      - "composer.lock"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "www/wp-content/themes/luziapi/**"
       - "tests/**"
       - "prod-mu-plugins/**"
+      - "scripts/**"
+      - "Makefile"
+      - "docker-compose.yml"
       - "phpunit.xml.dist"
       - "composer.json"
+      - "composer.lock"
+      - ".github/workflows/ci.yml"
 
 jobs:
   quality:
@@ -59,6 +68,12 @@ jobs:
   tests-php:
     name: PHPUnit (logique pure)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Plancher du thème (php >=8.2) + version courante. Aligner sur la version
+        # réellement en prod o2switch si elle diffère.
+        php-version: ["8.2", "8.3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,19 +81,23 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: none
+          coverage: pcov
 
+      # --no-dev : les tests n'ont besoin que de l'autoload runtime du thème
+      # (src/, Timber, Monolog — tous >=8.2). Les outils de dev du thème
+      # (php-cs-fixer → sebastian/diff 7.0.0) exigent PHP >=8.3 et casseraient
+      # la matrice 8.2 ; ils ne servent qu'au job PHPStan + CS-Fixer.
       - name: Install theme dependencies (autoload + Timber)
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist
         working-directory: www/wp-content/themes/luziapi
 
       - name: Install test dependencies (PHPUnit)
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: PHPUnit
-        run: composer test
+      - name: PHPUnit (avec couverture)
+        run: composer test -- --coverage-text
 
   tests-js:
     name: Tests JS (jsdom)
@@ -100,3 +119,79 @@ jobs:
 
       - name: Run JS tests
         run: npm test
+
+  tests-e2e:
+    name: e2e (WordPress + WooCommerce)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Le vendor du thème est installé sur l'hôte : il est monté dans le conteneur
+      # WordPress via le volume, ce qui évite de dépendre de composer dans l'image.
+      - name: Setup PHP (hôte)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer (vendor du thème)
+        run: composer install --no-interaction --no-progress --prefer-dist
+        working-directory: www/wp-content/themes/luziapi
+
+      - name: Démarrer la stack Docker
+        run: make up wait
+
+      - name: Installer WordPress + thème + WooCommerce
+        run: make wp-install theme plugins
+
+      # Permaliens « jolis » comme en prod : sinon les URL (page de suivi, etc.)
+      # sortent en ?page_id=… et certains e2e vérifient le slug dans l'URL.
+      - name: Activer les permaliens jolis
+        run: |
+          docker compose run --rm wpcli wp rewrite structure '/%postname%/'
+          docker compose run --rm wpcli wp rewrite flush
+
+      - name: Jouer toutes les suites e2e locales
+        run: bash scripts/e2e-ci.sh
+
+      - name: Journaux des conteneurs (en cas d'échec)
+        if: failure()
+        run: docker compose logs --tail=300
+
+  audit:
+    name: Audit des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      # Non bloquant pour l'instant (continue-on-error) : on veut d'abord de la
+      # visibilité sur les CVE des dépendances sans figer la CI. À rendre bloquant
+      # une fois l'éventuelle dette traitée.
+      - name: Composer audit (thème)
+        continue-on-error: true
+        run: composer audit --no-interaction
+        working-directory: www/wp-content/themes/luziapi
+
+      - name: Composer audit (outils de test, racine)
+        continue-on-error: true
+        run: composer audit --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit (thème)
+        continue-on-error: true
+        run: npm audit --audit-level=high
+        working-directory: www/wp-content/themes/luziapi

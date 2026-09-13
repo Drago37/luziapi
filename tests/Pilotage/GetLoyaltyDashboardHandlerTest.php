@@ -146,6 +146,13 @@ final class OrderRepositoryStub implements OrderRepository
     {
         return $this->orders[0]->createdAt ?? null;
     }
+
+    public function existingOrderIds(array $ids): array
+    {
+        $known = array_map(static fn (OrderSnapshot $order): int => $order->id, $this->orders);
+
+        return array_values(array_intersect($ids, $known));
+    }
 }
 
 final class LoyaltyEconomicsReaderStub implements LoyaltyEconomicsReader

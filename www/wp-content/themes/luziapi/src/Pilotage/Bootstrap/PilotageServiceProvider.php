@@ -37,6 +37,7 @@ use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderLotSelector;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderStockSubscriber;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrphanReceiptSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceProductCatalog;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
@@ -208,6 +209,7 @@ final class PilotageServiceProvider
         (new WooCommerceOrderLotSelector($inventory, $activity))->register();
         (new WooCommerceActivitySubscriber($activity))->register();
         (new WooCommerceReceiptSubscriber(new RecordOrderReceiptHandler($receipts, $recordReceipt), $clock))->register();
+        (new WooCommerceOrphanReceiptSubscriber($receipts, luziapi_logger()))->register();
         (new AdminMenu($controller))->register();
         (new AssetLoader($themeDirectory, $themeUri))->register();
     }

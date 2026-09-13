@@ -1,8 +1,9 @@
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
-    level: 5
+    level: max
     bootstrapFiles:
         - tools/phpstan-bootstrap.php
     paths:

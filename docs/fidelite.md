@@ -215,6 +215,15 @@ rendue dans les deux variantes (HTML + texte).
   (on-hold / processing, `luziapi_email_loyalty_reminder()`), bloc fidélité sur la
   **boutique / fiche produit / panier** (`luziapi_offer_html`), sur l'**accueil**
   (section « Nos miels ») et sur la **page de suivi** (visible avant connexion).
+- **Ajouter un pot offert à une commande existante** : bloc « Ajouter un pot
+  offert » de la fiche commande (`inc/order-workflow.php`), geste commercial **ou**
+  fidélité. Seules des **lignes à 0 €** sont ajoutées (via
+  `OfferedOrderItem::addTo`) : le **montant de la commande ne change pas** — une
+  commande « Terminée » ne peut pas être modifiée en montant, la recette déjà
+  encaissée reste intacte. Le stock du seul nouvel item est décompté (marqué
+  `_reduced_stock`) ; la fidélité recalcule via `luziapi_loyalty_order_lines_changed`
+  (avantage consommé, borné au disponible). Tests `make e2e-offered-pot-local` /
+  `e2e-offered-pot-prod`.
 
 ## Reste à faire
 

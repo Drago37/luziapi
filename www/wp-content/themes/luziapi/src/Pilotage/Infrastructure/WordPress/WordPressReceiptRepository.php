@@ -114,6 +114,16 @@ final readonly class WordPressReceiptRepository implements ReceiptRepository
         return $totals;
     }
 
+    public function deleteByOrderId(int $orderId): int
+    {
+        if ($orderId <= 0) {
+            return 0;
+        }
+        $deleted = $this->database->delete($this->schema->tableName(), ['order_id' => $orderId], ['%d']);
+
+        return false === $deleted ? 0 : (int) $deleted;
+    }
+
     /** @param array<string, mixed> $row */
     private function map(array $row): ReceiptEntry
     {

@@ -87,6 +87,20 @@ function setupQuickSale(quickSale) {
         const selected = clientPicker && clientPicker.selectedOptions[0] ? clientPicker.selectedOptions[0].dataset.rewards : null;
         updateLoyalty(selected !== null && selected !== undefined ? selected : (loyaltyAvailable ? loyaltyAvailable.textContent : 0));
     }
+    // « dont offert » fait partie de la quantité : jamais plus que la quantité saisie.
+    quickSale.querySelectorAll('[data-quantity]').forEach((quantity) => {
+        const row = quantity.closest('.luziapi-pilotage__product-row');
+        const gift = row ? row.querySelector('[data-gift]') : null;
+        if (!gift) return;
+        const clampGift = () => {
+            const max = Math.max(0, parseInt(quantity.value, 10) || 0);
+            gift.max = String(max);
+            if ((parseInt(gift.value, 10) || 0) > max) gift.value = String(max);
+        };
+        quantity.addEventListener('input', clampGift);
+        gift.addEventListener('input', clampGift);
+        clampGift();
+    });
 }
 
 if (typeof document !== 'undefined') {

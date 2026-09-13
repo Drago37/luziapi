@@ -52,8 +52,11 @@ pour les agents.** **Ne jamais committer ni pousser directement sur `main` ni su
   release `release/X.Y.Z` (develop → main taguée → retour develop) ; urgence `hotfix/X.Y.Z`
   (main → tag → develop). **Détail complet et à jour dans [`CONTRIBUTING.md`](CONTRIBUTING.md) —
   à lire et respecter.**
-- Messages de commit et PR en **français** ; **jamais** de trailer `Co-Authored-By:` (préférence
-  explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- Messages de commit et documentation en **français** ; **jamais** de trailer `Co-Authored-By:`
+  (préférence explicite, un commit a déjà été refusé et l'historique nettoyé pour l'enlever).
+- **Pull Requests : titre et description en anglais**, **assignées à leur auteur**, **labellisées
+  par type** (`bug`, `enhancement`, `documentation`…). Seule la PR est en anglais ; commits, code et
+  doc restent en français. Détail dans [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Ne pas pousser sans demande explicite ; on ne déploie que depuis `main` après merge d'une release,
   CI verte (voir la garde de déploiement plus bas).
 
@@ -177,6 +180,15 @@ d’intégration `make e2e-exclusion-local` et son test **de bout en bout sur la
 administrateur + nonce + `$_POST`, appel de `luziapi_save_admin_order_workflow`, qui
 pose la méta puis émet `luziapi_loyalty_exclusion_changed` recalculée par l’abonné),
 et vérifient aussi que les hooks sont câblés (isolé, aucun e-mail, tout nettoyé).
+L'**ajout d'un pot offert à une commande existante** (bloc « Ajouter un pot offert »
+de la fiche commande, geste **ou** fidélité) a de même `make e2e-offered-pot-local`
+et `make e2e-offered-pot-prod` : ils pilotent le **vrai chemin admin**
+(`luziapi_save_admin_order_workflow` → ajout d'une ligne à 0 € → recalcul fidélité via
+`luziapi_loyalty_order_lines_changed`) et vérifient que la ligne est offerte,
+que le **montant de la commande ne change pas** (recette intacte), que le **stock est
+décompté** du seul nouvel item, que la **fidélité consomme un avantage** (borné au
+disponible, second essai refusé), plus le câblage des hooks (isolé, aucun e-mail, tout
+nettoyé).
 L'**auto-envoi newsletter** (mu-plugin `luziapi-newsletter-autosend`) a de même
 `make e2e-newsletter-local` et `make e2e-newsletter-prod` : ils vérifient que la
 publication **planifie** (sans envoyer), qu'une réédition ne re-planifie pas, et que
@@ -190,6 +202,13 @@ La **validation de zone de livraison** au checkout a `make e2e-delivery-zone-loc
 aucun e-mail. La **recette auto** au passage « Terminée » a aussi sa variante prod
 `make e2e-receipt-prod` (en plus du local) : commande isolée en `set_status`, subscriber
 invoqué avec le dépôt **non audité** (aucune écriture au journal d'activité), tout nettoyé.
+Le **retrait de la recette à la corbeille / suppression d'une commande** a
+`make e2e-orphan-receipt-local` / `e2e-orphan-receipt-prod` : ils créent une commande
+avec une recette, la mettent à la **corbeille** (`woocommerce_trash_order`) puis en
+**suppression** (`woocommerce_before_delete_order`), et vérifient que l'abonné
+`WooCommerceOrphanReceiptSubscriber` a bien retiré la recette du registre (isolé, tout
+nettoyé). _Raison :_ une commande supprimée qui gardait sa recette gonflait l'encaissé
+au-dessus du chiffre vendu (constaté : 132 € de recettes orphelines en 2026).
 
 > **Couvrir en e2e ce que l’unitaire ne peut pas.** Une fonctionnalité dont le
 > comportement passe par le **chemin réel WordPress/WooCommerce** (soumission d’un
@@ -321,11 +340,13 @@ empreintes de fichiers.
   Comme `functions.php` boote `PilotageServiceProvider::boot()`, une classe manquante provoque un
   **fatal sur toute page chargeant le thème** — mais PowerBoost continue de servir la home en 200,
   cachant la panne. Diagnostic : tester une **URL non cachée** (`/wp-login.php`, `/mon-compte/`, ou la
-  home avec `?nocache=…`) et comparer `find src/ | wc -l` prod vs repo. Réparation : re-`mirror -R`
-  (sans `--delete`) du dossier concerné, `opcache_reset()`, puis vérifier par **SHA-256**. Constaté le
-  10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109 fichiers `src/Pilotage/`, site
-  en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md). Préférer le **FTPS ciblé et
-  vérif SHA** à `make deploy`.
+  home avec `?nocache=…`) et lancer **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) qui
+  compare le SHA-256 de **tout** le thème (les ~288 fichiers de code suivis) entre le dépôt et la prod
+  et **liste précisément les fichiers manquants/divergents** (remplace le `find src/ | wc -l` manuel).
+  Réparation : re-`mirror -R` (sans `--delete`) du dossier concerné, `opcache_reset()`, puis relancer
+  `make verify-prod`. Constaté le 10 septembre 2026 (deploy interrompu faute de crédits, prod à 27/109
+  fichiers `src/Pilotage/`, site en 500 ~24 h). Détails dans [docs/prod-o2switch.md](docs/prod-o2switch.md).
+  Préférer le **FTPS ciblé et vérif SHA** (`scripts/deploy-files.sh`) à `make deploy`.
 - **`dbDelta` ne change pas la nullabilité d'une colonne existante.** Constaté le 10 septembre 2026 :
   la colonne `sequence_number` de `luziapi_receipts`, créée jadis en `NOT NULL`, l'est restée malgré
   un schéma passé à `NULL` — le dépôt insérant NULL puis le renseignant, **tout enregistrement de
@@ -382,7 +403,11 @@ Décisions prises volontairement — ne pas les défaire sans en parler :
   saisie manuelle restent disponibles pour les cas particuliers, mais ne sont plus la voie normale. Ne
   pas revenir à un rapprochement manuel obligatoire sans en parler. Rattrapage de l'historique :
   `make backfill-receipts-local` (`LUZIAPI_BACKFILL_DRY=1` pour simuler). Tests : `make e2e-receipt-local`
-  et `RecordOrderReceiptHandlerTest`.
+  et `RecordOrderReceiptHandlerTest`. **Surveillance de dérive** (lecture seule) : `make audit-receipts-local`
+  et `make audit-receipts-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) comparent, sur la période, les
+  recettes enregistrées aux commandes et listent trois anomalies — commande valide sans recette, montant
+  divergent, **recette orpheline** (commande disparue, le cas des 132 € de 2026). Cœur `AuditReceiptDriftHandler`
+  + `ReceiptDriftAuditor` ; tests `AuditReceiptDriftHandlerTest`, `ReceiptDriftAuditorTest`.
 - **Fidélité : « offert » et « fidélité » sont deux choses distinctes** (décision explicite, ne pas
   fusionner). Depuis la Vente : « **offert** » = geste commercial libre (ligne à 0 €, affichée
   « offert », sortie du stock, **sans** impact fidélité) ; « **Fidélité → offrir un pot** » = pot

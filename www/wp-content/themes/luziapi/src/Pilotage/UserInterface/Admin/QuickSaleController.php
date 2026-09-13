@@ -11,6 +11,7 @@ use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLine;
+use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLines;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleReceiptFailed;
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
@@ -140,8 +141,12 @@ final readonly class QuickSaleController
                 throw new InvalidArgumentException('Invalid sale date.');
             }
 
-            $lines = $this->readLines((array) ($_POST['quantities'] ?? []));
-            $giftLines = $this->readLines((array) ($_POST['gifts'] ?? []));
+            $split = QuickSaleLines::split(
+                $this->readQuantities((array) ($_POST['quantities'] ?? [])),
+                $this->readQuantities((array) ($_POST['gifts'] ?? [])),
+            );
+            $lines = $split['paid'];
+            $giftLines = $split['gifts'];
             $rewardLines = [];
             $rewardProduct = absint($_POST['reward_product'] ?? 0);
             $rewardQty = absint($_POST['reward_qty'] ?? 0);
@@ -204,19 +209,19 @@ final readonly class QuickSaleController
     /**
      * @param array<array-key, mixed> $quantities méta POST productId => quantité
      *
-     * @return list<QuickSaleLine>
+     * @return array<int, int> productId => quantité (positifs seulement)
      */
-    private function readLines(array $quantities): array
+    private function readQuantities(array $quantities): array
     {
-        $lines = [];
+        $result = [];
         foreach ($quantities as $productId => $quantity) {
             $quantity = absint($quantity);
             if ($quantity > 0) {
-                $lines[] = new QuickSaleLine(absint($productId), $quantity);
+                $result[absint($productId)] = $quantity;
             }
         }
 
-        return $lines;
+        return $result;
     }
 
     /** @return array<string, mixed> */
