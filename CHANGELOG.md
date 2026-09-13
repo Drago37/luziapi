@@ -10,6 +10,10 @@ documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [1.2.0] - 2026-09-13
+
 ### Added
 
 - Dashboard "Abonnés" tab listing Brevo newsletter (e-mail) and SMS subscribers, with
@@ -24,6 +28,15 @@ documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `
 
 - Pilotage tab bar factored into a single source (`PilotageTabs`) and a shared `_nav.twig`
   partial, replacing the navigation duplicated across every dashboard view.
+- Agent/process docs, commit messages and pull requests switched to English; business and
+  technical documentation stays in French.
+- Release flow: deploy from the still-open release branch; merge into `main` + tag only after a
+  successful deployment, on an explicit go-ahead.
+
+### Fixed
+
+- Prod integrity and targeted-deploy filters exclude `tests-js/` (dev-only), removing a false
+  "missing file" report from `make verify-prod`.
 
 ## [1.1.0] - 2026-09-13
 
@@ -44,9 +57,6 @@ documentation stays in French (`README.md`, `DEPLOIEMENT.md`, everything under `
 
 - PHPStan raised to level `max`, with a baseline freezing the existing debt (#11).
 - Makefile: `.PHONY` declared per target, ending the shared-line merge conflicts (#14).
-- Documentation language policy: agent/process docs (`AGENTS.md`, `CONTRIBUTING.md`, `CLAUDE.md`,
-  `CHANGELOG.md`), commit messages and pull requests are in English; business and technical
-  documentation stays in French.
 
 ### Fixed
 
