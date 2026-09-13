@@ -27,6 +27,8 @@ final readonly class ProductsController
         $lowStock = count(array_filter($dashboard->products, static fn (ProductPerformance $product): bool => $product->lowStock));
 
         Timber::render('@luziapi_admin/pilotage/products.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('products'),
             'year'                 => $dashboard->year,
             'available_years'      => $dashboard->availableYears,
             'page_url'             => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=products'),

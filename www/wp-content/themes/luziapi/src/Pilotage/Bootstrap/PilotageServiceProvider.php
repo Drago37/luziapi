@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Bootstrap;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
+use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersHandler;
+use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberDirectory;
+use LuziApi\Newsletter\Infrastructure\NullSubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
@@ -63,6 +66,7 @@ use LuziApi\Pilotage\UserInterface\Admin\PilotageController;
 use LuziApi\Pilotage\UserInterface\Admin\ProductsController;
 use LuziApi\Pilotage\UserInterface\Admin\QuickSaleController;
 use LuziApi\Pilotage\UserInterface\Admin\ReceiptsController;
+use LuziApi\Pilotage\UserInterface\Admin\SubscribersController;
 use LuziApi\Pilotage\UserInterface\Admin\TaxDeclarationController;
 use wpdb;
 
@@ -166,6 +170,19 @@ final class PilotageServiceProvider
         );
         $taxController = new TaxDeclarationController($taxHandler, $handler, $taxSettings, $activity);
         $activityController = new ActivityController(new GetActivityLogHandler($activityRepository), $activity, $clock);
+        $brevoKeyOption = get_option('sib_api_key_v3', '');
+        $brevoKey = is_string($brevoKeyOption) ? $brevoKeyOption : '';
+        $brevoListId = 2;
+        if (defined('LUZIAPI_BREVO_LIST_ID')) {
+            $definedListId = constant('LUZIAPI_BREVO_LIST_ID');
+            if (is_numeric($definedListId)) {
+                $brevoListId = (int) $definedListId;
+            }
+        }
+        $subscribers = '' !== trim($brevoKey)
+            ? new BrevoSubscriberDirectory($brevoKey, $brevoListId)
+            : new NullSubscriberDirectory();
+
         $customersController = new CustomersController(
             $customerHandler,
             new AssignCustomerCategoryHandler($customerCategories, $clock),
@@ -179,6 +196,7 @@ final class PilotageServiceProvider
                 $clock,
             ),
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
+            $subscribers,
         );
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
@@ -196,6 +214,7 @@ final class PilotageServiceProvider
             $quickSaleController,
             $activityController,
             $loyaltyController,
+            new SubscribersController(new GetSubscribersHandler($subscribers)),
         );
 
         add_action('init', [$schema, 'migrate'], 1);

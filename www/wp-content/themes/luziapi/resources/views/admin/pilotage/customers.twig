@@ -8,17 +8,7 @@
         <a class="page-title-action" href="{{ new_order_url|e('html_attr') }}">Ajouter une commande</a>
     </div>
 
-    <nav class="nav-tab-wrapper" aria-label="Sections du tableau de pilotage">
-        <a class="nav-tab" href="{{ dashboard_url|e('html_attr') }}">Vue d’ensemble</a>
-        <a class="nav-tab" href="{{ receipts_url|e('html_attr') }}">Recettes</a>
-        <a class="nav-tab" href="{{ tax_declaration_url|e('html_attr') }}">Déclaration fiscale</a>
-        <a class="nav-tab" href="{{ orders_url|e('html_attr') }}">Commandes</a>
-        <a class="nav-tab nav-tab-active" href="{{ page_url|e('html_attr') }}">Clients</a><a class="nav-tab" href="{{ loyalty_url|e('html_attr') }}">Fidélité</a>
-        <a class="nav-tab" href="{{ products_url|e('html_attr') }}">Produits</a>
-        <a class="nav-tab" href="{{ inventory_url|e('html_attr') }}">Stocks et lots</a>
-        <a class="nav-tab" href="{{ quick_sale_url|e('html_attr') }}">Vente</a>
-        <a class="nav-tab" href="{{ activity_url|e('html_attr') }}">Journal d’activité</a>
-    </nav>
+    {% include '@luziapi_admin/pilotage/_nav.twig' %}
 
     {% if notice == 'category_updated' %}<div class="notice notice-success inline"><p>La catégorie du client a été enregistrée.</p></div>{% endif %}
     {% if notice == 'category_error' %}<div class="notice notice-error inline"><p>La catégorie n’a pas pu être enregistrée. Recharge la fiche et réessaie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
@@ -61,6 +51,14 @@
             <div class="luziapi-pilotage__customer-insights">
                 <p><strong>Produits habituels :</strong> {{ selected_customer.products ? selected_customer.products|join(', ')|e : 'Pas encore assez de données' }}</p>
                 <p><strong>Sources :</strong> {{ selected_customer.sources ? selected_customer.sources|join(', ')|e : 'Non renseignée' }}</p>
+                {% if selected_customer.subscription.available %}
+                    <p style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+                        <strong>Abonnements :</strong>
+                        <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ selected_customer.subscription.email ? 'checked' : '' }}> Newsletter e-mail</label>
+                        <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ selected_customer.subscription.sms ? 'checked' : '' }}> SMS</label>
+                        {% if selected_customer.subscription.known %}<span class="description">lecture seule · géré dans Brevo</span>{% else %}<span class="description">contact non trouvé dans Brevo</span>{% endif %}
+                    </p>
+                {% endif %}
             </div>
             {% if selected_customer.loyalty %}
                 {% set loyalty = selected_customer.loyalty %}

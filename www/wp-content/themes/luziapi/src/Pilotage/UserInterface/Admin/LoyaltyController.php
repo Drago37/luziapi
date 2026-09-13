@@ -22,6 +22,8 @@ final readonly class LoyaltyController
         $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery('' !== (string) $requestedPeriod ? $requestedPeriod : null));
 
         Timber::render('@luziapi_admin/pilotage/loyalty.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('loyalty'),
             'page_url'            => $this->pageUrl($dashboard->periodKey),
             'dashboard_url'       => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),

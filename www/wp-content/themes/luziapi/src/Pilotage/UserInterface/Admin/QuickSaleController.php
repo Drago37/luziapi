@@ -84,6 +84,8 @@ final readonly class QuickSaleController
         }
 
         Timber::render('@luziapi_admin/pilotage/quick-sale.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('quick-sale'),
             'page_url'             => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale'),
             'dashboard_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
