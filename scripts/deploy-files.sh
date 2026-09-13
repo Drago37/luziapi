@@ -78,7 +78,7 @@ git cat-file -e "${BASE}^{commit}" 2>/dev/null || die "Base invalide : $BASE"
 # renommés — les suppressions (D) ne sont pas gérées par un upload et sont
 # signalées à part (à retirer manuellement du serveur).
 theme_code_filter() {
-  grep -Ev "^${THEME_PREFIX}/(tools|tests)/" \
+  grep -Ev "^${THEME_PREFIX}/(tools|tests|tests-js)/" \
     | grep -Ev '\.(md)$' \
     | grep -Ev "^${THEME_PREFIX}/(composer\.(json|lock)|package(-lock)?\.json|\.php-cs-fixer.*|phpstan.*)$" \
     | grep -E "^${THEME_PREFIX}/" || true
