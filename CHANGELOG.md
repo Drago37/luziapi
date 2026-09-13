@@ -36,6 +36,8 @@ _Nothing yet._
   technical documentation stays in French.
 - Release flow: deploy from the still-open release branch; merge into `main` + tag only after a
   successful deployment, on an explicit go-ahead.
+- The handover mode (pickup ⇄ delivery) stays editable on **completed** orders, so a mistake can be
+  corrected after the fact (only the shop owner edits orders).
 
 ### Fixed
 

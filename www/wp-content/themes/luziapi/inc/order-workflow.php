@@ -111,7 +111,10 @@ function luziapi_order_emails_disabled(\WC_Order $order): bool
 
 function luziapi_order_fulfillment_is_locked(\WC_Order $order): bool
 {
-    return $order->has_status(['out-for-delivery', 'ready-for-pickup', 'completed', 'cancelled', 'refunded']);
+    // « Terminée » reste éditable volontairement : seul l'exploitant modifie ces
+    // commandes et doit pouvoir corriger a posteriori le mode de remise (retrait ⇄
+    // livraison). Les autres étapes de remise et les états finaux restent verrouillés.
+    return $order->has_status(['out-for-delivery', 'ready-for-pickup', 'cancelled', 'refunded']);
 }
 
 /**
