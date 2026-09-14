@@ -23,7 +23,6 @@
             <file>www/wp-content/themes/luziapi/inc/order-workflow.php</file>
             <file>www/wp-content/themes/luziapi/inc/payment-deadline.php</file>
             <file>www/wp-content/themes/luziapi/inc/customer-emails.php</file>
-            <file>www/wp-content/themes/luziapi/inc/customer-directory.php</file>
             <file>prod-mu-plugins/luziapi-newsletter-autosend.php</file>
         </include>
     </source>

@@ -60,6 +60,8 @@ agents.** **Never commit or push directly on `main` or on `develop`.**
   from the open `release/*` branch (keeps the changelog available, allows fixes on the branch), then
   merge into `main` + tag only **after** a successful deployment and on an **explicit go-ahead** —
   the agent asks and waits, it never merges the release on its own.
+- **The `CHANGELOG.md` version section is composed ON the release branch** (from the PRs since the
+  last tag). **Feature PRs never edit the changelog** — `[Unreleased]` stays empty on `develop`.
 - **Back-merge `main` → `develop` = AUTOMATIC, without asking.** Right after tagging `main`
   (end of release/hotfix), immediately carry `main` back into `develop` (`git checkout develop && git merge
   --no-ff origin/main && git push origin develop`). This is the very point of GitFlow, not a decision to
@@ -448,6 +450,37 @@ Decisions made deliberately — do not undo them without discussing:
   `luziapi_loyalty_exclusion_changed` emitted by the save handler), **not** at every edit — otherwise
   correcting an address would recalculate on the current product config and could remove legitimate
   jars. Tests `make e2e-exclusion-local` / `e2e-exclusion-prod`.
+- **Editing a customer = a dedicated overlay record, never a rewrite of past orders** (explicit
+  decision). The Clients directory is projected from orders, but the fiche's "Modifier la fiche
+  client" form stores the full billing (name, company, postal address, postcode, city, country,
+  e-mail, phone) in a dedicated table (`luziapi_customer_profiles`, indexed by identity like the
+  category) that **overlays the display** without touching the orders — invoices and order history
+  stay intact. To fix one specific order, edit it in WooCommerce (order editing stays enabled; only
+  creation is redirected to the Vente). Do not go back to writing customer edits onto the orders.
+  Domain `src/Pilotage/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
+  / `-prod`.
+- **Address autocomplete = server-side, through a nonce-protected admin-ajax endpoint** (not a direct
+  browser call). The `AddressLookup` port + `BanAddressLookup` adapter query the Base Adresse
+  Nationale (`api-adresse.data.gouv.fr`, free, no key) server-side and normalize the result; the
+  `luziapi_address_search` admin-ajax action (capability `edit_shop_orders` + nonce) feeds the fiche's
+  address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
+  + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
+  (BAN calls intercepted, nothing written).
+- **Subscription panel on the fiche = editable, writes DIRECTLY to Brevo** (reverses the earlier
+  read-only choice, on the owner's decision — "draft mode" on this first prod). Ticking subscribes,
+  unticking unsubscribes (Brevo `emailBlacklisted` / `smsBlacklisted`); **direct opt-in, no
+  double opt-in** (consent assumed collected by the owner). The contact is identified by e-mail, so
+  SMS needs an e-mail **and** a mobile; without an e-mail the panel stays read-only. Port
+  `Newsletter/Application/Port/SubscriberWriter` + `BrevoSubscriberWriter` (create/update contact,
+  list 2, SMS attribute, blacklists; busts the read cache) + `UpdateSubscription` command/handler;
+  admin-post action `luziapi_update_subscription`. **The write is confirmed by a read-back** (GET the
+  contact after the POST): success is reported only if the stored state matches the request, and the
+  confirmed state is shown in the notice. A contact **not yet in Brevo** shows an **"Ajouter dans
+  Brevo"** button that creates it from the fiche (e-mail + mobile + name as `PRENOM`/`NOM` attributes,
+  best-effort with a silent fallback if the account has no such attributes — the site's own signup
+  only stores e-mail + SMS). Unit tests + e2e `make e2e-subscription-write-local` / `-prod` (Brevo
+  calls intercepted, no contact touched).
+  _GDPR:_ direct opt-in assumes consent was collected offline; revisit (double opt-in) if needed.
 
 ---
 

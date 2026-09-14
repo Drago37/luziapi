@@ -31,6 +31,7 @@ final readonly class CustomerProfile
         /** @var non-empty-list<string> */
         public array $identityIds,
         public CustomerCategory $category = CustomerCategory::Unspecified,
+        public ?CustomerBilling $billingOverride = null,
     ) {
     }
 
@@ -50,6 +51,41 @@ final readonly class CustomerProfile
             $this->favoriteProducts,
             $this->identityIds,
             $category,
+            $this->billingOverride,
+        );
+    }
+
+    /**
+     * Applique la fiche dédiée : l'affichage (nom, ville, e-mail, téléphone) reflète
+     * les valeurs saisies, l'identité (donc catégorie et fidélité) reste inchangée.
+     * Un champ vide de la fiche retombe sur la valeur issue des commandes.
+     */
+    public function withOverride(CustomerBilling $billing): self
+    {
+        $name = '' !== $billing->fullName() ? $billing->fullName() : $this->name;
+        $city = '' !== $billing->city ? $billing->city : $this->city;
+        $emails = '' !== $billing->email
+            ? array_values(array_unique(array_merge([$billing->email], $this->emails)))
+            : $this->emails;
+        $phones = '' !== $billing->phone
+            ? array_values(array_unique(array_merge([$billing->phone], $this->phones)))
+            : $this->phones;
+
+        return new self(
+            $this->id,
+            $name,
+            $city,
+            $emails,
+            $phones,
+            $this->sources,
+            $this->orders,
+            $this->validOrdersCount,
+            $this->orderedTotal,
+            $this->collectedTotal,
+            $this->favoriteProducts,
+            $this->identityIds,
+            $this->category,
+            $billing,
         );
     }
 

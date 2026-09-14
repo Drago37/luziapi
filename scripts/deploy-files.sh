@@ -68,12 +68,26 @@ REMOTE_SHA="$(git rev-parse @{u})"
 RUN="$(gh run list --branch "$BRANCH" --workflow "$WORKFLOW" --limit 20 \
         --json headSha,status,conclusion,databaseId \
         | jq -c --arg sha "$LOCAL_SHA" 'map(select(.headSha == $sha)) | first')"
-[[ "$RUN" != "null" && -n "$RUN" ]] || die "Aucun run CI « $WORKFLOW » pour HEAD ($LOCAL_SHA) — attends que la CI démarre/finisse."
-STATUS="$(jq -r '.status' <<<"$RUN")"
-CONCLUSION="$(jq -r '.conclusion' <<<"$RUN")"
-[[ "$STATUS" == "completed" ]]  || die "CI pas terminée sur HEAD (status=$STATUS) — attends la fin de la CI."
-[[ "$CONCLUSION" == "success" ]] || die "CI NON verte sur HEAD (conclusion=$CONCLUSION) — déploiement bloqué."
-grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé, CI verte sur ${LOCAL_SHA:0:8}."
+if [[ "$RUN" != "null" && -n "$RUN" ]]; then
+  STATUS="$(jq -r '.status' <<<"$RUN")"
+  CONCLUSION="$(jq -r '.conclusion' <<<"$RUN")"
+  [[ "$STATUS" == "completed" ]]  || die "CI pas terminée sur HEAD (status=$STATUS) — attends la fin de la CI."
+  [[ "$CONCLUSION" == "success" ]] || die "CI NON verte sur HEAD (conclusion=$CONCLUSION) — déploiement bloqué."
+  grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé, CI verte sur ${LOCAL_SHA:0:8}."
+else
+  # Pas de run pour HEAD : toléré UNIQUEMENT si HEAD n'ajoute que des fichiers NON déployés
+  # (docs racine *.md et docs/) au-dessus d'un commit déjà vert — un fix doc sur une release ne
+  # déclenche pas la CI (filtre `paths`) et ne doit pas bloquer le déploiement. Tout autre
+  # changement (code du thème, scripts, tests, CI…) exige, lui, une CI verte sur HEAD.
+  GREEN_SHA="$(gh run list --branch "$BRANCH" --workflow "$WORKFLOW" --limit 30 \
+        --json headSha,status,conclusion \
+        | jq -r 'map(select(.status == "completed" and .conclusion == "success")) | first | .headSha // ""')"
+  [[ -n "$GREEN_SHA" ]] || die "Aucun run CI « $WORKFLOW » pour HEAD ($LOCAL_SHA) ni de run vert récent sur $BRANCH — attends la CI."
+  git cat-file -e "${GREEN_SHA}^{commit}" 2>/dev/null || die "Dernier run vert sur un commit absent en local ($GREEN_SHA) — fetch puis réessaie."
+  NON_DOC="$(git diff --name-only "${GREEN_SHA}..HEAD" | grep -Ev '(^|/)[^/]*\.md$' | grep -Ev '^docs/' || true)"
+  [[ -z "$NON_DOC" ]] || die "Pas de run CI pour HEAD et des fichiers non-doc ont changé depuis le dernier vert (${GREEN_SHA:0:8}) — pousse et attends la CI."
+  grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé. Pas de CI sur HEAD mais seuls des fichiers non déployés (docs) ont changé depuis ${GREEN_SHA:0:8} (CI verte) — OK."
+fi
 
 # --- Base de calcul du delta -----------------------------------------------
 if [[ -z "$BASE" ]]; then

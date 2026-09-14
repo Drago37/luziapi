@@ -9,6 +9,7 @@ use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
 use LuziApi\Pilotage\Domain\Customer\CustomerCategoryRepository;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
+use LuziApi\Pilotage\Domain\Customer\CustomerProfileRepository;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineRepository;
 use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptRepository;
@@ -23,6 +24,7 @@ final readonly class GetCustomerDirectoryHandler
         private ReceiptRepository $receipts,
         private CustomerTimelineRepository $timeline,
         private Clock $clock,
+        private ?CustomerProfileRepository $profileOverrides = null,
     ) {
     }
 
@@ -42,10 +44,14 @@ final readonly class GetCustomerDirectoryHandler
             array_push($identityIds, ...$profile->identityIds);
         }
         $assignedCategories = $this->categories->forCustomerIds($identityIds);
+        $overrides = $this->profileOverrides?->forCustomerIds($identityIds) ?? [];
         $profiles = array_map(
-            static fn (CustomerProfile $profile): CustomerProfile => $profile->withCategory(
-                self::categoryFor($profile, $assignedCategories),
-            ),
+            static function (CustomerProfile $profile) use ($assignedCategories, $overrides): CustomerProfile {
+                $profile = $profile->withCategory(self::categoryFor($profile, $assignedCategories));
+                $override = self::overrideFor($profile, $overrides);
+
+                return null === $override ? $profile : $profile->withOverride($override);
+            },
             $profiles,
         );
         $selected = $this->findSelected($profiles, $query->selectedCustomerId);
@@ -147,5 +153,17 @@ final readonly class GetCustomerDirectoryHandler
         }
 
         return CustomerCategory::Unspecified;
+    }
+
+    /** @param array<string, \LuziApi\Pilotage\Domain\Customer\CustomerBilling> $overrides */
+    private static function overrideFor(CustomerProfile $profile, array $overrides): ?\LuziApi\Pilotage\Domain\Customer\CustomerBilling
+    {
+        foreach ($profile->identityIds as $identityId) {
+            if (isset($overrides[$identityId])) {
+                return $overrides[$identityId];
+            }
+        }
+
+        return null;
     }
 }

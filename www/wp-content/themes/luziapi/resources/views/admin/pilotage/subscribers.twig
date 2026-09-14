@@ -36,17 +36,19 @@
                         <thead>
                             <tr>
                                 <th scope="col">E-mail</th>
-                                <th scope="col">SMS</th>
+                                <th scope="col">Statut e-mail</th>
                                 <th scope="col">Mobile</th>
+                                <th scope="col">Statut SMS</th>
                                 <th scope="col">Inscrit le</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for row in subscribers %}
                                 <tr>
-                                    <td>{{ row.email|e }}</td>
-                                    <td>{% if row.sms %}<span class="luziapi-pilotage__badge">SMS</span>{% else %}<span aria-hidden="true">—</span><span class="screen-reader-text">Non</span>{% endif %}</td>
+                                    <td>{% if row.email %}{{ row.email|e }}{% else %}<span aria-hidden="true">—</span>{% endif %}</td>
+                                    <td>{% if not row.email %}<span aria-hidden="true">—</span>{% elseif row.email_blocked %}<span class="luziapi-pilotage__badge luziapi-pilotage__badge--warning">Bloqué</span>{% else %}<span class="luziapi-pilotage__badge">Abonné</span>{% endif %}</td>
                                     <td>{{ row.phone|e }}</td>
+                                    <td>{% if not row.phone %}<span aria-hidden="true">—</span>{% elseif row.sms_blocked %}<span class="luziapi-pilotage__badge luziapi-pilotage__badge--warning">Bloqué</span>{% else %}<span class="luziapi-pilotage__badge">Abonné</span>{% endif %}</td>
                                     <td>{{ row.date|e }}</td>
                                 </tr>
                             {% endfor %}

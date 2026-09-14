@@ -17,8 +17,9 @@ for AI agents. **Never commit or push directly to `main`.**
 - **`develop`** = integration. Base for all features; this is where day-to-day work accumulates
   between two releases.
 - **`feature/<slug>`**: branch off `develop` and return to it through a **Pull Request** (never a direct merge).
-- **`release/X.Y.Z`**: branch off `develop` to prepare a version (freeze, version bump,
-  changelog) and open a PR to `main`. **Deploy to production from the still-open release branch**
+- **`release/X.Y.Z`**: branch off `develop` to prepare a version (version bump, and **compose the
+  `CHANGELOG.md` `[X.Y.Z]` section on this branch** from the PRs merged since the last tag —
+  feature PRs do **not** edit the changelog) and open a PR to `main`. **Deploy to production from the still-open release branch**
   (`scripts/deploy-files.sh` allows `release/*`), then — **only after** the deployment succeeds and
   on an **explicit go-ahead** — merge into `main` (**tag**) and back-merge into `develop`.
 - **`hotfix/X.Y.Z`**: branch off `main` for an urgent production fix, deploy from the hotfix branch,

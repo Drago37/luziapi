@@ -19,30 +19,35 @@ final class GetSubscribersHandlerTest extends TestCase
             ->handle(new GetSubscribersQuery());
 
         self::assertFalse($view->configured);
+        self::assertSame(0, $view->total);
         self::assertSame(0, $view->emailCount);
         self::assertSame(0, $view->smsCount);
+        self::assertSame(0, $view->blockedCount);
         self::assertSame([], $view->subscribers);
     }
 
-    public function testItCountsEmailAndSmsSubscribers(): void
+    public function testItCountsActiveSmsOnlyAndBlockedSubscribers(): void
     {
         $view = (new GetSubscribersHandler(new FakeSubscriberDirectory(true, [
-            new Subscriber('a@example.test', true, '+33600000001'),
-            new Subscriber('b@example.test', false),
-            new Subscriber('c@example.test', true, '+33600000003'),
+            new Subscriber('a@example.test', '+33600000001'),                       // e-mail + SMS actifs
+            new Subscriber('b@example.test'),                                       // e-mail seul
+            new Subscriber('c@example.test', '+33600000003', true, true),           // e-mail ET SMS bloqués
+            new Subscriber('', '+33600000004'),                                     // SMS uniquement (sans e-mail)
         ])))->handle(new GetSubscribersQuery());
 
         self::assertTrue($view->configured);
-        self::assertSame(3, $view->emailCount);
-        self::assertSame(2, $view->smsCount);
-        self::assertCount(3, $view->subscribers);
+        self::assertSame(4, $view->total);
+        self::assertSame(2, $view->emailCount);   // a, b (c est bloqué e-mail)
+        self::assertSame(2, $view->smsCount);     // a, et le SMS-seul (c est bloqué SMS)
+        self::assertSame(1, $view->blockedCount); // c
+        self::assertCount(4, $view->subscribers);
     }
 
     public function testItFiltersBySearchOnEmailOrPhone(): void
     {
         $directory = new FakeSubscriberDirectory(true, [
-            new Subscriber('alice@example.test', true, '+33611111111'),
-            new Subscriber('bob@example.test', false),
+            new Subscriber('alice@example.test', '+33611111111'),
+            new Subscriber('bob@example.test'),
         ]);
 
         $byEmail = (new GetSubscribersHandler($directory))->handle(new GetSubscribersQuery('ALICE'));

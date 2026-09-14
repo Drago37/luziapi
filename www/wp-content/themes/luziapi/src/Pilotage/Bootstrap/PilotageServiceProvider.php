@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Bootstrap;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersHandler;
 use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberDirectory;
+use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberWriter;
 use LuziApi\Newsletter\Infrastructure\NullSubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
@@ -18,6 +20,7 @@ use LuziApi\Pilotage\Application\Command\RecordOrderStockMovement\OrderStockMove
 use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Pilotage\Application\Command\RecordStockMovement\RecordStockMovementHandler;
 use LuziApi\Pilotage\Application\Command\ReverseReceipt\ReverseReceiptHandler;
+use LuziApi\Pilotage\Application\Command\SaveCustomerProfile\SaveCustomerProfileHandler;
 use LuziApi\Pilotage\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
@@ -26,6 +29,7 @@ use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHa
 use LuziApi\Pilotage\Application\Query\GetProductDashboard\GetProductDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetReceiptRegister\GetReceiptRegisterHandler;
 use LuziApi\Pilotage\Application\Query\GetTaxDeclaration\GetTaxDeclarationHandler;
+use LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressHandler;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\FollowUp\FollowUpProjector;
 use LuziApi\Pilotage\Domain\Product\ProductPerformanceProjector;
@@ -33,6 +37,7 @@ use LuziApi\Pilotage\Domain\Receipt\AnnualReceiptCalculator;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
+use LuziApi\Pilotage\Infrastructure\Http\BanAddressLookup;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
@@ -52,10 +57,12 @@ use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
+use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerProfileRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressInventoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressTaxSettings;
 use LuziApi\Pilotage\UserInterface\Admin\ActivityController;
+use LuziApi\Pilotage\UserInterface\Admin\AddressLookupController;
 use LuziApi\Pilotage\UserInterface\Admin\AdminMenu;
 use LuziApi\Pilotage\UserInterface\Admin\AssetLoader;
 use LuziApi\Pilotage\UserInterface\Admin\CustomersController;
@@ -101,6 +108,7 @@ final class PilotageServiceProvider
             new WordPressCustomerCategoryRepository($wpdb, $schema),
             $activity,
         );
+        $customerProfiles = new WordPressCustomerProfileRepository($wpdb, $schema);
         $receipts = new AuditedReceiptRepository(
             new WordPressReceiptRepository($wpdb, $schema, $clock->timezone()),
             $activity,
@@ -128,6 +136,7 @@ final class PilotageServiceProvider
             $receipts,
             new WooCommerceCustomerTimelineRepository($clock->timezone()),
             $clock,
+            $customerProfiles,
         );
         $receiptHandler = new GetReceiptRegisterHandler(
             $receipts,
@@ -182,6 +191,9 @@ final class PilotageServiceProvider
         $subscribers = '' !== trim($brevoKey)
             ? new BrevoSubscriberDirectory($brevoKey, $brevoListId)
             : new NullSubscriberDirectory();
+        $updateSubscription = '' !== trim($brevoKey)
+            ? new UpdateSubscriptionHandler(new BrevoSubscriberWriter($brevoKey, $brevoListId))
+            : null;
 
         $customersController = new CustomersController(
             $customerHandler,
@@ -197,6 +209,8 @@ final class PilotageServiceProvider
             ),
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
             $subscribers,
+            new SaveCustomerProfileHandler($customerProfiles, $clock),
+            $updateSubscription,
         );
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
@@ -220,6 +234,7 @@ final class PilotageServiceProvider
         add_action('init', [$schema, 'migrate'], 1);
         $receiptsController->register();
         $customersController->register();
+        (new AddressLookupController(new SearchAddressHandler(new BanAddressLookup())))->register();
         $quickSaleController->register();
         $inventoryController->register();
         $taxController->register();

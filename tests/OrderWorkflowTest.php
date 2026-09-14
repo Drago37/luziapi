@@ -155,7 +155,9 @@ final class OrderWorkflowTest extends TestCase
         self::assertFalse(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'processing')));
         self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'ready-for-pickup')));
         self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'out-for-delivery')));
-        self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'completed')));
+        self::assertTrue(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'cancelled')));
+        // « Terminée » reste éditable : l'exploitant peut corriger le mode de remise a posteriori.
+        self::assertFalse(luziapi_order_fulfillment_is_locked(new WC_Order('', [], 'admin', 'completed')));
     }
 
     public function testManualOrderGetsNativeAdminAttributionWithoutOverwritingExistingData(): void

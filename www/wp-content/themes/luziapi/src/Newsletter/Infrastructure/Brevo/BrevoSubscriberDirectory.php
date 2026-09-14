@@ -108,16 +108,18 @@ final class BrevoSubscriberDirectory implements SubscriberDirectory
                 continue;
             }
             $email = isset($row['email']) && is_string($row['email']) ? $row['email'] : '';
-            if ('' === $email) {
+            $sms = $this->smsAttribute($row);
+            // Un abonné SMS-seul (sans e-mail) reste un abonné : on ne saute que les
+            // contacts sans e-mail ET sans SMS.
+            if ('' === $email && '' === $sms) {
                 continue;
             }
-            $sms = $this->smsAttribute($row);
-            $smsBlacklisted = (bool) ($row['smsBlacklisted'] ?? false);
 
             $subscribers[] = new Subscriber(
                 $email,
-                '' !== $sms && ! $smsBlacklisted,
                 '' !== $sms ? $sms : null,
+                (bool) ($row['emailBlacklisted'] ?? false),
+                (bool) ($row['smsBlacklisted'] ?? false),
                 $this->parseDate($row['createdAt'] ?? null),
             );
         }
