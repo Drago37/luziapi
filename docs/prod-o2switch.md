@@ -639,10 +639,28 @@ vidé, prod saine, CI verte sur `c28d7d0`) :_
 - **Migration de schéma `v8 → v9`** : la table `luziapi_customer_profiles` se crée automatiquement au
   premier chargement admin après déploiement (`PilotageSchemaManager`, `dbDelta` idempotent).
 - **Fichiers orphelins** du chemin v1 retiré (`UpdateCustomerContactCommand/Handler`,
-  `CustomerContactWriter`, `WooCommerceCustomerContactWriter`) : encore présents sur le serveur, **non
-  référencés donc sans impact** ; à retirer à la main (le deploy delta ne gère pas les suppressions).
+  `CustomerContactWriter`, `WooCommerceCustomerContactWriter`) : **retirés du serveur à la main** en
+  FTPS le 14 septembre 2026 (le deploy delta ne gère pas les suppressions) ; `verify-prod` 311/311.
 - Vérifs prod dédiées : `make verify-prod`, `make e2e-customer-profile-prod`,
   `make e2e-address-lookup-prod` (appels BAN interceptés, commande/fiche de test isolées, tout nettoyé).
+
+_Suite le 14 septembre 2026 (commits `c550afa` + `51e5833`, PR #29 + #30 mergées dans
+`release/1.2.0` **encore ouverte**, delta `c28d7d0 → 63c1785`, 8 fichiers, **8/8 SHA**, OPcache vidé,
+prod saine, CI verte sur `63c1785`) — **abonnement Brevo éditable depuis la fiche client** :_
+
+- L'encart abonnement (e-mail / SMS) devient **inscriptible** : cocher inscrit, décocher désinscrit,
+  **écrit directement dans Brevo** (`emailBlacklisted` / `smsBlacklisted`, liste 2, attribut `SMS`) —
+  **opt-in direct, sans double opt-in** (consentement réputé recueilli hors ligne). Le contact étant
+  identifié par e-mail, le SMS exige un e-mail **et** un mobile ; sans e-mail l'encart reste en lecture
+  seule.
+- **Confirmation par relecture** : après l'écriture, le contact est **relu** (GET) ; le message de
+  succès n'apparaît que si l'état confirmé correspond à la demande, et l'affiche
+  (« Confirmé côté Brevo — e-mail : … · SMS : … »).
+- Code : `Newsletter/Application/Port/SubscriberWriter` + `BrevoSubscriberWriter` + `UpdateSubscription`
+  (command/handler) ; action admin-post `luziapi_update_subscription`. Vérif prod dédiée :
+  `make e2e-subscription-write-prod` (appels Brevo interceptés, aucun contact touché).
+- **RGPD** : l'opt-in direct suppose le consentement recueilli hors ligne ; repasser en double opt-in
+  si besoin.
 - Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
   toujours ouverte).
 
