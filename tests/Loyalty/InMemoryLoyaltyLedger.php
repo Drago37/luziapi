@@ -50,6 +50,17 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return null !== $this->findByIdempotencyKey($idempotencyKey);
     }
 
+    public function hasEntryForOrder(int $orderId): bool
+    {
+        foreach ($this->entries as $entry) {
+            if ($entry->sourceOrderId === $orderId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
         foreach ($this->entries as $entry) {

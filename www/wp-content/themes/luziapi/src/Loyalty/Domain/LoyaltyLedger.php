@@ -20,6 +20,14 @@ interface LoyaltyLedger
 
     public function hasEntryForIdempotencyKey(string $idempotencyKey): bool;
 
+    /**
+     * Vrai dès qu'une écriture — quelle que soit sa clé d'idempotence — est rattachée
+     * à la commande (comme source). Sert au backfill à ne rétro-créditer que les
+     * commandes jamais vues par le moteur, quel que soit le schéma de clés utilisé
+     * (crédit direct historique ou réconciliation).
+     */
+    public function hasEntryForOrder(int $orderId): bool;
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry;
 
     /**

@@ -79,6 +79,16 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return null !== $found;
     }
 
+    public function hasEntryForOrder(int $orderId): bool
+    {
+        $found = $this->database->get_var($this->database->prepare(
+            'SELECT id FROM ' . $this->schema->ledgerTableName() . ' WHERE source_order_id = %d LIMIT 1',
+            $orderId,
+        ));
+
+        return null !== $found;
+    }
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
         $row = $this->database->get_row($this->database->prepare(

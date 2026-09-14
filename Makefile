@@ -88,6 +88,10 @@ backfill-receipts-local: ## Porte au registre l'encaissement des commandes déj�
 backfill-loyalty-local: ## Rétro-crédite les pots des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
 	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-loyalty.php';" --user=admin
 
+.PHONY: backfill-loyalty-prod
+backfill-loyalty-prod: ## Rétro-crédite les pots des commandes terminées sur la PROD (SIMULATION par défaut ; APPLY=1 pour écrire)
+	@LUZIAPI_BACKFILL_APPLY=$(APPLY) bash scripts/backfill-loyalty-prod.sh
+
 .PHONY: audit-receipts-local
 audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-receipt-drift.php';" --user=admin
@@ -111,6 +115,10 @@ e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Te
 .PHONY: e2e-loyalty-local
 e2e-loyalty-local: ## Teste l'acquisition de fidélité (crédit/contre-passation des pots) au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-loyalty-on-complete.php';" --user=admin
+
+.PHONY: e2e-backfill-loyalty-local
+e2e-backfill-loyalty-local: ## Teste le backfill de fidélité (rétro-crédit des commandes déjà terminées, simulation puis réel, idempotence)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-backfill-loyalty.php';" --user=admin
 
 .PHONY: e2e-exclusion-local
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
