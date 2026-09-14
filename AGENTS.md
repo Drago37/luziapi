@@ -473,7 +473,9 @@ Decisions made deliberately — do not undo them without discussing:
   SMS needs an e-mail **and** a mobile; without an e-mail the panel stays read-only. Port
   `Newsletter/Application/Port/SubscriberWriter` + `BrevoSubscriberWriter` (create/update contact,
   list 2, SMS attribute, blacklists; busts the read cache) + `UpdateSubscription` command/handler;
-  admin-post action `luziapi_update_subscription`. Unit tests + e2e
+  admin-post action `luziapi_update_subscription`. **The write is confirmed by a read-back** (GET the
+  contact after the POST): success is reported only if the stored state matches the request, and the
+  confirmed state is shown in the notice. Unit tests + e2e
   `make e2e-subscription-write-local` / `-prod` (Brevo calls intercepted, no contact touched).
   _GDPR:_ direct opt-in assumes consent was collected offline; revisit (double opt-in) if needed.
 

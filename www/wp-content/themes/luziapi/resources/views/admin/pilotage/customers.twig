@@ -17,7 +17,7 @@
     {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
     {% if notice == 'profile_updated' %}<div class="notice notice-success inline"><p>La fiche du client a été enregistrée.</p></div>{% endif %}
     {% if notice == 'profile_error' %}<div class="notice notice-error inline"><p>La fiche n’a pas pu être enregistrée.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
-    {% if notice == 'subscription_updated' %}<div class="notice notice-success inline"><p>L’abonnement a été mis à jour dans Brevo.</p></div>{% endif %}
+    {% if notice == 'subscription_updated' %}<div class="notice notice-success inline"><p>L’abonnement a été mis à jour dans Brevo.{% if notice_detail %} <strong>{{ notice_detail|e }}</strong>{% endif %}</p></div>{% endif %}
     {% if notice == 'subscription_error' %}<div class="notice notice-error inline"><p>L’abonnement n’a pas pu être mis à jour.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 

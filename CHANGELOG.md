@@ -25,8 +25,10 @@ _Nothing yet._
 - Subscription panel (e-mail / SMS) on the customer fiche, matched by e-mail and normalized phone
   against Brevo, and **editable**: ticking subscribes, unticking unsubscribes — written directly to
   Brevo (no double opt-in; consent is assumed collected by the shop owner). SMS needs an e-mail (the
-  Brevo contact identifier) and a mobile number. Unit tests + integration e2e
-  (`make e2e-subscription-write-local` / `-prod`, Brevo calls intercepted — no contact touched).
+  Brevo contact identifier) and a mobile number. After writing, the contact is **read back** to
+  confirm the state Brevo actually stored — success is reported only if it matches, and the confirmed
+  state is shown in the notice. Unit tests + integration e2e (`make e2e-subscription-write-local` /
+  `-prod`, Brevo calls intercepted — no contact touched).
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).

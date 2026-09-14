@@ -89,18 +89,23 @@ final readonly class CustomersController
             $customer = $directory->selectedCustomer;
             $rawPhone = $customer->phones[0] ?? '';
             $phone = '' !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : '';
-            $this->subscriptions->handle(new UpdateSubscriptionCommand(
+            $confirmed = $this->subscriptions->handle(new UpdateSubscriptionCommand(
                 $customer->emails[0] ?? '',
                 $phone,
                 isset($_POST['sub_email']),
                 isset($_POST['sub_sms']),
+            ));
+            $this->rememberDetail('customers', sprintf(
+                'Confirmé côté Brevo — e-mail : %s · SMS : %s',
+                $confirmed->emailSubscribed ? 'abonné' : 'désabonné',
+                $confirmed->smsSubscribed ? 'abonné' : 'désabonné',
             ));
             $this->activity->record(
                 ActivityCategory::Customer,
                 'customer_subscription_updated',
                 'customer_subscription',
                 null,
-                'Abonnement client mis à jour (Brevo)',
+                'Abonnement client mis à jour et confirmé (Brevo)',
                 [],
                 get_current_user_id(),
             );
