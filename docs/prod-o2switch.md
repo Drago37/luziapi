@@ -623,6 +623,29 @@ suppression de l'**ancienne page « Répertoire clients »** (le `require` retir
 fichier `inc/customer-directory.php` retiré du serveur à la main, non géré par le deploy delta).
 ② « doublons » : la page « Clients » (projection) était déjà propre — c'était l'ancienne page.
 
+_Évolution de suivi le 14 septembre 2026 (commits `7d9614f` + `9c15bf4`, PR #27 mergée dans
+`release/1.2.0` **encore ouverte**, delta `7a88bf8 → c28d7d0`, 18 fichiers, **18/18 SHA**, OPcache
+vidé, prod saine, CI verte sur `c28d7d0`) :_
+
+- **① Fiche client entièrement éditable** — remplace l'édition v1 (qui écrivait sur les commandes).
+  Le formulaire « Modifier la fiche client » édite prénom, nom, société, adresse postale, code
+  postal, ville, pays, e-mail, téléphone, stockés dans une **table dédiée `luziapi_customer_profiles`**
+  (indexée par identité, comme la catégorie) qui **surcharge l'affichage sans réécrire les commandes**
+  (factures et historique préservés ; une fiche vide retombe sur les données des commandes). La
+  correction d'**une** commande précise passe par l'édition **native WooCommerce**.
+- **② Autocomplétion d'adresse** via la **Base Adresse Nationale** (`api-adresse.data.gouv.fr`,
+  gratuite, sans clé), **côté serveur** via l'endpoint admin-ajax `luziapi_address_search` (nonce +
+  capability `edit_shop_orders`) — amélioration progressive, saisie manuelle toujours possible.
+- **Migration de schéma `v8 → v9`** : la table `luziapi_customer_profiles` se crée automatiquement au
+  premier chargement admin après déploiement (`PilotageSchemaManager`, `dbDelta` idempotent).
+- **Fichiers orphelins** du chemin v1 retiré (`UpdateCustomerContactCommand/Handler`,
+  `CustomerContactWriter`, `WooCommerceCustomerContactWriter`) : encore présents sur le serveur, **non
+  référencés donc sans impact** ; à retirer à la main (le deploy delta ne gère pas les suppressions).
+- Vérifs prod dédiées : `make verify-prod`, `make e2e-customer-profile-prod`,
+  `make e2e-address-lookup-prod` (appels BAN interceptés, commande/fiche de test isolées, tout nettoyé).
+- Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
+  toujours ouverte).
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
