@@ -225,6 +225,30 @@ rendue dans les deux variantes (HTML + texte).
   (avantage consommé, borné au disponible). Tests `make e2e-offered-pot-local` /
   `e2e-offered-pot-prod`.
 
+## Lot 4 — page publique, légal et backfill rétroactif (PR #35)
+
+- **Page publique « Programme de fidélité »** (`templates/page-programme-de-fidelite.twig`, slug
+  `programme-de-fidelite`, routée par `page.php`) : intro conviviale + **règles complètes**
+  (13 sections), imprimable en PDF durable. Les chiffres (seuil, validité) sont lus du domaine via
+  `luziapi_loyalty_program_numbers()` (`inc/loyalty-legal.php`), jamais codés en dur. Lien au footer
+  (FR + EN). **Le règlement versionné** vit dans cette page (source unique) + un PDF immuable
+  `assets/docs/LuziApi-Reglement-Fidelite-<version>.pdf` (constante `LUZIAPI_LOYALTY_REGLEMENT_*`).
+- **CGV** : nouvelle version `2026-09-14-v4` + section « 14. Programme de fidélité » renvoyant au
+  règlement ; `luziapi_cgv_pdf_url()` masque le bouton si le PDF n'est pas déposé (plus de 404).
+  **Politique de confidentialité** : finalité fidélisation, base légale (intérêt légitime, ≠
+  consentement newsletter), conservation.
+- **Backfill rétroactif durci** (`tools/backfill-loyalty.php`) : il ignore désormais toute commande
+  ayant **déjà la moindre écriture** au journal (`LoyaltyLedger::hasEntryForOrder`), et non plus la
+  seule clé `credit:{orderId}` — le moteur live créditant par réconciliation (`reconcile-*`), l'ancien
+  test aurait **doublé** les pots d'une commande récente. Ciblable par IDs (isolation / rollout).
+  Runner **PROD** à jeton `scripts/backfill-loyalty-prod.sh` (`make backfill-loyalty-prod`) :
+  **simulation par défaut**, écrit seulement avec `APPLY=1`. e2e `make e2e-backfill-loyalty-local`
+  (dont non-régression du double comptage).
+
 ## Reste à faire
 
-- **Communication de lancement** (action non-code, à préparer et valider ensemble).
+- **Déploiement** (checklist PR #35) : créer la page WP de slug `programme-de-fidelite` en prod ;
+  vérifier que les pots au catalogue sont cochés « admissibles » ; lancer le backfill en 2 temps
+  (simulation puis `APPLY=1`) après déploiement + feu vert.
+- **Communication de lancement** (action non-code, à préparer et valider ensemble ; brouillons
+  gardés hors dépôt). Rappel : la 1ʳᵉ publication d'un article déclenche l'auto-envoi newsletter.
