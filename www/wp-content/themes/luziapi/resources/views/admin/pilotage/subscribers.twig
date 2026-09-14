@@ -1,0 +1,61 @@
+<div class="wrap luziapi-pilotage">
+    <div class="luziapi-pilotage__header">
+        <div>
+            <p class="luziapi-pilotage__eyebrow">Newsletter · Brevo</p>
+            <h1>Abonnés</h1>
+            <p>Inscrits à la newsletter par e-mail et, en plus, par SMS. Données en <strong>lecture seule</strong> — la gestion (ajout, désinscription, envois) se fait dans <a href="{{ brevo_url|e('html_attr') }}" target="_blank" rel="noopener">Brevo</a>.</p>
+        </div>
+    </div>
+
+    {% include '@luziapi_admin/pilotage/_nav.twig' %}
+
+    {% if not configured %}
+        <section class="luziapi-pilotage__panel">
+            <p>Abonnés indisponibles : la clé API Brevo n’est pas configurée sur cet environnement (attendue dans l’option <code>sib_api_key_v3</code>). En local, c’est normal — la liste s’affiche en production.</p>
+        </section>
+    {% else %}
+        <div class="luziapi-pilotage__metrics" aria-label="Abonnés">
+            {% for metric in metrics %}
+                <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
+            {% endfor %}
+        </div>
+
+        <form class="luziapi-pilotage__period" action="{{ page_url|e('html_attr') }}" method="get">
+            <input type="hidden" name="page" value="luziapi-pilotage"><input type="hidden" name="tab" value="subscribers">
+            <label for="luziapi-subscribers-search">Rechercher</label>
+            <input type="search" id="luziapi-subscribers-search" name="s" value="{{ search|e('html_attr') }}" placeholder="e-mail ou numéro">
+            <button class="button" type="submit">Rechercher</button>
+        </form>
+
+        <section class="luziapi-pilotage__panel">
+            {% if subscribers is empty %}
+                <p>{% if search %}Aucun abonné ne correspond à « {{ search|e }} ».{% else %}Aucun abonné pour l’instant.{% endif %}</p>
+            {% else %}
+                <div class="luziapi-pilotage__table-wrap">
+                    <table class="widefat striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">E-mail</th>
+                                <th scope="col">Statut e-mail</th>
+                                <th scope="col">Mobile</th>
+                                <th scope="col">Statut SMS</th>
+                                <th scope="col">Inscrit le</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in subscribers %}
+                                <tr>
+                                    <td>{% if row.email %}{{ row.email|e }}{% else %}<span aria-hidden="true">—</span>{% endif %}</td>
+                                    <td>{% if not row.email %}<span aria-hidden="true">—</span>{% elseif row.email_blocked %}<span class="luziapi-pilotage__badge luziapi-pilotage__badge--warning">Bloqué</span>{% else %}<span class="luziapi-pilotage__badge">Abonné</span>{% endif %}</td>
+                                    <td>{{ row.phone|e }}</td>
+                                    <td>{% if not row.phone %}<span aria-hidden="true">—</span>{% elseif row.sms_blocked %}<span class="luziapi-pilotage__badge luziapi-pilotage__badge--warning">Bloqué</span>{% else %}<span class="luziapi-pilotage__badge">Abonné</span>{% endif %}</td>
+                                    <td>{{ row.date|e }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>

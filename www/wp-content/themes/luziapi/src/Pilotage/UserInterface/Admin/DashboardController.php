@@ -83,6 +83,8 @@ final readonly class DashboardController
         ));
 
         Timber::render('@luziapi_admin/pilotage/dashboard.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('dashboard'),
             'year'              => $summary->year,
             'available_years'   => $dashboard->availableYears,
             'page_url'          => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),

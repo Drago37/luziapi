@@ -14,8 +14,10 @@
 #     explicitement le dernier commit déployé.
 #   - Après un déploiement réussi, HEAD est enregistré dans scripts/.last-deploy.
 #
-# GARDE DE DÉPLOIEMENT (bloquante) : on ne déploie QUE si le code est poussé sur
-# main ET que la CI est verte sur HEAD. Sinon on refuse.
+# GARDE DE DÉPLOIEMENT (bloquante) : on ne déploie QUE depuis main, release/* ou
+# hotfix/*, avec la branche poussée (synchro avec son origin) ET la CI verte sur HEAD.
+# Sinon on refuse. Le flux release déploie depuis la branche release/* encore ouverte ;
+# le merge dans main + le tag suivent, après le déploiement, sur feu vert explicite.
 
 set -euo pipefail
 
@@ -47,24 +49,45 @@ done
 # --- Garde 1 : arbre propre ------------------------------------------------
 [[ -z "$(git status --porcelain)" ]] || die "Arbre de travail non propre — commit/stash avant de déployer."
 
-# --- Garde 2 : code poussé sur main (rien en avance ni en retard) -----------
+# --- Garde 2 : branche autorisée, poussée (rien en avance ni en retard) ------
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-[[ "$BRANCH" == "main" ]] || die "Déploiement uniquement depuis main (branche courante : $BRANCH)."
-git fetch --quiet origin main
+# On déploie depuis `main` (prod à jour) OU depuis une branche `release/*` / `hotfix/*`
+# encore ouverte : c'est le nouveau flux (la release reste ouverte pendant le déploiement,
+# on garde le changelog et on peut corriger sur la branche ; le merge dans `main` + le tag
+# n'ont lieu qu'après le déploiement, sur feu vert explicite).
+case "$BRANCH" in
+  main | release/* | hotfix/*) ;;
+  *) die "Déploiement uniquement depuis main, release/* ou hotfix/* (branche courante : $BRANCH)." ;;
+esac
+git fetch --quiet origin "$BRANCH"
 LOCAL_SHA="$(git rev-parse @)"
 REMOTE_SHA="$(git rev-parse @{u})"
-[[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || die "main n'est pas synchronisé avec origin/main — pousse (ou pull) avant de déployer."
+[[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || die "$BRANCH n'est pas synchronisé avec origin/$BRANCH — pousse (ou pull) avant de déployer."
 
 # --- Garde 3 : CI verte sur HEAD -------------------------------------------
-RUN="$(gh run list --branch main --workflow "$WORKFLOW" --limit 20 \
+RUN="$(gh run list --branch "$BRANCH" --workflow "$WORKFLOW" --limit 20 \
         --json headSha,status,conclusion,databaseId \
         | jq -c --arg sha "$LOCAL_SHA" 'map(select(.headSha == $sha)) | first')"
-[[ "$RUN" != "null" && -n "$RUN" ]] || die "Aucun run CI « $WORKFLOW » pour HEAD ($LOCAL_SHA) — attends que la CI démarre/finisse."
-STATUS="$(jq -r '.status' <<<"$RUN")"
-CONCLUSION="$(jq -r '.conclusion' <<<"$RUN")"
-[[ "$STATUS" == "completed" ]]  || die "CI pas terminée sur HEAD (status=$STATUS) — attends la fin de la CI."
-[[ "$CONCLUSION" == "success" ]] || die "CI NON verte sur HEAD (conclusion=$CONCLUSION) — déploiement bloqué."
-grn "✓ Gardes OK : arbre propre, main poussé, CI verte sur ${LOCAL_SHA:0:8}."
+if [[ "$RUN" != "null" && -n "$RUN" ]]; then
+  STATUS="$(jq -r '.status' <<<"$RUN")"
+  CONCLUSION="$(jq -r '.conclusion' <<<"$RUN")"
+  [[ "$STATUS" == "completed" ]]  || die "CI pas terminée sur HEAD (status=$STATUS) — attends la fin de la CI."
+  [[ "$CONCLUSION" == "success" ]] || die "CI NON verte sur HEAD (conclusion=$CONCLUSION) — déploiement bloqué."
+  grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé, CI verte sur ${LOCAL_SHA:0:8}."
+else
+  # Pas de run pour HEAD : toléré UNIQUEMENT si HEAD n'ajoute que des fichiers NON déployés
+  # (docs racine *.md et docs/) au-dessus d'un commit déjà vert — un fix doc sur une release ne
+  # déclenche pas la CI (filtre `paths`) et ne doit pas bloquer le déploiement. Tout autre
+  # changement (code du thème, scripts, tests, CI…) exige, lui, une CI verte sur HEAD.
+  GREEN_SHA="$(gh run list --branch "$BRANCH" --workflow "$WORKFLOW" --limit 30 \
+        --json headSha,status,conclusion \
+        | jq -r 'map(select(.status == "completed" and .conclusion == "success")) | first | .headSha // ""')"
+  [[ -n "$GREEN_SHA" ]] || die "Aucun run CI « $WORKFLOW » pour HEAD ($LOCAL_SHA) ni de run vert récent sur $BRANCH — attends la CI."
+  git cat-file -e "${GREEN_SHA}^{commit}" 2>/dev/null || die "Dernier run vert sur un commit absent en local ($GREEN_SHA) — fetch puis réessaie."
+  NON_DOC="$(git diff --name-only "${GREEN_SHA}..HEAD" | grep -Ev '(^|/)[^/]*\.md$' | grep -Ev '^docs/' || true)"
+  [[ -z "$NON_DOC" ]] || die "Pas de run CI pour HEAD et des fichiers non-doc ont changé depuis le dernier vert (${GREEN_SHA:0:8}) — pousse et attends la CI."
+  grn "✓ Gardes OK : arbre propre, ${BRANCH} poussé. Pas de CI sur HEAD mais seuls des fichiers non déployés (docs) ont changé depuis ${GREEN_SHA:0:8} (CI verte) — OK."
+fi
 
 # --- Base de calcul du delta -----------------------------------------------
 if [[ -z "$BASE" ]]; then
@@ -78,7 +101,7 @@ git cat-file -e "${BASE}^{commit}" 2>/dev/null || die "Base invalide : $BASE"
 # renommés — les suppressions (D) ne sont pas gérées par un upload et sont
 # signalées à part (à retirer manuellement du serveur).
 theme_code_filter() {
-  grep -Ev "^${THEME_PREFIX}/(tools|tests)/" \
+  grep -Ev "^${THEME_PREFIX}/(tools|tests|tests-js)/" \
     | grep -Ev '\.(md)$' \
     | grep -Ev "^${THEME_PREFIX}/(composer\.(json|lock)|package(-lock)?\.json|\.php-cs-fixer.*|phpstan.*)$" \
     | grep -E "^${THEME_PREFIX}/" || true

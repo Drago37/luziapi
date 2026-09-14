@@ -35,6 +35,8 @@ final readonly class ActivityController
         $formatted = array_map($this->formatEntry(...), $entries);
 
         Timber::render('@luziapi_admin/pilotage/activity.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('activity'),
             'page_url'             => $this->pageUrl(),
             'dashboard_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),

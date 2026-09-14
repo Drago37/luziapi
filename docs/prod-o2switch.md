@@ -552,6 +552,131 @@ non-éligible depuis. Bonus : supprime aussi la dépendance à l'ordre des hooks
 `..` dans la garde de chemins de `deploy-files.sh`. Contrôle d'intégrité : 8/8 fichiers de la session
 identiques prod↔repo.)
 
+## Mise en production 1.1.0 — le 13 septembre 2026
+
+Première release GitFlow depuis la 1.0.0 : branche `release/1.1.0` → `main`, **tag `1.1.0`** (sans
+préfixe `v`), back-merge dans `develop`. Déploiement **FTPS ciblé** (`deploy-files.sh --yes`), delta
+`80da506 → 776b13c`, **22 fichiers** de code du thème, aucune suppression, aucune nouvelle dépendance
+Composer. Bascule atomique `.ht-*`, **OPcache vidé**, **22/22 SHA-256 identiques** prod↔repo, contrôle
+post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`.
+
+Changements runtime en prod :
+
+- Vente : « dont offert » fait partie de la quantité (facturer total − offert) — PR #6 ;
+- ajout d'un **pot offert** (geste **ou** fidélité) à une commande **existante** depuis la fiche
+  commande — PR #7 ;
+- **recette retirée automatiquement** quand une commande passe à la corbeille ou est supprimée
+  (`WooCommerceOrphanReceiptSubscriber`) — PR #8, corrige le gonflement de l'encaissé par des recettes
+  orphelines (cf. section « Recettes orphelines… » plus haut) ;
+- version du thème `1.0.0 → 1.1.0` (`functions.php`, `style.css`).
+
+**Aucune migration de schéma.** Outillage ajouté (hors runtime, à lancer manuellement) :
+`make audit-receipts-prod` (audit de dérive recette↔commandes, lecture seule — utile pour repérer
+d'anciennes recettes orphelines) et `make verify-prod` (intégrité SHA-256 de **tout** le thème).
+Le reste de la 1.1.0 (durcissements CI — PHPStan `max`, matrice PHP 8.2/8.3, couverture, audit des
+dépendances — et passage de la doc process/agents en anglais) est sans impact prod.
+
+## Mise en production 1.2.0 — le 13 septembre 2026
+
+Déployée avec le **nouveau flux release** : depuis la branche `release/1.2.0` **encore ouverte**
+(PR #26 vers `main` non mergée pendant le déploiement), `deploy-files.sh --yes`, delta
+`776b13c → 57a2283`, **34 fichiers**, aucune suppression, aucune nouvelle dépendance Composer.
+Bascule atomique `.ht-*`, **OPcache vidé**, **34/34 SHA-256 identiques** prod↔repo, contrôle
+post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`. Merge dans `main`
++ tag `1.2.0` + back-merge `develop` faits **après** ce déploiement, sur feu vert explicite.
+
+Changements en prod :
+
+- **Tableau de pilotage — page « Abonnés »** : liste les inscrits Brevo (compteurs e-mail / SMS,
+  recherche), en **lecture seule** (la gestion reste dans Brevo). Contexte `src/Newsletter/`
+  (adaptateur Brevo lecture seule : liste 2, attribut `SMS`, blacklists, cache transient,
+  dégradation propre sans clé) — la clé API vient de l'option `sib_api_key_v3`.
+- **Fiche client** : encart d'abonnement (cases e-mail / SMS **désactivées**, appariées par
+  e-mail + téléphone normalisé).
+- Barre d'onglets du pilotage factorisée (`PilotageTabs` + `_nav.twig`).
+- Version du thème `1.1.0 → 1.2.0`.
+
+**Aucune migration de schéma.** À vérifier côté prod : la page « Abonnés » doit lister les vrais
+contacts Brevo (`make audit-receipts-prod` et `make verify-prod` restent disponibles). Le reste de
+la 1.2.0 (bascule doc→anglais, correctif filtre `tests-js`, révision du flux release) est sans
+impact prod runtime.
+
+_Correctif de suivi le 13 septembre 2026 (commit `b617af1`, `inc/order-workflow.php`, 1/1 SHA,
+OPcache vidé, prod saine) :_ le **mode de remise (retrait ⇄ livraison) redevient éditable sur les
+commandes « Terminée »** (verrou levé pour ce statut ; les autres étapes de remise et les états
+finaux restent verrouillés). Décision : seul l'exploitant modifie les commandes et doit pouvoir
+corriger a posteriori. Aussi corrigés en amont, hors prod : la désync des PDF brochure/flyer
+(réalignés en prod, `verify-prod` 300/300).
+
+_Correctif de suivi le 13 septembre 2026 (commit `8e39e79`, `inc/woocommerce.php`, 1/1 SHA, OPcache
+vidé, prod saine) :_ les métas techniques de ligne `_luziapi_offert` / `_luziapi_loyalty_reward`
+sont **masquées** de l'écran de commande admin (`woocommerce_hidden_order_itemmeta`) — seule
+l'étiquette lisible « Offert » reste visible. Ajouté aussi (hors prod) : l'inspecteur lecture seule
+`make loyalty-inspect-prod ORDER=<id>` pour diagnostiquer un comptage fidélité.
+
+_Correctif/ajout de suivi le 14 septembre 2026 (commit `7a88bf8`, 14 fichiers, 14/14 SHA, OPcache
+vidé, prod saine) :_ **① édition des coordonnées client** depuis la fiche « Clients » (e-mail /
+téléphone / ville → écrit sur les commandes du client, fusionne les doublons d'identité) ; **③ page
+Abonnés** corrigée — inclut désormais les abonnés **SMS-seuls** et affiche le **statut par canal**
+(Abonné / Bloqué e-mail et SMS) + compteurs (total, e-mail actifs, SMS actifs, bloqués) ;
+suppression de l'**ancienne page « Répertoire clients »** (le `require` retiré la fait disparaître ;
+fichier `inc/customer-directory.php` retiré du serveur à la main, non géré par le deploy delta).
+② « doublons » : la page « Clients » (projection) était déjà propre — c'était l'ancienne page.
+
+_Évolution de suivi le 14 septembre 2026 (commits `7d9614f` + `9c15bf4`, PR #27 mergée dans
+`release/1.2.0` **encore ouverte**, delta `7a88bf8 → c28d7d0`, 18 fichiers, **18/18 SHA**, OPcache
+vidé, prod saine, CI verte sur `c28d7d0`) :_
+
+- **① Fiche client entièrement éditable** — remplace l'édition v1 (qui écrivait sur les commandes).
+  Le formulaire « Modifier la fiche client » édite prénom, nom, société, adresse postale, code
+  postal, ville, pays, e-mail, téléphone, stockés dans une **table dédiée `luziapi_customer_profiles`**
+  (indexée par identité, comme la catégorie) qui **surcharge l'affichage sans réécrire les commandes**
+  (factures et historique préservés ; une fiche vide retombe sur les données des commandes). La
+  correction d'**une** commande précise passe par l'édition **native WooCommerce**.
+- **② Autocomplétion d'adresse** via la **Base Adresse Nationale** (`api-adresse.data.gouv.fr`,
+  gratuite, sans clé), **côté serveur** via l'endpoint admin-ajax `luziapi_address_search` (nonce +
+  capability `edit_shop_orders`) — amélioration progressive, saisie manuelle toujours possible.
+- **Migration de schéma `v8 → v9`** : la table `luziapi_customer_profiles` se crée automatiquement au
+  premier chargement admin après déploiement (`PilotageSchemaManager`, `dbDelta` idempotent).
+- **Fichiers orphelins** du chemin v1 retiré (`UpdateCustomerContactCommand/Handler`,
+  `CustomerContactWriter`, `WooCommerceCustomerContactWriter`) : **retirés du serveur à la main** en
+  FTPS le 14 septembre 2026 (le deploy delta ne gère pas les suppressions) ; `verify-prod` 311/311.
+- Vérifs prod dédiées : `make verify-prod`, `make e2e-customer-profile-prod`,
+  `make e2e-address-lookup-prod` (appels BAN interceptés, commande/fiche de test isolées, tout nettoyé).
+
+_Suite le 14 septembre 2026 (commits `c550afa` + `51e5833`, PR #29 + #30 mergées dans
+`release/1.2.0` **encore ouverte**, delta `c28d7d0 → 63c1785`, 8 fichiers, **8/8 SHA**, OPcache vidé,
+prod saine, CI verte sur `63c1785`) — **abonnement Brevo éditable depuis la fiche client** :_
+
+- L'encart abonnement (e-mail / SMS) devient **inscriptible** : cocher inscrit, décocher désinscrit,
+  **écrit directement dans Brevo** (`emailBlacklisted` / `smsBlacklisted`, liste 2, attribut `SMS`) —
+  **opt-in direct, sans double opt-in** (consentement réputé recueilli hors ligne). Le contact étant
+  identifié par e-mail, le SMS exige un e-mail **et** un mobile ; sans e-mail l'encart reste en lecture
+  seule.
+- **Confirmation par relecture** : après l'écriture, le contact est **relu** (GET) ; le message de
+  succès n'apparaît que si l'état confirmé correspond à la demande, et l'affiche
+  (« Confirmé côté Brevo — e-mail : … · SMS : … »).
+- Code : `Newsletter/Application/Port/SubscriberWriter` + `BrevoSubscriberWriter` + `UpdateSubscription`
+  (command/handler) ; action admin-post `luziapi_update_subscription`. Vérif prod dédiée :
+  `make e2e-subscription-write-prod` (appels Brevo interceptés, aucun contact touché).
+- **RGPD** : l'opt-in direct suppose le consentement recueilli hors ligne ; repasser en double opt-in
+  si besoin.
+
+_Suite le 14 septembre 2026 (commit `b1c5e28`, PR #32 mergée dans `release/1.2.0` **encore
+ouverte**, delta `63c1785 → 8b63de0`, 5 fichiers, **5/5 SHA**, OPcache vidé, prod saine) — ergonomie
+de l'édition client :_
+
+- **Formulaire d'édition sur 2 colonnes** (1 colonne sous 782 px) et **catégorie client intégrée au
+  formulaire** : « Enregistrer la fiche » sauvegarde désormais coordonnées **et** catégorie en une
+  seule action (l'ancien formulaire de catégorie séparé est retiré).
+- **Autocomplétion d'adresse nationale, sans règle** : biais de proximité retiré, filtre
+  `type=housenumber` retiré (les voies seules remontent aussi), liste élargie (10, plafond 15). Une
+  même voie présente dans plusieurs communes (ex. « 10 rue de Loches », 6ᵉ au national, à Luzillé)
+  redevient accessible — on choisit sur le code postal. `make e2e-address-lookup-prod` valide la
+  requête (appels BAN interceptés).
+- Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
+  toujours ouverte).
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.

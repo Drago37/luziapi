@@ -9,14 +9,20 @@ use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandl
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
+use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
+use LuziApi\Pilotage\Application\Command\SaveCustomerProfile\SaveCustomerProfileCommand;
+use LuziApi\Pilotage\Application\Command\SaveCustomerProfile\SaveCustomerProfileHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
+use LuziApi\Pilotage\Domain\Customer\CustomerBilling;
 use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
@@ -50,6 +56,9 @@ final readonly class CustomersController
         private ?GetCustomerLoyaltyHandler $getLoyalty = null,
         private ?ApplyThankYouDiscountHandler $applyDiscount = null,
         private ?AdjustLoyaltyPotsHandler $adjustPots = null,
+        private ?SubscriberDirectory $subscribers = null,
+        private ?SaveCustomerProfileHandler $saveProfile = null,
+        private ?UpdateSubscriptionHandler $subscriptions = null,
     ) {
     }
 
@@ -58,6 +67,146 @@ final readonly class CustomersController
         add_action('admin_post_luziapi_assign_customer_category', [$this, 'assignCategory']);
         add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
         add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
+        add_action('admin_post_luziapi_save_customer_profile', [$this, 'saveCustomerProfile']);
+        add_action('admin_post_luziapi_update_subscription', [$this, 'updateSubscription']);
+    }
+
+    public function updateSubscription(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_update_subscription');
+        $rawCustomer = wp_unslash($_POST['customer_id'] ?? '');
+        $customerId = is_string($rawCustomer) ? sanitize_key($rawCustomer) : '';
+
+        try {
+            if (! $this->subscriptions instanceof UpdateSubscriptionHandler) {
+                throw new \RuntimeException('Gestion des abonnements indisponible.');
+            }
+            $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+            if (! $directory->selectedCustomer instanceof CustomerProfile) {
+                throw new \InvalidArgumentException('Client introuvable.');
+            }
+            $customer = $directory->selectedCustomer;
+            // Source unique : les coordonnées de la fiche (fiche dédiée ou dernière
+            // commande) — pour pouvoir créer un contact absent de Brevo (« Ajouter »).
+            $billing = $this->billingObjectFor($customer);
+            $rawPhone = '' !== $billing->phone ? $billing->phone : ($customer->phones[0] ?? '');
+            $phone = '' !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : '';
+            $email = '' !== $billing->email ? $billing->email : ($customer->emails[0] ?? '');
+            $confirmed = $this->subscriptions->handle(new UpdateSubscriptionCommand(
+                $email,
+                $phone,
+                isset($_POST['sub_email']),
+                isset($_POST['sub_sms']),
+                $billing->firstName,
+                $billing->lastName,
+            ));
+            $this->rememberDetail('customers', sprintf(
+                'Confirmé côté Brevo — e-mail : %s · SMS : %s',
+                $confirmed->emailSubscribed ? 'abonné' : 'désabonné',
+                $confirmed->smsSubscribed ? 'abonné' : 'désabonné',
+            ));
+            $this->activity->record(
+                ActivityCategory::Customer,
+                'customer_subscription_updated',
+                'customer_subscription',
+                null,
+                'Abonnement client mis à jour et confirmé (Brevo)',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'subscription_updated');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'customer_subscription_update_failed',
+                'customer_subscription',
+                null,
+                'Mise à jour d’abonnement client échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'subscription_error');
+        }
+    }
+
+    public function saveCustomerProfile(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_save_customer_profile');
+        $rawCustomer = wp_unslash($_POST['customer_id'] ?? '');
+        $customerId = is_string($rawCustomer) ? sanitize_key($rawCustomer) : '';
+
+        try {
+            if (! $this->saveProfile instanceof SaveCustomerProfileHandler) {
+                throw new \RuntimeException('Édition de la fiche client indisponible.');
+            }
+            $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+            if (! $directory->selectedCustomer instanceof CustomerProfile) {
+                throw new \InvalidArgumentException('Client introuvable.');
+            }
+            $identityIds = $directory->selectedCustomer->identityIds;
+            $this->saveProfile->handle(new SaveCustomerProfileCommand(
+                $identityIds,
+                $this->readBilling(),
+                get_current_user_id(),
+            ));
+            // La catégorie est éditée dans le MÊME formulaire (une seule sauvegarde).
+            $rawCategory = wp_unslash($_POST['category'] ?? '');
+            $category = CustomerCategory::tryFrom(is_string($rawCategory) ? sanitize_key($rawCategory) : '');
+            if ($category instanceof CustomerCategory) {
+                $this->assignCategory->handle(new AssignCustomerCategoryCommand($identityIds, $category, get_current_user_id()));
+            }
+            $this->activity->record(
+                ActivityCategory::Customer,
+                'customer_profile_saved',
+                'customer_profile',
+                null,
+                'Fiche client mise à jour',
+                [],
+                get_current_user_id(),
+            );
+            // L'identité ne change pas (la fiche surcharge l'affichage sans réécrire
+            // les commandes) : on revient sur la fiche du client.
+            $this->redirectAfterCategory($customerId, 'profile_updated');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'customer_profile_save_failed',
+                'customer_profile',
+                null,
+                'Mise à jour de la fiche client échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'profile_error');
+        }
+    }
+
+    private function readBilling(): CustomerBilling
+    {
+        $text = static function (string $field): string {
+            $raw = wp_unslash($_POST[$field] ?? '');
+
+            return is_string($raw) ? sanitize_text_field($raw) : '';
+        };
+        $rawEmail = wp_unslash($_POST['billing_email'] ?? '');
+        $rawCountry = wp_unslash($_POST['billing_country'] ?? '');
+
+        return new CustomerBilling(
+            $text('billing_first_name'),
+            $text('billing_last_name'),
+            $text('billing_company'),
+            $text('billing_address_1'),
+            $text('billing_address_2'),
+            $text('billing_postcode'),
+            $text('billing_city'),
+            is_string($rawCountry) ? strtoupper(sanitize_text_field($rawCountry)) : '',
+            is_string($rawEmail) ? sanitize_email($rawEmail) : '',
+            $text('billing_phone'),
+        );
     }
 
     public function adjustLoyaltyPots(): void
@@ -156,6 +305,8 @@ final readonly class CustomersController
         $quickSaleUrl = admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=quick-sale');
 
         Timber::render('@luziapi_admin/pilotage/customers.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('customers'),
             'page_url'          => $pageUrl,
             'dashboard_url'     => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'      => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),
@@ -174,6 +325,9 @@ final readonly class CustomersController
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
             'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
             'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
+            'profile_nonce'     => wp_create_nonce('luziapi_save_customer_profile'),
+            'address_nonce'     => wp_create_nonce('luziapi_address_search'),
+            'subscription_nonce' => wp_create_nonce('luziapi_update_subscription'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
@@ -274,8 +428,114 @@ final readonly class CustomersController
         $formatted = $this->formatCustomer($customer);
         $formatted['orders'] = array_map($this->formatOrder(...), $customer->orders);
         $formatted['loyalty'] = $this->formatLoyalty($customer);
+        $formatted['subscription'] = $this->subscriptionStatus($customer);
+        $formatted['billing'] = $this->billingFor($customer);
 
         return $formatted;
+    }
+
+    /**
+     * Coordonnées à afficher et à préremplir dans le formulaire d'édition : la fiche
+     * dédiée si elle existe, sinon un brouillon issu de la dernière commande (lecture
+     * WooCommerce directe — aucune écriture).
+     *
+     * @return array<string, string>
+     */
+    private function billingFor(CustomerProfile $customer): array
+    {
+        $override = $customer->billingOverride;
+        $hasOverride = $override instanceof CustomerBilling && ! $override->isEmpty();
+        $billing = $this->billingObjectFor($customer);
+
+        return [
+            'first_name' => $billing->firstName,
+            'last_name'  => $billing->lastName,
+            'company'    => $billing->company,
+            'address_1'  => $billing->address1,
+            'address_2'  => $billing->address2,
+            'postcode'   => $billing->postcode,
+            'city'       => $billing->city,
+            'country'    => '' !== $billing->country ? $billing->country : 'FR',
+            'email'      => $billing->email,
+            'phone'      => $billing->phone,
+            'has_override' => $hasOverride ? '1' : '',
+        ];
+    }
+
+    /**
+     * Coordonnées de la fiche sous forme d'objet : la fiche dédiée si elle existe,
+     * sinon le brouillon issu de la dernière commande.
+     */
+    private function billingObjectFor(CustomerProfile $customer): CustomerBilling
+    {
+        $billing = $customer->billingOverride;
+        if (! $billing instanceof CustomerBilling || $billing->isEmpty()) {
+            $billing = $this->draftFromLastOrder($customer);
+        }
+
+        return $billing;
+    }
+
+    private function draftFromLastOrder(CustomerProfile $customer): CustomerBilling
+    {
+        $order = wc_get_order($customer->lastOrder()->id);
+        if (! $order instanceof \WC_Order) {
+            return new CustomerBilling(
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                $customer->city,
+                'FR',
+                $customer->emails[0] ?? '',
+                $customer->phones[0] ?? '',
+            );
+        }
+
+        return new CustomerBilling(
+            $order->get_billing_first_name(),
+            $order->get_billing_last_name(),
+            $order->get_billing_company(),
+            $order->get_billing_address_1(),
+            $order->get_billing_address_2(),
+            $order->get_billing_postcode(),
+            $order->get_billing_city(),
+            '' !== $order->get_billing_country() ? $order->get_billing_country() : 'FR',
+            $order->get_billing_email(),
+            $order->get_billing_phone(),
+        );
+    }
+
+    /**
+     * État d'abonnement (Brevo, lecture seule) du client affiché. `available` = false
+     * quand le répertoire n'est pas configuré (dev sans clé) : l'encart est alors masqué.
+     *
+     * @return array{available: bool, known: bool, email: bool, sms: bool, writable: bool, has_phone: bool}
+     */
+    private function subscriptionStatus(CustomerProfile $customer): array
+    {
+        if (! $this->subscribers instanceof SubscriberDirectory || ! $this->subscribers->isConfigured()) {
+            return ['available' => false, 'known' => false, 'email' => false, 'sms' => false, 'writable' => false, 'has_phone' => false];
+        }
+
+        $email = $customer->emails[0] ?? null;
+        $rawPhone = $customer->phones[0] ?? null;
+        $phone = null !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : null;
+
+        $status = $this->subscribers->statusFor($email, $phone);
+
+        return [
+            'available' => true,
+            'known'     => null !== $status,
+            'email'     => null !== $status && $status->emailSubscribed,
+            'sms'       => null !== $status && $status->smsSubscribed,
+            // Inscriptible seulement si l'écriture Brevo est câblée ET qu'on a un e-mail
+            // (identifiant du contact). Sans e-mail, l'encart reste en lecture seule.
+            'writable'  => $this->subscriptions instanceof UpdateSubscriptionHandler && null !== $email && '' !== $email,
+            'has_phone' => null !== $phone && '' !== $phone,
+        ];
     }
 
     /**

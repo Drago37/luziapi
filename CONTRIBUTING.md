@@ -1,70 +1,91 @@
-# Contribuer à LuziApi
+# Contributing to LuziApi
 
-Ce document décrit les conventions techniques du projet. Il s'adresse aux développeurs comme aux
-agents IA. Lire également `AGENTS.md` avant toute intervention : il contient les règles de
-collaboration, de publication et de déploiement propres à LuziApi.
+This document describes the project's technical conventions. It is intended for developers as well
+as AI agents. Also read `AGENTS.md` before any intervention: it contains the collaboration,
+publication and deployment rules specific to LuziApi.
 
-## Flux Git — GitFlow (OBLIGATOIRE depuis la 1.0.0)
+## Git flow — GitFlow (MANDATORY since 1.0.0)
 
-Le projet est **en production depuis la 1.0.0** (11 septembre 2026) : la phase alpha/bêta où l'on
-committait directement sur `main` est **terminée**. À partir de maintenant, **GitFlow est obligatoire**,
-y compris pour les agents IA. **Ne jamais committer ni pousser directement sur `main`.**
+The project has been **in production since 1.0.0** (11 September 2026): the alpha/beta phase where
+work was committed directly to `main` is **over**. From now on, **GitFlow is mandatory**, including
+for AI agents. **Never commit or push directly to `main`.**
 
-**Branches :**
+**Branches:**
 
-- **`main`** = production. Ne reçoit QUE des merges de `release/*` ou `hotfix/*`, et **chaque merge est
-  tagué `X.Y.Z`** (sans préfixe `v`). Le HEAD de `main` est l'état déployé. Aucun commit direct.
-- **`develop`** = intégration. Base de toutes les fonctionnalités ; c'est là que le travail courant
-  s'accumule entre deux releases.
-- **`feature/<slug>`** : partent de `develop`, y retournent par **Pull Request** (jamais de merge direct).
-- **`release/X.Y.Z`** : partent de `develop` pour préparer une version (gel, bump de version,
-  changelog) → merge dans `main` (**tag**) **puis** back-merge dans `develop`.
-- **`hotfix/X.Y.Z`** : partent de `main` pour un correctif urgent de prod → merge dans `main` (**tag**)
-  **puis** dans `develop`.
+- **`main`** = production. Receives ONLY merges from `release/*` or `hotfix/*`, and **every merge is
+  tagged `X.Y.Z`** (without a `v` prefix). The HEAD of `main` is the deployed state. No direct commits.
+- **`develop`** = integration. Base for all features; this is where day-to-day work accumulates
+  between two releases.
+- **`feature/<slug>`**: branch off `develop` and return to it through a **Pull Request** (never a direct merge).
+- **`release/X.Y.Z`**: branch off `develop` to prepare a version (version bump, and **compose the
+  `CHANGELOG.md` `[X.Y.Z]` section on this branch** from the PRs merged since the last tag —
+  feature PRs do **not** edit the changelog) and open a PR to `main`. **Deploy to production from the still-open release branch**
+  (`scripts/deploy-files.sh` allows `release/*`), then — **only after** the deployment succeeds and
+  on an **explicit go-ahead** — merge into `main` (**tag**) and back-merge into `develop`.
+- **`hotfix/X.Y.Z`**: branch off `main` for an urgent production fix, deploy from the hotfix branch,
+  then merge into `main` (**tag**) and into `develop`.
 
-**Règles :**
+> **The release PR stays open during deployment.** It is not merged automatically: deploying from
+> the release branch keeps the frozen changelog available for the production write-up and lets us
+> push fixes onto the branch if the deployment surfaces a problem. The merge into `main` + tag are a
+> **separate, human-approved step after a successful deployment** — an agent asks and waits for the
+> go-ahead, it never merges the release on its own.
 
-1. Toute modification passe par une branche puis une **Pull Request** (utiliser la skill `/create-pr`).
-   Jamais de push direct sur `main` **ni** sur `develop` (règle globale : pas de push direct sur les
-   branches partagées).
-2. **Versionnage sémantique** `MAJEUR.MINEUR.CORRECTIF` (tags **sans** préfixe `v`). La prod est fixée à **`1.0.0`**.
-3. **Commits et documentation en français** ; **jamais** de trailer `Co-Authored-By` (préférence de longue date).
-4. **Déploiement** : on ne déploie que depuis `main`, après merge d'une release/hotfix, CI verte et
-   feu vert explicite (voir la garde de déploiement dans `AGENTS.md`). `scripts/deploy-files.sh`
-   refuse de déployer si `main` n'est pas synchro et la CI verte.
+> **The back-merge of `main` into `develop` is AUTOMATIC**: it is an integral part of closing out a
+> release or a hotfix (`main` tagged → back to `develop`), it is **not** a change to be reviewed. An
+> agent performs it **without asking for confirmation**, right after the tag:
+> `git checkout develop && git merge --no-ff origin/main && git push origin develop`. Never leave
+> `main` ahead of `develop`. This is the **only** exception to "no direct push to `develop`": it only
+> reintroduces what was just tagged on `main`. **Deployment**, on the other hand, remains subject to
+> an explicit go-ahead (see the deployment gate).
 
-> Cette section **remplace** l'ancienne règle « commit direct sur `main` » : elle n'a plus cours.
+**Rules:**
 
-### Conventions de Pull Request
+1. Every change goes through a branch and then a **Pull Request** (use the `/create-pr` skill).
+   Never push directly to `main` **or** to `develop` — **except** the automatic end-of-release/hotfix
+   back-merge described above, the only exception.
+2. **Semantic versioning** `MAJOR.MINOR.PATCH` (tags **without** a `v` prefix). Production is pinned at **`1.0.0`**.
+3. **Agent and process docs (`AGENTS.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `CHANGELOG.md`), commit
+   messages and pull requests are in English**; business and technical documentation stays in French
+   (`README.md`, `DEPLOIEMENT.md` and everything under `docs/`, including the nested README files).
+   Code stays in English. **Never** a `Co-Authored-By` trailer (long-standing preference).
+4. **Deployment**: we deploy from `main`, or from a still-open `release/*` / `hotfix/*` branch
+   (see the release flow above), with the branch pushed (in sync with its origin), a green CI on
+   HEAD and an **explicit go-ahead** (see the deployment gate in `AGENTS.md`).
+   `scripts/deploy-files.sh` enforces this and refuses otherwise.
 
-- **Titre et description en anglais** (le reste — commits, code, documentation — reste en français ;
-  cette règle ne concerne que la PR elle-même). Le titre suit le format *conventional commit* et sert
-  de titre au commit de squash au merge.
-- **Assignée à son auteur** (assignee = la personne qui ouvre la PR).
-- **Labellisée selon son type** : `bug` (correctif), `enhancement` (nouveauté), `documentation`
-  (doc seule), etc. — choisir le(s) label(s) qui existe(nt) dans le dépôt.
-- Ouverte via la skill `/create-pr`, qui applique ces conventions.
+> This section **replaces** the former "direct commit on `main`" rule: it no longer applies.
 
-## Architecture cible
+### Pull Request conventions
 
-Le code PHP métier de LuziApi suit une **architecture hexagonale**, avec un **DDD pragmatique**.
-Les nouveaux développements métier significatifs doivent être placés sous `src/`, organisés par
-contexte fonctionnel, puis chargés avec l'autoload PSR-4 de Composer.
+- **Title and description in English** (the same English-only policy applies to commit messages and
+  the agent/process docs; business and technical documentation stays in French). The title follows the
+  *conventional commit* format and serves as the title of the squash commit at merge time.
+- **Assigned to its author** (assignee = the person who opens the PR).
+- **Labelled according to its type**: `bug` (fix), `enhancement` (new feature), `documentation`
+  (docs only), etc. — pick the label(s) that exist(s) in the repository.
+- Opened via the `/create-pr` skill, which applies these conventions.
 
-Le thème contient encore du code procédural historique dans `inc/`. Cet existant doit être migré
-progressivement, dans un chantier dédié et sans régression fonctionnelle. Ne pas prolonger cette
-architecture historique pour une nouvelle fonctionnalité métier importante.
+## Target architecture
 
-Les petits hooks purement WordPress de présentation ou de configuration peuvent rester simples.
-En revanche, toute règle concernant les commandes, paiements, encaissements, clients, stocks,
-notifications ou obligations légales appartient au cœur applicatif.
+LuziApi's business PHP code follows a **hexagonal architecture**, with **pragmatic DDD**.
+Significant new business developments must be placed under `src/`, organized by bounded context,
+then loaded with Composer's PSR-4 autoloader.
 
-## Organisation attendue
+The theme still contains legacy procedural code in `inc/`. This legacy code must be migrated
+progressively, in a dedicated effort and without functional regression. Do not extend this legacy
+architecture for an important new business feature.
+
+Small, purely WordPress presentation or configuration hooks can stay simple. On the other hand,
+any rule concerning orders, payments, receipts, customers, stock, notifications or legal
+obligations belongs to the application core.
+
+## Expected layout
 
 ```text
 www/wp-content/themes/luziapi/
 ├── src/
-│   ├── <Contexte>/
+│   ├── <Context>/
 │   │   ├── Domain/
 │   │   ├── Application/
 │   │   ├── Infrastructure/
@@ -78,62 +99,61 @@ www/wp-content/themes/luziapi/
 └── functions.php
 ```
 
-Les noms exacts peuvent évoluer avec le domaine, mais les responsabilités et le sens des
-dépendances doivent rester explicites.
+The exact names may evolve with the domain, but the responsibilities and the direction of
+dependencies must remain explicit.
 
 ### Domain
 
-Le domaine contient les entités, agrégats, objets-valeur, services et exceptions métier.
+The domain contains the entities, aggregates, value objects, services and business exceptions.
 
-- aucune dépendance à WordPress, WooCommerce, Timber, Twig, `$wpdb` ou une fonction globale du
-  CMS ;
-- pas de HTML, de hook ni de lecture directe de requête HTTP ;
-- invariants métier protégés par les objets eux-mêmes ;
-- montants manipulés sans flottants, de préférence en centimes via un objet-valeur ;
-- temps et identifiants représentés explicitement lorsque leur sens métier le justifie.
+- no dependency on WordPress, WooCommerce, Timber, Twig, `$wpdb` or any global CMS function;
+- no HTML, no hooks and no direct reading of the HTTP request;
+- business invariants protected by the objects themselves;
+- amounts handled without floats, preferably in cents via a value object;
+- time and identifiers represented explicitly when their business meaning warrants it.
 
 ### Application
 
-La couche Application orchestre les cas d'utilisation.
+The Application layer orchestrates the use cases.
 
-- commandes pour les écritures, requêtes pour les lectures ;
-- DTO dédiés aux entrées et sorties ;
-- dépendances reçues par injection de constructeur ;
-- utilisation de ports pour l'horloge, les dépôts, les transactions, le cache et les exports ;
-- aucune règle métier importante dans un contrôleur WordPress.
+- commands for writes, queries for reads;
+- dedicated DTOs for inputs and outputs;
+- dependencies received through constructor injection;
+- use of ports for the clock, repositories, transactions, cache and exports;
+- no important business rule in a WordPress controller.
 
 ### Infrastructure
 
-La couche Infrastructure implémente les ports avec les outils concrets du site.
+The Infrastructure layer implements the ports with the site's concrete tools.
 
-- WooCommerce et HPOS sont des adaptateurs, pas le domaine ;
-- utiliser les objets CRUD WooCommerce, `wc_get_order()` et `wc_get_orders()` ;
-- ne pas interroger directement les tables internes des commandes WooCommerce ;
-- isoler `$wpdb`, les options WordPress, les transients et les appels à des services externes ;
-- convertir les objets WooCommerce vers les objets ou DTO internes dans des mappers dédiés.
+- WooCommerce and HPOS are adapters, not the domain;
+- use the WooCommerce CRUD objects, `wc_get_order()` and `wc_get_orders()`;
+- do not query the internal WooCommerce order tables directly;
+- isolate `$wpdb`, WordPress options, transients and calls to external services;
+- convert WooCommerce objects into internal objects or DTOs in dedicated mappers.
 
 ### UserInterface
 
-Cette couche contient les adaptateurs entrants : administration WordPress, formulaires, routes
-REST ou, à terme, suivi public des commandes.
+This layer contains the inbound adapters: WordPress administration, forms, REST routes or,
+eventually, public order tracking.
 
-- vérifier les capacités et les nonces à l'entrée ;
-- valider et normaliser les données avant d'appeler un cas d'utilisation ;
-- échapper les sorties au plus près du rendu ;
-- garder les contrôleurs minces ;
-- ne pas contourner l'Application pour écrire directement dans un dépôt.
+- check capabilities and nonces on entry;
+- validate and normalize data before calling a use case;
+- escape outputs as close to rendering as possible;
+- keep controllers thin;
+- do not bypass the Application to write directly into a repository.
 
 ### Bootstrap
 
-Le bootstrap est le point de composition. Il instancie les adaptateurs et les injecte dans les cas
-d'utilisation, puis enregistre les hooks WordPress nécessaires.
+The bootstrap is the composition point. It instantiates the adapters and injects them into the use
+cases, then registers the required WordPress hooks.
 
-Ne pas ajouter de conteneur d'injection de dépendances sans besoin démontré : l'assemblage manuel
-par constructeurs est privilégié.
+Do not add a dependency injection container without a demonstrated need: manual assembly through
+constructors is preferred.
 
-## Composer et namespaces
+## Composer and namespaces
 
-L'autoload applicatif doit être déclaré dans le `composer.json` du thème :
+The application autoload must be declared in the theme's `composer.json`:
 
 ```json
 {
@@ -145,103 +165,98 @@ L'autoload applicatif doit être déclaré dans le `composer.json` du thème :
 }
 ```
 
-- namespaces et chemins respectent PSR-4 ;
-- le code des classes reste en anglais ; la documentation et les messages destinés à
-  l'administration restent en français ;
-- chaque fichier PHP active `strict_types=1` ;
-- `functions.php` reste un bootstrap minimal et ne devient pas un catalogue de nouveaux
-  `require_once` ;
-- après toute modification de l'autoload, régénérer et tester l'autoloader Composer ;
-- ne jamais modifier manuellement les fichiers générés sous `vendor/composer/`.
+- namespaces and paths follow PSR-4;
+- the class code stays in English; the documentation and messages intended for the administration
+  stay in French;
+- every PHP file enables `strict_types=1`;
+- `functions.php` remains a minimal bootstrap and does not become a catalogue of new
+  `require_once`;
+- after any change to the autoload, regenerate and test the Composer autoloader;
+- never manually edit the generated files under `vendor/composer/`.
 
-## DDD pragmatique
+## Pragmatic DDD
 
-Le DDD sert à rendre le métier lisible, pas à multiplier artificiellement les classes.
+DDD serves to make the business readable, not to artificially multiply classes.
 
-- utiliser le vocabulaire réel de LuziApi dans les modèles et cas d'utilisation ;
-- identifier les contextes avant de partager un modèle ;
-- préférer un objet-valeur lorsqu'une donnée porte une validation ou un comportement réel ;
-- ne pas recréer tout WooCommerce dans le domaine : ne modéliser que ce dont LuziApi a besoin ;
-- documenter toute décision structurante ou compromis important dans `docs/` ;
-- éviter les dépendances circulaires entre contextes ; passer par des ports, identifiants ou DTO.
+- use LuziApi's real vocabulary in the models and use cases;
+- identify the bounded contexts before sharing a model;
+- prefer a value object when a piece of data carries real validation or behavior;
+- do not recreate all of WooCommerce in the domain: model only what LuziApi needs;
+- document any structuring decision or important trade-off in `docs/`;
+- avoid circular dependencies between contexts; go through ports, identifiers or DTOs.
 
-## Compatibilité WordPress et WooCommerce
+## WordPress and WooCommerce compatibility
 
-- HPOS est la source de vérité des commandes en production ;
-- toute extension du workflow doit préserver les statuts, mouvements de stock, e-mails et options
-  de non-envoi existants ;
-- une coordonnée client ne vaut jamais consentement marketing ;
-- distinguer systématiquement notes privées et notes adressées au client ;
-- stocker les données métier persistantes avec une stratégie de version et de migration ;
-- ne jamais supprimer les données lors d'une désactivation ou d'un changement de thème sans une
-  décision explicite et une procédure de sauvegarde.
+- HPOS is the source of truth for orders in production;
+- any extension of the workflow must preserve the existing statuses, stock movements, e-mails and
+  no-send options;
+- a customer contact detail never amounts to marketing consent;
+- always distinguish between private notes and notes addressed to the customer;
+- store persistent business data with a versioning and migration strategy;
+- never delete data on deactivation or a theme change without an explicit decision and a backup
+  procedure.
 
-## Tests et qualité
+## Tests and quality
 
-La forme du test suit la frontière architecturale :
+The form of the test follows the architectural boundary:
 
-- tests unitaires du Domain sans démarrer WordPress ;
-- tests des cas d'utilisation avec doubles en mémoire ;
-- tests d'intégration pour les adaptateurs WordPress, WooCommerce et base de données ;
-- test E2E du workflow des commandes pour tout changement pouvant toucher statuts, stock,
-  paiements ou e-mails ;
-- PHPStan et PHP-CS-Fixer avant commit ;
-- une régression corrigée doit recevoir un test lorsque cela est raisonnablement possible.
+- unit tests of the Domain without booting WordPress;
+- use-case tests with in-memory doubles;
+- integration tests for the WordPress, WooCommerce and database adapters;
+- E2E test of the order workflow for any change that could touch statuses, stock, payments or
+  e-mails;
+- PHPStan and PHP-CS-Fixer before committing;
+- a fixed regression must receive a test whenever it is reasonably possible.
 
-### Toute fonctionnalité est testée à tous les niveaux pertinents
+### Every feature is tested at all relevant levels
 
-Une nouvelle fonctionnalité (ou une correction) doit apporter **tous** les tests que son risque
-justifie, sans en sauter un niveau :
+A new feature (or a fix) must bring **all** the tests its risk warrants, without skipping a level:
 
-1. **tests unitaires** de la logique pure (Domain, calculs, VO) ;
-2. **tests d'intégration** avec doubles en mémoire pour les cas d'utilisation ;
-3. **e2e d'intégration local** (`make e2e-<slug>-local`) dès que le comportement passe par le
-   **chemin réel WordPress/WooCommerce** (soumission de formulaire admin, ordre/branchement des
-   hooks, capabilities, nonce, `$_POST`, stock, e-mails) — ce que l'unitaire ne peut pas couvrir ;
-4. **e2e prod** rejouable (`scripts/e2e-<slug>-prod.sh` + cible `make e2e-<slug>-prod`), isolé et
-   auto-nettoyé, aucun e-mail réel. Modèle de référence : `tools/e2e-exclusion*` +
-   `scripts/e2e-exclusion-prod.sh` (voir `AGENTS.md`).
+1. **unit tests** of the pure logic (Domain, computations, VOs);
+2. **integration tests** with in-memory doubles for the use cases;
+3. **local integration e2e** (`make e2e-<slug>-local`) as soon as the behavior goes through the
+   **real WordPress/WooCommerce path** (admin form submission, hook order/wiring, capabilities,
+   nonce, `$_POST`, stock, e-mails) — what unit tests cannot cover;
+4. **replayable production e2e** (`scripts/e2e-<slug>-prod.sh` + `make e2e-<slug>-prod` target),
+   isolated and self-cleaning, no real e-mails. Reference model: `tools/e2e-exclusion*` +
+   `scripts/e2e-exclusion-prod.sh` (see `AGENTS.md`).
 
-### Les tests tournent en CI — la maintenir à jour
+### The tests run in CI — keep it up to date
 
-La CI (`.github/workflows/ci.yml`) exécute **PHP-CS-Fixer, PHPStan, PHPUnit, les tests JS et
-toutes les suites e2e locales**. Le runner `scripts/e2e-ci.sh` **découvre automatiquement** les
-cibles `make e2e-*-local` : ajouter un e2e = ajouter sa cible `-local` au `Makefile`, et il tourne
-en CI sans autre modification. Si un changement sort de ce cadre (nouveau job, nouvelle
-dépendance système, nouveau chemin de déclenchement), **modifier la CI en conséquence**. Le test
-`tests/E2eWiringTest.php` garde ce câblage intègre (runner appelé par le workflow, cibles et
-scripts référencés existants, chaque script prod a sa cible Make).
+The CI (`.github/workflows/ci.yml`) runs **PHP-CS-Fixer, PHPStan, PHPUnit, the JS tests and all
+the local e2e suites**. The `scripts/e2e-ci.sh` runner **automatically discovers** the
+`make e2e-*-local` targets: adding an e2e = adding its `-local` target to the `Makefile`, and it
+runs in CI with no other change. If a change falls outside this framework (new job, new system
+dependency, new trigger path), **modify the CI accordingly**. The `tests/E2eWiringTest.php` test
+keeps this wiring intact (runner called by the workflow, referenced targets and scripts exist,
+each production script has its Make target).
 
-PHPUnit tourne sur une **matrice PHP** (plancher du thème `8.2` + version courante `8.3` ; à aligner
-sur la version réellement en prod si elle diffère) et **mesure la couverture** (pcov, `--coverage-text`).
-Le périmètre de couverture est déclaré dans `phpunit.xml.dist` (`<source>` : cœur DDD `src/`, fichiers
-`inc/` réellement testés, mu-plugin newsletter) — pas tout `inc/`, pour un taux honnête. PHPStan est
-au **niveau `max`** avec une baseline (`phpstan-baseline.neon`) qui gèle la dette existante : tout
-nouveau code doit passer au max, et la baseline est à résorber progressivement (ne pas y ajouter de
-lignes pour contourner une nouvelle erreur). Un job **Audit des dépendances** (`composer audit` +
-`npm audit`) tourne en CI, **non bloquant** pour l'instant (visibilité des CVE ; à rendre bloquant
-une fois la dette éventuelle traitée).
+PHPUnit runs on a **PHP matrix** (theme floor `8.2` + current version `8.3`; to be aligned with
+the version actually in production if it differs) and **measures coverage** (pcov, `--coverage-text`).
+The coverage scope is declared in `phpunit.xml.dist` (`<source>`: the DDD core `src/`, the `inc/`
+files actually tested, the newsletter mu-plugin) — not all of `inc/`, for an honest rate. PHPStan is
+at **level `max`** with a baseline (`phpstan-baseline.neon`) that freezes the existing debt: all new
+code must pass at max, and the baseline is to be paid down progressively (do not add lines to it to
+work around a new error). A **Dependency audit** job (`composer audit` + `npm audit`) runs in CI,
+**non-blocking** for now (CVE visibility; to be made blocking once any debt is addressed).
 
-Les doubles de test appartiennent aux tests. Ne pas ajouter de conditions spécifiques aux tests
-dans le code de production.
+Test doubles belong to the tests. Do not add test-specific conditions to the production code.
 
-## Dépendances
+## Dependencies
 
-Avant d'ajouter une dépendance :
+Before adding a dependency:
 
-1. vérifier qu'une fonction native de PHP, WordPress ou WooCommerce ne couvre pas déjà le besoin ;
-2. évaluer maintenance, licence, poids, sécurité et impact sur le déploiement ;
-3. privilégier une bibliothèque locale et versionnée plutôt qu'un CDN ;
-4. expliquer la dépendance dans la documentation du chantier ;
-5. mettre à jour le verrou Composer et vérifier le déploiement de `vendor/` lorsqu'elle concerne
-   PHP.
+1. check that a native PHP, WordPress or WooCommerce function does not already cover the need;
+2. assess maintenance, license, weight, security and impact on deployment;
+3. prefer a local, versioned library over a CDN;
+4. explain the dependency in the effort's documentation;
+5. update the Composer lock and verify the deployment of `vendor/` when it concerns PHP.
 
-## Avant de livrer
+## Before shipping
 
-- relire `AGENTS.md` et la documentation métier concernée ;
-- vérifier le sens des dépendances de l'architecture hexagonale ;
-- préserver les fonctionnalités existantes ;
-- exécuter les tests proportionnés au risque ;
-- mettre à jour la documentation partagée ;
-- ne jamais publier, pousser ou déployer sans respecter les confirmations prévues dans
-  `AGENTS.md`.
+- re-read `AGENTS.md` and the relevant business documentation;
+- check the direction of the hexagonal architecture's dependencies;
+- preserve the existing features;
+- run the tests proportionate to the risk;
+- update the shared documentation;
+- never publish, push or deploy without respecting the confirmations set out in `AGENTS.md`.

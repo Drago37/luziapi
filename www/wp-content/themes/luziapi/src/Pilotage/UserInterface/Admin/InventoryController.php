@@ -60,6 +60,8 @@ final readonly class InventoryController
         $lotStock = array_sum(array_map(static fn (HarvestLot $lot): int => $lot->stockRemaining, $view->lots));
 
         Timber::render('@luziapi_admin/pilotage/inventory.twig', [
+
+            'pilotage_tabs' => PilotageTabs::links('inventory'),
             'page_url'             => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=inventory'),
             'dashboard_url'        => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG),
             'receipts_url'         => admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=receipts'),

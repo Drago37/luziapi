@@ -96,6 +96,14 @@ audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI
 audit-receipts-prod: ## Audite la dérive recette↔commandes sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	@bash scripts/audit-receipts-prod.sh
 
+.PHONY: loyalty-inspect-prod
+loyalty-inspect-prod: ## Inspecte une commande côté fidélité sur la PROD (lecture seule) — ex : make loyalty-inspect-prod ORDER=106
+	@LUZIAPI_ORDER=$(ORDER) bash scripts/loyalty-inspect-prod.sh
+
+.PHONY: directory-inspect-prod
+directory-inspect-prod: ## Inspecte les listes Brevo + les groupes du répertoire client sur la PROD (lecture seule)
+	@bash scripts/directory-inspect-prod.sh
+
 .PHONY: e2e-receipt-local
 e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-receipt-on-complete.php';" --user=admin
@@ -115,6 +123,22 @@ e2e-offered-pot-local: ## Teste l'ajout d'un pot offert (geste + fidélité) à 
 .PHONY: e2e-orphan-receipt-local
 e2e-orphan-receipt-local: ## Teste le retrait de la recette quand la commande est mise à la corbeille ou supprimée
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-orphan-receipt-on-delete.php';" --user=admin
+
+.PHONY: e2e-subscribers-local
+e2e-subscribers-local: ## Teste le répertoire d'abonnés Brevo (lecture seule, appels Brevo interceptés)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-subscribers-directory.php';" --user=admin
+
+.PHONY: e2e-customer-profile-local
+e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + schéma + surcharge d'affichage), tout nettoyé
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-customer-profile-local.php';" --user=admin
+
+.PHONY: e2e-address-lookup-local
+e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-address-lookup-local.php';" --user=admin
+
+.PHONY: e2e-subscription-write-local
+e2e-subscription-write-local: ## Teste l'écriture d'abonnement Brevo (inscription/désinscription, appels interceptés), aucun contact touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-subscription-write-local.php';" --user=admin
 
 .PHONY: e2e-newsletter-local
 e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Brevo intercepté, aucun e-mail)
@@ -172,6 +196,22 @@ e2e-offered-pot-prod: ## Test e2e de l'ajout d'un pot offert à une commande exi
 .PHONY: e2e-orphan-receipt-prod
 e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-orphan-receipt-prod.sh
+
+.PHONY: e2e-subscribers-prod
+e2e-subscribers-prod: ## Test e2e du répertoire d'abonnés Brevo sur la PROD (lecture seule, appels Brevo interceptés)
+	@bash scripts/e2e-subscribers-prod.sh
+
+.PHONY: e2e-customer-profile-prod
+e2e-customer-profile-prod: ## Test e2e de la fiche client dédiée sur la PROD (commande + fiche de test isolées, tout nettoyé)
+	@bash scripts/e2e-customer-profile-prod.sh
+
+.PHONY: e2e-address-lookup-prod
+e2e-address-lookup-prod: ## Test e2e de l'autocomplétion d'adresse (BAN) sur la PROD (appels interceptés, rien d'écrit)
+	@bash scripts/e2e-address-lookup-prod.sh
+
+.PHONY: e2e-subscription-write-prod
+e2e-subscription-write-prod: ## Test e2e de l'écriture d'abonnement Brevo sur la PROD (appels interceptés, aucun contact touché)
+	@bash scripts/e2e-subscription-write-prod.sh
 
 .PHONY: e2e-newsletter-prod
 e2e-newsletter-prod: ## Test e2e de l'auto-envoi newsletter sur la PROD (isolé, envoi Brevo intercepté, tout nettoyé)

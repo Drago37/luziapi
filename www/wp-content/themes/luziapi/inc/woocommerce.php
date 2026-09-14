@@ -134,6 +134,15 @@ add_action('woocommerce_before_checkout_form', 'luziapi_stock_reservation_notice
 // Nombre de produits par ligne dans la boutique.
 add_filter('loop_shop_columns', static fn (): int => 4);
 
+// Masque les métas techniques de ligne dans l'écran de commande (admin) : seule
+// l'étiquette lisible « Offert » doit apparaître, pas les marqueurs internes.
+add_filter('woocommerce_hidden_order_itemmeta', static function (array $hidden): array {
+    $hidden[] = '_luziapi_offert';
+    $hidden[] = '_luziapi_loyalty_reward';
+
+    return $hidden;
+});
+
 // WooCommerce lit `state`/`postcode` sur la destination des paquets d'expédition
 // (get_zone_matching_package) ; en France ces clés manquent souvent → warning
 // « Undefined array key state » à chaque calcul de livraison. On garantit les
