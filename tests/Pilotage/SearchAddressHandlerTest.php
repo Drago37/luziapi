@@ -37,7 +37,7 @@ final class SearchAddressHandlerTest extends TestCase
         $handler = new SearchAddressHandler($lookup);
 
         $handler->handle(new SearchAddressQuery('rue de la paix', 50));
-        self::assertSame(10, $lookup->lastLimit);
+        self::assertSame(15, $lookup->lastLimit);
 
         $handler->handle(new SearchAddressQuery('rue de la paix', 0));
         self::assertSame(1, $lookup->lastLimit);

@@ -24,7 +24,7 @@ final readonly class SearchAddressHandler
         if (mb_strlen($needle) < self::MIN_LENGTH) {
             return [];
         }
-        $limit = max(1, min(10, $query->limit));
+        $limit = max(1, min(15, $query->limit));
 
         return $this->lookup->search($needle, $limit);
     }
