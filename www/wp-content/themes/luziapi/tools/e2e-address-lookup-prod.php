@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Test e2e « édition des coordonnées client » sur la PRODUCTION (script à jeton, usage
- * unique). Déposé sous `_e2e-customer-contact.php` avec le cœur `_e2e-customer-contact-core.php`.
- * Commandes de test isolées (statut pending, aucune notification), tout nettoyé.
+ * Test e2e « autocomplétion d'adresse » (BAN) sur la PRODUCTION (script à jeton, usage
+ * unique). Déposé sous `_e2e-address-lookup.php` avec le cœur `_e2e-address-lookup-core.php`.
+ * Appels BAN interceptés (réponse factice), aucune requête réseau réelle, rien d'écrit.
  * Sortie : JSON { mode, all_passed, summary, results, cleanup, fatal_error }.
  */
 
@@ -18,9 +18,9 @@ if (! isset($_GET['k']) || ! hash_equals($token, (string) $_GET['k'])) {
 require __DIR__ . '/../../../wp-load.php';
 header('Content-Type: application/json');
 
-require __DIR__ . '/_e2e-customer-contact-core.php';
+require __DIR__ . '/_e2e-address-lookup-core.php';
 
-$run = luziapi_e2e_customer_contact_run();
+$run = luziapi_e2e_address_lookup_run();
 $failed = count(array_filter($run['results'], static fn (array $r): bool => ! $r['ok']));
 
 echo json_encode([

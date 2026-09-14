@@ -450,6 +450,22 @@ Decisions made deliberately — do not undo them without discussing:
   `luziapi_loyalty_exclusion_changed` emitted by the save handler), **not** at every edit — otherwise
   correcting an address would recalculate on the current product config and could remove legitimate
   jars. Tests `make e2e-exclusion-local` / `e2e-exclusion-prod`.
+- **Editing a customer = a dedicated overlay record, never a rewrite of past orders** (explicit
+  decision). The Clients directory is projected from orders, but the fiche's "Modifier la fiche
+  client" form stores the full billing (name, company, postal address, postcode, city, country,
+  e-mail, phone) in a dedicated table (`luziapi_customer_profiles`, indexed by identity like the
+  category) that **overlays the display** without touching the orders — invoices and order history
+  stay intact. To fix one specific order, edit it in WooCommerce (order editing stays enabled; only
+  creation is redirected to the Vente). Do not go back to writing customer edits onto the orders.
+  Domain `src/Pilotage/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
+  / `-prod`.
+- **Address autocomplete = server-side, through a nonce-protected admin-ajax endpoint** (not a direct
+  browser call). The `AddressLookup` port + `BanAddressLookup` adapter query the Base Adresse
+  Nationale (`api-adresse.data.gouv.fr`, free, no key) server-side and normalize the result; the
+  `luziapi_address_search` admin-ajax action (capability `edit_shop_orders` + nonce) feeds the fiche's
+  address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
+  + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
+  (BAN calls intercepted, nothing written).
 
 ---
 

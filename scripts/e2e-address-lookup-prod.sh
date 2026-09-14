@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 #
-# Lance le test e2e « édition des coordonnées client (fusion de doublon) » sur la PRODUCTION.
+# Lance le test e2e « autocomplétion d'adresse » (Base Adresse Nationale) sur la PRODUCTION.
 #
-#   scripts/e2e-customer-contact-prod.sh
+#   scripts/e2e-address-lookup-prod.sh
 #
 # Dépose DEUX fichiers à usage unique à la racine du thème — le cœur partagé
-# (`_e2e-customer-contact-core.php`) et le wrapper à jeton (`_e2e-customer-contact.php`) — appelle
-# le wrapper en HTTPS (jeton embarqué), affiche le résumé, puis supprime les deux dans
-# tous les cas. Appels Brevo interceptés (contacts factices), aucune requête réseau réelle,
-# vraie clé et vrais contacts intacts, cache purgé.
+# (`_e2e-address-lookup-core.php`) et le wrapper à jeton (`_e2e-address-lookup.php`) —
+# appelle le wrapper en HTTPS (jeton embarqué), affiche le résumé, puis supprime les deux
+# dans tous les cas. Appels BAN interceptés (réponse factice), aucune requête réseau réelle.
 
 set -euo pipefail
 
@@ -16,9 +15,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
 THEME="www/wp-content/themes/luziapi"
-CORE="${THEME}/tools/e2e-customer-contact.php"
-WRAPPER="${THEME}/tools/e2e-customer-contact-prod.php"
-URL="https://www.luziapi.fr/wp-content/themes/luziapi/_e2e-customer-contact.php"
+CORE="${THEME}/tools/e2e-address-lookup.php"
+WRAPPER="${THEME}/tools/e2e-address-lookup-prod.php"
+URL="https://www.luziapi.fr/wp-content/themes/luziapi/_e2e-address-lookup.php"
 
 for f in "${CORE}" "${WRAPPER}" .env.local; do
   [[ -f "${f}" ]] || { echo "❌  Fichier requis absent : ${f}" >&2; exit 1; }
@@ -32,14 +31,14 @@ set -a; . ./.env.local; set +a
 : "${DEPLOY_FTP_PASS:?manquant dans .env.local}"
 : "${DEPLOY_FTP_HOST:?manquant dans .env.local}"
 
-echo "ℹ️   Test lecture seule : appels Brevo interceptés (contacts factices), aucune requête réelle, cache purgé."
+echo "ℹ️   Test lecture seule : appels BAN interceptés (réponse factice), aucune requête réelle, rien d'écrit."
 
 TOKEN="$(openssl rand -hex 16)"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "${WORK}"' EXIT
-LOCAL_CORE="${WORK}/_e2e-customer-contact-core.php"
-LOCAL_WRAPPER="${WORK}/_e2e-customer-contact.php"
+LOCAL_CORE="${WORK}/_e2e-address-lookup-core.php"
+LOCAL_WRAPPER="${WORK}/_e2e-address-lookup.php"
 cp "${CORE}" "${LOCAL_CORE}"
 sed -e "s/REPLACE_WITH_TOKEN/${TOKEN}/" "${WRAPPER}" > "${LOCAL_WRAPPER}"
 php -l "${LOCAL_CORE}" >/dev/null || { echo "❌  Cœur invalide." >&2; exit 1; }
@@ -55,7 +54,7 @@ echo "→  Exécution sur la prod…"
 RESULT="$(curl -sS "${URL}?k=${TOKEN}")"
 
 echo "→  Suppression des scripts…"
-ftp_do "rm _e2e-customer-contact.php; rm _e2e-customer-contact-core.php;" || echo "⚠️   Suppression à vérifier manuellement."
+ftp_do "rm _e2e-address-lookup.php; rm _e2e-address-lookup-core.php;" || echo "⚠️   Suppression à vérifier manuellement."
 CODE="$(curl -s -o /dev/null -w '%{http_code}' "${URL}")" || CODE="000"
 if [[ "${CODE}" == "404" ]]; then
   echo "✓  Scripts supprimés (HTTP 404)."
@@ -78,9 +77,9 @@ print("cleanup:", d.get("cleanup"))
 sys.exit(0 if d.get("all_passed") and not d.get("fatal_error") else 1)
 PY
 then
-  echo "✔  Test e2e édition client prod OK."
+  echo "✔  Test e2e autocomplétion d’adresse prod OK."
 else
-  echo "✖  Test e2e édition client prod en échec ou réponse inattendue :"
+  echo "✖  Test e2e autocomplétion d’adresse prod en échec ou réponse inattendue :"
   printf '%s\n' "${RESULT}" | head -c 800
   exit 1
 fi
