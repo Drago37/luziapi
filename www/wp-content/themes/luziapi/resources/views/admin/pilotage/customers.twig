@@ -90,7 +90,7 @@
                     <label style="display:flex;flex-direction:column;font-size:12px">Téléphone
                         <input type="text" name="billing_phone" value="{{ b.phone|e('html_attr') }}"></label>
                     <label style="display:flex;flex-direction:column;font-size:12px;grid-column:1/-1">Adresse
-                        <input type="text" name="billing_address_1" value="{{ b.address_1|e('html_attr') }}" autocomplete="off" data-luziapi-address="1" placeholder="Commencez à taper puis choisissez une suggestion">
+                        <input type="text" name="billing_address_1" value="{{ b.address_1|e('html_attr') }}" autocomplete="off" data-luziapi-address="1" data-luziapi-address-nonce="{{ address_nonce|e('html_attr') }}" placeholder="Commencez à taper puis choisissez une suggestion">
                         <span class="description" data-luziapi-address-hint>Suggestions officielles (Base Adresse Nationale) : un clic remplit code postal et ville.</span></label>
                     <label style="display:flex;flex-direction:column;font-size:12px;grid-column:1/-1">Complément d’adresse <span class="description">(facultatif)</span>
                         <input type="text" name="billing_address_2" value="{{ b.address_2|e('html_attr') }}"></label>
@@ -184,11 +184,12 @@
         </section>
         <script>
         (function () {
-            // Autocomplétion d'adresse via la Base Adresse Nationale (api-adresse.data.gouv.fr),
-            // gratuite et sans clé. Amélioration progressive : si l'API ne répond pas, la saisie
-            // manuelle reste pleinement fonctionnelle.
+            // Autocomplétion d'adresse via notre endpoint admin-ajax, qui interroge la
+            // Base Adresse Nationale côté serveur (harmonisation centralisée). Amélioration
+            // progressive : si l'endpoint ne répond pas, la saisie manuelle reste possible.
             var input = document.querySelector('input[data-luziapi-address]');
-            if (!input || !window.fetch) { return; }
+            if (!input || !window.fetch || typeof ajaxurl === 'undefined') { return; }
+            var nonce = input.getAttribute('data-luziapi-address-nonce') || '';
             var form = input.form;
             var postcode = form.querySelector('[data-luziapi-postcode]');
             var city = form.querySelector('[data-luziapi-city]');
@@ -201,22 +202,22 @@
 
             function hide() { box.style.display = 'none'; box.innerHTML = ''; }
 
-            function pick(props) {
-                input.value = props.name || props.label || input.value;
-                if (postcode && props.postcode) { postcode.value = props.postcode; }
-                if (city && props.city) { city.value = props.city; }
+            function pick(item) {
+                input.value = item.street || item.label || input.value;
+                if (postcode && item.postcode) { postcode.value = item.postcode; }
+                if (city && item.city) { city.value = item.city; }
                 if (country && !country.value) { country.value = 'FR'; }
                 hide();
             }
 
-            function render(features) {
+            function render(items) {
                 box.innerHTML = '';
-                if (!features.length) { hide(); return; }
-                features.forEach(function (f) {
+                if (!items.length) { hide(); return; }
+                items.forEach(function (item) {
                     var li = document.createElement('li');
-                    li.textContent = f.properties.label;
+                    li.textContent = item.label;
                     li.style.cssText = 'padding:6px 10px;cursor:pointer;font-size:13px';
-                    li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(f.properties); });
+                    li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(item); });
                     li.addEventListener('mouseenter', function () { li.style.background = '#f0f0f1'; });
                     li.addEventListener('mouseleave', function () { li.style.background = '#fff'; });
                     box.appendChild(li);
@@ -227,12 +228,13 @@
             input.addEventListener('input', function () {
                 var q = input.value.trim();
                 if (timer) { clearTimeout(timer); }
-                if (q.length < 4) { hide(); return; }
+                if (q.length < 3) { hide(); return; }
                 timer = setTimeout(function () {
-                    var url = 'https://api-adresse.data.gouv.fr/search/?limit=5&q=' + encodeURIComponent(q);
-                    fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
-                        if (data && data.features) { render(data.features); }
-                    }).catch(function () { hide(); });
+                    var url = ajaxurl + '?action=luziapi_address_search&_ajax_nonce=' + encodeURIComponent(nonce) + '&q=' + encodeURIComponent(q);
+                    fetch(url, { credentials: 'same-origin' })
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (res) { if (res && res.success && Array.isArray(res.data)) { render(res.data); } else { hide(); } })
+                        .catch(function () { hide(); });
                 }, 250);
             });
             input.addEventListener('blur', function () { setTimeout(hide, 150); });

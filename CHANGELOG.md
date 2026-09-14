@@ -30,8 +30,12 @@ _Nothing yet._
 - Edit **all** of a customer's billing details (first/last name, company, postal address, postcode,
   city, country, e-mail, phone) from the Clients fiche, stored as a dedicated customer record that
   overlays the display **without** rewriting past orders (invoices preserved); individual orders stay
-  editable in WooCommerce. Address fields offer autocomplete from the French Base Adresse Nationale
-  (`api-adresse.data.gouv.fr`, no key). Integration e2e (`make e2e-customer-profile-local` / `-prod`).
+  editable in WooCommerce. Integration e2e (`make e2e-customer-profile-local` / `-prod`).
+- Address autocomplete on the customer fiche from the French Base Adresse Nationale
+  (`api-adresse.data.gouv.fr`, free, no key), served through a nonce-protected admin-ajax endpoint
+  (server-side lookup + normalization); progressive enhancement, manual entry always works. Unit
+  tests + integration e2e (`make e2e-address-lookup-local` / `-prod`, Base Adresse Nationale calls
+  intercepted).
 
 ### Changed
 

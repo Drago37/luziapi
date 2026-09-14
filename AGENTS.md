@@ -458,8 +458,14 @@ Decisions made deliberately — do not undo them without discussing:
   stay intact. To fix one specific order, edit it in WooCommerce (order editing stays enabled; only
   creation is redirected to the Vente). Do not go back to writing customer edits onto the orders.
   Domain `src/Pilotage/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
-  / `-prod`. Address fields autocomplete from the Base Adresse Nationale (`api-adresse.data.gouv.fr`,
-  free, no key) — progressive enhancement, manual entry always works.
+  / `-prod`.
+- **Address autocomplete = server-side, through a nonce-protected admin-ajax endpoint** (not a direct
+  browser call). The `AddressLookup` port + `BanAddressLookup` adapter query the Base Adresse
+  Nationale (`api-adresse.data.gouv.fr`, free, no key) server-side and normalize the result; the
+  `luziapi_address_search` admin-ajax action (capability `edit_shop_orders` + nonce) feeds the fiche's
+  address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
+  + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
+  (BAN calls intercepted, nothing written).
 
 ---
 

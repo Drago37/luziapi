@@ -255,6 +255,7 @@ final readonly class CustomersController
             'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
             'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
             'profile_nonce'     => wp_create_nonce('luziapi_save_customer_profile'),
+            'address_nonce'     => wp_create_nonce('luziapi_address_search'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
