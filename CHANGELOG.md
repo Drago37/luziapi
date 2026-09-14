@@ -47,6 +47,9 @@ _Nothing yet._
 
 ### Fixed
 
+- Subscribers page now includes **SMS-only** subscribers (contacts with no e-mail); it shows a
+  total plus an e-mail / SMS breakdown (previously e-mail-less contacts were dropped, so the list
+  looked incomplete).
 - Prod integrity and targeted-deploy filters exclude `tests-js/` (dev-only), removing a false
   "missing file" report from `make verify-prod`.
 - Hide the internal offered-line metas (`_luziapi_offert`, `_luziapi_loyalty_reward`) from the admin

@@ -10,12 +10,14 @@ final readonly class SubscribersView
 {
     /**
      * @param bool             $configured  false = répertoire indisponible (pas de clé API)
-     * @param int              $emailCount  nombre d'abonnés e-mail (toute la liste)
-     * @param int              $smsCount    nombre d'abonnés SMS (sous-ensemble)
+     * @param int              $total       nombre total d'abonnés (e-mail et/ou SMS)
+     * @param int              $emailCount  nombre d'abonnés e-mail
+     * @param int              $smsCount    nombre d'abonnés SMS
      * @param list<Subscriber> $subscribers abonnés affichés (après recherche éventuelle)
      */
     public function __construct(
         public bool $configured,
+        public int $total,
         public int $emailCount,
         public int $smsCount,
         public array $subscribers,

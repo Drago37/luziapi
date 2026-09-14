@@ -44,7 +44,7 @@
                         <tbody>
                             {% for row in subscribers %}
                                 <tr>
-                                    <td>{{ row.email|e }}</td>
+                                    <td>{% if row.email %}{{ row.email|e }}{% else %}<span aria-hidden="true">—</span><span class="screen-reader-text">SMS uniquement</span>{% endif %}</td>
                                     <td>{% if row.sms %}<span class="luziapi-pilotage__badge">SMS</span>{% else %}<span aria-hidden="true">—</span><span class="screen-reader-text">Non</span>{% endif %}</td>
                                     <td>{{ row.phone|e }}</td>
                                     <td>{{ row.date|e }}</td>

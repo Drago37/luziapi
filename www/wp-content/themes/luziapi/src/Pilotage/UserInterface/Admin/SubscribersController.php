@@ -31,6 +31,7 @@ final readonly class SubscribersController
             'configured'    => $view->configured,
             'search'        => $search,
             'metrics'       => [
+                ['label' => 'Abonnés (total)', 'value' => (string) $view->total],
                 ['label' => 'Abonnés e-mail', 'value' => (string) $view->emailCount],
                 ['label' => 'Abonnés SMS', 'value' => (string) $view->smsCount],
             ],

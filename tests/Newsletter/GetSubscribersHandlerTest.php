@@ -19,23 +19,26 @@ final class GetSubscribersHandlerTest extends TestCase
             ->handle(new GetSubscribersQuery());
 
         self::assertFalse($view->configured);
+        self::assertSame(0, $view->total);
         self::assertSame(0, $view->emailCount);
         self::assertSame(0, $view->smsCount);
         self::assertSame([], $view->subscribers);
     }
 
-    public function testItCountsEmailAndSmsSubscribers(): void
+    public function testItCountsEmailSmsAndSmsOnlySubscribers(): void
     {
         $view = (new GetSubscribersHandler(new FakeSubscriberDirectory(true, [
             new Subscriber('a@example.test', true, '+33600000001'),
             new Subscriber('b@example.test', false),
             new Subscriber('c@example.test', true, '+33600000003'),
+            new Subscriber('', true, '+33600000004'), // abonné SMS uniquement (sans e-mail)
         ])))->handle(new GetSubscribersQuery());
 
         self::assertTrue($view->configured);
-        self::assertSame(3, $view->emailCount);
-        self::assertSame(2, $view->smsCount);
-        self::assertCount(3, $view->subscribers);
+        self::assertSame(4, $view->total);
+        self::assertSame(3, $view->emailCount); // seuls a, b, c ont un e-mail
+        self::assertSame(3, $view->smsCount);   // a, c, et l'abonné SMS-seul
+        self::assertCount(4, $view->subscribers);
     }
 
     public function testItFiltersBySearchOnEmailOrPhone(): void

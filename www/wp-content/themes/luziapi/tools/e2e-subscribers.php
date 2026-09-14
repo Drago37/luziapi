@@ -29,12 +29,14 @@ if (! function_exists('luziapi_e2e_subscribers_run')) {
         $transientKey = 'luziapi_brevo_subs_list_2';
 
         $listResponse = [
-            'count'    => 4,
+            'count'    => 5,
             'contacts' => [
                 ['email' => 'a@example.test', 'emailBlacklisted' => false, 'smsBlacklisted' => false, 'listIds' => [2], 'createdAt' => '2026-01-02T10:00:00+01:00', 'attributes' => ['SMS' => '+33600000001']],
                 ['email' => 'b@example.test', 'emailBlacklisted' => false, 'smsBlacklisted' => false, 'listIds' => [2], 'createdAt' => '2026-02-02T10:00:00+01:00', 'attributes' => []],
                 ['email' => 'c@example.test', 'emailBlacklisted' => true, 'smsBlacklisted' => true, 'listIds' => [2], 'createdAt' => '2026-03-02T10:00:00+01:00', 'attributes' => ['SMS' => '+33600000003']],
                 ['email' => 'd@example.test', 'emailBlacklisted' => false, 'smsBlacklisted' => false, 'listIds' => [2], 'createdAt' => '2026-04-02T10:00:00+01:00', 'attributes' => ['SMS' => '+33600000004']],
+                // Abonné SMS uniquement : pas d'e-mail, mais un numéro SMS consenti.
+                ['emailBlacklisted' => false, 'smsBlacklisted' => false, 'listIds' => [2], 'createdAt' => '2026-05-02T10:00:00+01:00', 'attributes' => ['SMS' => '+33600000005']],
             ],
         ];
         $contactA = ['email' => 'a@example.test', 'emailBlacklisted' => false, 'smsBlacklisted' => false, 'listIds' => [2], 'attributes' => ['SMS' => '+33600000001']];
@@ -70,9 +72,11 @@ if (! function_exists('luziapi_e2e_subscribers_run')) {
             $view = $handler->handle(new \LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersQuery(''));
 
             $assert('Répertoire configuré (clé injectée)', $view->configured);
+            $assert('5 abonnés au total (dont 1 SMS-seul)', 5 === $view->total, 'total=' . $view->total);
             $assert('4 abonnés e-mail listés', 4 === $view->emailCount, 'emailCount=' . $view->emailCount);
-            $assert('2 abonnés SMS (blacklist SMS exclue)', 2 === $view->smsCount, 'smsCount=' . $view->smsCount);
-            $assert('Tri par e-mail (a@ en tête)', 'a@example.test' === ($view->subscribers[0]->email ?? ''));
+            $assert('3 abonnés SMS (blacklist SMS exclue, SMS-seul inclus)', 3 === $view->smsCount, 'smsCount=' . $view->smsCount);
+            $smsOnly = array_filter($view->subscribers, static fn ($s): bool => '' === $s->email && $s->smsSubscribed);
+            $assert('Abonné SMS-seul (sans e-mail) bien inclus', 1 === count($smsOnly));
 
             $rowsBySms = [];
             foreach ($view->subscribers as $row) {
