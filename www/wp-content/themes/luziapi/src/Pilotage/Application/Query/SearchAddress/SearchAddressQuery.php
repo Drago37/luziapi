@@ -8,7 +8,7 @@ final readonly class SearchAddressQuery
 {
     public function __construct(
         public string $query,
-        public int $limit = 5,
+        public int $limit = 10,
     ) {
     }
 }

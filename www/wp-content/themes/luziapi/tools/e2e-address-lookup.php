@@ -37,8 +37,11 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
 
         $controller = null;
         $foreignCalls = 0;
-        $intercept = static function ($pre, array $args, string $url) use (&$foreignCalls, $geojson) {
+        $lastUrl = '';
+        $intercept = static function ($pre, array $args, string $url) use (&$foreignCalls, &$lastUrl, $geojson) {
             if (false !== stripos($url, 'api-adresse.data.gouv.fr')) {
+                $lastUrl = $url;
+
                 return ['response' => ['code' => 200], 'body' => wp_json_encode($geojson)];
             }
 
@@ -52,10 +55,12 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
             $lookup = new \LuziApi\Pilotage\Infrastructure\Http\BanAddressLookup();
             $handler = new \LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressHandler($lookup);
 
-            $direct = $lookup->search('3 rue des abeilles', 5);
+            $direct = $lookup->search('3 rue des abeilles', 8);
             $assert('Adaptateur : 2 suggestions parsées', 2 === count($direct), 'n=' . count($direct));
             $assert('Adaptateur : rue normalisée', isset($direct[0]) && '3 Rue des Abeilles' === $direct[0]->street);
             $assert('Adaptateur : code postal + ville', isset($direct[0]) && '37150' === $direct[0]->postcode && 'Luzillé' === $direct[0]->city);
+            $assert('Adaptateur : recherche nationale simple (pas de biais lat/lon)', false === stripos($lastUrl, 'lat=') && false === stripos($lastUrl, 'lon='), 'url=' . $lastUrl);
+            $assert('Adaptateur : pas de filtre type=housenumber (rues incluses)', false === stripos($lastUrl, 'type='));
 
             $viaHandler = $handler->handle(new \LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressQuery('  3 rue des abeilles  '));
             $assert('Handler : passe-plat après trim', 2 === count($viaHandler));

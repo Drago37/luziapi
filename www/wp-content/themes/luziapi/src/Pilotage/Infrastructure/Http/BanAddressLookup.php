@@ -18,10 +18,13 @@ final class BanAddressLookup implements AddressLookup
 
     public function search(string $query, int $limit): array
     {
+        // Recherche nationale simple, sans filtre : toutes les adresses de France sont
+        // accessibles. Pas de `type=housenumber` (on veut aussi les voies seules) ni de
+        // biais géographique ; une limite large permet de faire remonter une même voie
+        // présente dans plusieurs communes — l'utilisateur choisit sur le code postal.
         $url = self::ENDPOINT . '?' . http_build_query([
-            'q'     => $query,
-            'limit' => $limit,
-            'type'  => 'housenumber',
+            'q'            => $query,
+            'limit'        => $limit,
             'autocomplete' => 1,
         ]);
 

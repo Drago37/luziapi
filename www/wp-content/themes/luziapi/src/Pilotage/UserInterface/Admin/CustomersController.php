@@ -140,11 +140,18 @@ final readonly class CustomersController
             if (! $directory->selectedCustomer instanceof CustomerProfile) {
                 throw new \InvalidArgumentException('Client introuvable.');
             }
+            $identityIds = $directory->selectedCustomer->identityIds;
             $this->saveProfile->handle(new SaveCustomerProfileCommand(
-                $directory->selectedCustomer->identityIds,
+                $identityIds,
                 $this->readBilling(),
                 get_current_user_id(),
             ));
+            // La catégorie est éditée dans le MÊME formulaire (une seule sauvegarde).
+            $rawCategory = wp_unslash($_POST['category'] ?? '');
+            $category = CustomerCategory::tryFrom(is_string($rawCategory) ? sanitize_key($rawCategory) : '');
+            if ($category instanceof CustomerCategory) {
+                $this->assignCategory->handle(new AssignCustomerCategoryCommand($identityIds, $category, get_current_user_id()));
+            }
             $this->activity->record(
                 ActivityCategory::Customer,
                 'customer_profile_saved',

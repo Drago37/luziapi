@@ -34,14 +34,6 @@
                     <a class="button" href="{{ page_url|e('html_attr') }}">Fermer la fiche</a>
                 </div>
             </div>
-            <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post">
-                <input type="hidden" name="action" value="luziapi_assign_customer_category">
-                <input type="hidden" name="_wpnonce" value="{{ category_nonce|e('html_attr') }}">
-                <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
-                <label for="luziapi-customer-category"><strong>Catégorie du client</strong></label>
-                <select id="luziapi-customer-category" name="category">{% for category in categories %}<option value="{{ category.value|e('html_attr') }}" {{ category.value == selected_customer.category_key ? 'selected' : '' }}>{{ category.label|e }}</option>{% endfor %}</select>
-                <button class="button button-primary" type="submit">Enregistrer la catégorie</button>
-            </form>
             <div class="luziapi-pilotage__customer-summary">
                 <div><span>Commandes validées</span><strong>{{ selected_customer.orders_count }}</strong></div>
                 <div><span>Total commandé</span><strong>{{ selected_customer.total|e }}</strong></div>
@@ -97,7 +89,8 @@
                 <input type="hidden" name="_wpnonce" value="{{ profile_nonce|e('html_attr') }}">
                 <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
                 <p class="luziapi-pilotage__eyebrow" style="margin:0 0 6px">Modifier la fiche client</p>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+                <style>.luziapi-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:782px){.luziapi-profile-grid{grid-template-columns:1fr}}</style>
+                <div class="luziapi-profile-grid">
                     <label style="display:flex;flex-direction:column;font-size:12px">Prénom
                         <input type="text" name="billing_first_name" value="{{ b.first_name|e('html_attr') }}"></label>
                     <label style="display:flex;flex-direction:column;font-size:12px">Nom
@@ -119,6 +112,8 @@
                         <input type="text" name="billing_city" value="{{ b.city|e('html_attr') }}" data-luziapi-city></label>
                     <label style="display:flex;flex-direction:column;font-size:12px">Pays
                         <input type="text" name="billing_country" value="{{ b.country|e('html_attr') }}" maxlength="2" style="text-transform:uppercase" placeholder="FR"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px;grid-column:1/-1">Catégorie du client
+                        <select name="category">{% for category in categories %}<option value="{{ category.value|e('html_attr') }}" {{ category.value == selected_customer.category_key ? 'selected' : '' }}>{{ category.label|e }}</option>{% endfor %}</select></label>
                 </div>
                 <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
                     <button type="submit" class="button button-primary">Enregistrer la fiche</button>

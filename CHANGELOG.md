@@ -44,6 +44,10 @@ _Nothing yet._
 
 ### Changed
 
+- Customer fiche edit form is laid out in two columns and now includes the **customer category**,
+  so billing details and category are saved in a single action (was a separate save). Address
+  autocomplete searches all of France (no geographic bias) with a wider result list, so a street
+  that exists in several towns is reachable — pick the right one by postcode.
 - Pilotage tab bar factored into a single source (`PilotageTabs`) and a shared `_nav.twig`
   partial, replacing the navigation duplicated across every dashboard view.
 - Agent/process docs, commit messages and pull requests switched to English; business and
