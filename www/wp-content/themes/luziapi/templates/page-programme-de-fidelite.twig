@@ -1,0 +1,93 @@
+{% extends "base.twig" %}
+
+{% set per_reward = loyalty.pots_per_reward|default(15) %}
+{% set next_pot = per_reward + 1 %}
+{% set lifetime = loyalty.pot_lifetime_years|default(2) %}
+
+{% block content %}
+<article class="page legal loyalty-page">
+    <div class="wrap page-legal">
+        <header class="legal-head">
+            <span class="eyebrow">Programme de fidélité LuziApi</span>
+            <h1>{{ per_reward }} pots achetés, le {{ next_pot }}<sup>e</sup> offert</h1>
+            <p class="legal-version">{{ loyalty.reglement_label|default('Règlement en vigueur') }}</p>
+            <p>Parce que votre fidélité mérite d'être récompensée : chaque pot de miel que vous achetez
+               vous rapproche d'un pot offert. Sans carte, sans inscription — il suffit d'acheter votre miel.</p>
+            <div class="legal-actions no-print">
+                {% if order_tracking_url %}<a class="btn btn-primary" href="{{ order_tracking_url }}">Voir ma progression</a>{% endif %}
+                {% if loyalty_reglement_pdf %}<a class="btn btn-ghost" href="{{ loyalty_reglement_pdf }}" download>Télécharger le règlement (PDF)</a>{% endif %}
+            </div>
+        </header>
+
+        <section class="loyalty-steps no-print" aria-label="Fonctionnement du programme">
+            <ol class="loyalty-steps-list">
+                <li>
+                    <span class="loyalty-step-num">1</span>
+                    <strong>Vous achetez votre miel</strong>
+                    <p>Chaque pot de miel admissible compte, quel que soit le canal : boutique en ligne,
+                       téléphone, marché ou commande directe.</p>
+                </li>
+                <li>
+                    <span class="loyalty-step-num">2</span>
+                    <strong>Vos pots s'additionnent</strong>
+                    <p>Dès qu'une commande vous est remise, ses pots viennent grossir votre compteur.
+                       Vos coordonnées suffisent à vous reconnaître, sans compte à créer.</p>
+                </li>
+                <li>
+                    <span class="loyalty-step-num">3</span>
+                    <strong>Le {{ next_pot }}<sup>e</sup> est offert</strong>
+                    <p>Au bout de {{ per_reward }} pots, un pot de miel vous est offert sur votre prochaine
+                       commande. Et le compteur repart pour la fidélité suivante.</p>
+                </li>
+            </ol>
+        </section>
+
+        <div class="prose legal-prose">
+            <section>
+                <h2>Les règles en clair</h2>
+                <ul>
+                    <li><strong>{{ per_reward }} pots achetés = 1 pot offert.</strong> Par exemple, {{ per_reward * 2 + 3 }} pots
+                        vous donnent 2 pots offerts et une progression de 3/{{ per_reward }} en cours.</li>
+                    <li><strong>Tous les canaux comptent :</strong> boutique en ligne, téléphone, marché,
+                        e-mail ou commande saisie par LuziApi.</li>
+                    <li><strong>Un pot compte une fois la commande remise</strong> (statut « Terminée »).
+                        Une commande annulée ou remboursée ne compte pas.</li>
+                    <li><strong>Vos pots restent valables {{ lifetime }} ans</strong> à compter de leur acquisition :
+                        à tout moment, ce sont vos achats des {{ lifetime }} dernières années qui comptent.
+                        Un pot offert déjà utilisé vous reste, lui, définitivement acquis.</li>
+                    <li><strong>Le pot offert est un pot de miel de votre choix</strong> parmi les références
+                        admissibles disponibles, remisé à 100 %. Il ne peut pas être échangé contre de l'argent.</li>
+                    <li><strong>Cumulable</strong> avec la remise de volume de la boutique (à partir de deux pots).</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Depuis quand ?</h2>
+                <p>Le programme prend effet le <strong>{{ loyalty.start_label|default('14 septembre 2024') }}</strong>.
+                   Vos achats des {{ lifetime }} dernières années sont donc déjà pris en compte : c'est notre façon
+                   de remercier les clients qui nous font confiance depuis le début.</p>
+            </section>
+
+            <section>
+                <h2>Comment savoir où j'en suis ?</h2>
+                <p>Votre progression s'affiche sur la <a href="{{ order_tracking_url }}">page de suivi de vos commandes</a>,
+                   une fois votre commande identifiée (numéro + e-mail). Elle est aussi rappelée dans l'e-mail
+                   confirmant qu'une commande vous a été remise.</p>
+            </section>
+
+            <section>
+                <h2>Bon à savoir</h2>
+                <p>Participer au programme ne vous inscrit <strong>pas</strong> à la newsletter ni aux SMS :
+                   ces envois relèvent d'un accord séparé, que vous donnez si vous le souhaitez. Vos données ne
+                   servent qu'à gérer votre fidélité. Vous pouvez à tout moment demander l'accès à votre historique
+                   ou sa suppression en écrivant à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>.</p>
+                <p>Le règlement complet précise l'ensemble des conditions (admissibilité, expiration, annulation,
+                   évolution du programme). Il est également résumé dans nos
+                   {% if cgv_url %}<a href="{{ cgv_url }}">conditions générales de vente</a>{% else %}conditions générales de vente{% endif %}.
+                   Le traitement de vos données est détaillé dans la
+                   <a href="{{ function('home_url', '/politique-de-confidentialite/') }}">politique de confidentialité</a>.</p>
+            </section>
+        </div>
+    </div>
+</article>
+{% endblock %}
