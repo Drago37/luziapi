@@ -87,13 +87,19 @@ final readonly class CustomersController
                 throw new \InvalidArgumentException('Client introuvable.');
             }
             $customer = $directory->selectedCustomer;
-            $rawPhone = $customer->phones[0] ?? '';
+            // Source unique : les coordonnées de la fiche (fiche dédiée ou dernière
+            // commande) — pour pouvoir créer un contact absent de Brevo (« Ajouter »).
+            $billing = $this->billingObjectFor($customer);
+            $rawPhone = '' !== $billing->phone ? $billing->phone : ($customer->phones[0] ?? '');
             $phone = '' !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : '';
+            $email = '' !== $billing->email ? $billing->email : ($customer->emails[0] ?? '');
             $confirmed = $this->subscriptions->handle(new UpdateSubscriptionCommand(
-                $customer->emails[0] ?? '',
+                $email,
                 $phone,
                 isset($_POST['sub_email']),
                 isset($_POST['sub_sms']),
+                $billing->firstName,
+                $billing->lastName,
             ));
             $this->rememberDetail('customers', sprintf(
                 'Confirmé côté Brevo — e-mail : %s · SMS : %s',
@@ -437,11 +443,9 @@ final readonly class CustomersController
      */
     private function billingFor(CustomerProfile $customer): array
     {
-        $billing = $customer->billingOverride;
-        $hasOverride = $billing instanceof CustomerBilling && ! $billing->isEmpty();
-        if (! $billing instanceof CustomerBilling || $billing->isEmpty()) {
-            $billing = $this->draftFromLastOrder($customer);
-        }
+        $override = $customer->billingOverride;
+        $hasOverride = $override instanceof CustomerBilling && ! $override->isEmpty();
+        $billing = $this->billingObjectFor($customer);
 
         return [
             'first_name' => $billing->firstName,
@@ -456,6 +460,20 @@ final readonly class CustomersController
             'phone'      => $billing->phone,
             'has_override' => $hasOverride ? '1' : '',
         ];
+    }
+
+    /**
+     * Coordonnées de la fiche sous forme d'objet : la fiche dédiée si elle existe,
+     * sinon le brouillon issu de la dernière commande.
+     */
+    private function billingObjectFor(CustomerProfile $customer): CustomerBilling
+    {
+        $billing = $customer->billingOverride;
+        if (! $billing instanceof CustomerBilling || $billing->isEmpty()) {
+            $billing = $this->draftFromLastOrder($customer);
+        }
+
+        return $billing;
     }
 
     private function draftFromLastOrder(CustomerProfile $customer): CustomerBilling

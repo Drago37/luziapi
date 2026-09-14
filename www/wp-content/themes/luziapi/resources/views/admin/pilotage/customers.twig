@@ -59,7 +59,7 @@
                 <p><strong>Sources :</strong> {{ selected_customer.sources ? selected_customer.sources|join(', ')|e : 'Non renseignée' }}</p>
                 {% if selected_customer.subscription.available %}
                     {% set sub = selected_customer.subscription %}
-                    {% if sub.writable %}
+                    {% if sub.writable and sub.known %}
                         <form action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:6px">
                             <input type="hidden" name="action" value="luziapi_update_subscription">
                             <input type="hidden" name="_wpnonce" value="{{ subscription_nonce|e('html_attr') }}">
@@ -73,12 +73,26 @@
                             </p>
                             {% if not sub.has_phone %}<span class="description">Ajoutez un mobile à la fiche pour activer l’abonnement SMS.</span>{% endif %}
                         </form>
+                    {% elseif sub.writable and not sub.known %}
+                        <form action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:6px">
+                            <input type="hidden" name="action" value="luziapi_update_subscription">
+                            <input type="hidden" name="_wpnonce" value="{{ subscription_nonce|e('html_attr') }}">
+                            <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                            <input type="hidden" name="sub_email" value="1">
+                            {% if sub.has_phone %}<input type="hidden" name="sub_sms" value="1">{% endif %}
+                            <p style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0">
+                                <strong>Abonnements :</strong>
+                                <span class="description">pas encore dans Brevo.</span>
+                                <button type="submit" class="button button-primary">Ajouter dans Brevo</button>
+                                <span class="description">crée le contact depuis la fiche (nom, prénom, e-mail{{ sub.has_phone ? ', mobile SMS' : '' }}) et l’inscrit à la newsletter.</span>
+                            </p>
+                        </form>
                     {% else %}
                         <p style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
                             <strong>Abonnements :</strong>
                             <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ sub.email ? 'checked' : '' }}> Newsletter e-mail</label>
                             <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ sub.sms ? 'checked' : '' }}> SMS</label>
-                            {% if sub.known %}<span class="description">lecture seule · géré dans Brevo</span>{% else %}<span class="description">contact non trouvé dans Brevo</span>{% endif %}
+                            <span class="description">gestion impossible sans e-mail sur la fiche.</span>
                         </p>
                     {% endif %}
                 {% endif %}

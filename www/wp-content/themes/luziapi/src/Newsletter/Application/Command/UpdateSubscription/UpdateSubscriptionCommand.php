@@ -11,6 +11,8 @@ final readonly class UpdateSubscriptionCommand
         public string $phone,
         public bool $emailSubscribed,
         public bool $smsSubscribed,
+        public string $firstName = '',
+        public string $lastName = '',
     ) {
     }
 }

@@ -475,8 +475,11 @@ Decisions made deliberately — do not undo them without discussing:
   list 2, SMS attribute, blacklists; busts the read cache) + `UpdateSubscription` command/handler;
   admin-post action `luziapi_update_subscription`. **The write is confirmed by a read-back** (GET the
   contact after the POST): success is reported only if the stored state matches the request, and the
-  confirmed state is shown in the notice. Unit tests + e2e
-  `make e2e-subscription-write-local` / `-prod` (Brevo calls intercepted, no contact touched).
+  confirmed state is shown in the notice. A contact **not yet in Brevo** shows an **"Ajouter dans
+  Brevo"** button that creates it from the fiche (e-mail + mobile + name as `PRENOM`/`NOM` attributes,
+  best-effort with a silent fallback if the account has no such attributes — the site's own signup
+  only stores e-mail + SMS). Unit tests + e2e `make e2e-subscription-write-local` / `-prod` (Brevo
+  calls intercepted, no contact touched).
   _GDPR:_ direct opt-in assumes consent was collected offline; revisit (double opt-in) if needed.
 
 ---
