@@ -614,6 +614,15 @@ sont **masquées** de l'écran de commande admin (`woocommerce_hidden_order_item
 l'étiquette lisible « Offert » reste visible. Ajouté aussi (hors prod) : l'inspecteur lecture seule
 `make loyalty-inspect-prod ORDER=<id>` pour diagnostiquer un comptage fidélité.
 
+_Correctif/ajout de suivi le 14 septembre 2026 (commit `7a88bf8`, 14 fichiers, 14/14 SHA, OPcache
+vidé, prod saine) :_ **① édition des coordonnées client** depuis la fiche « Clients » (e-mail /
+téléphone / ville → écrit sur les commandes du client, fusionne les doublons d'identité) ; **③ page
+Abonnés** corrigée — inclut désormais les abonnés **SMS-seuls** et affiche le **statut par canal**
+(Abonné / Bloqué e-mail et SMS) + compteurs (total, e-mail actifs, SMS actifs, bloqués) ;
+suppression de l'**ancienne page « Répertoire clients »** (le `require` retiré la fait disparaître ;
+fichier `inc/customer-directory.php` retiré du serveur à la main, non géré par le deploy delta).
+② « doublons » : la page « Clients » (projection) était déjà propre — c'était l'ancienne page.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
