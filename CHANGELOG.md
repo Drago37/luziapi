@@ -22,8 +22,11 @@ _Nothing yet._
 
 - Dashboard "Abonnés" tab listing Brevo newsletter (e-mail) and SMS subscribers, with
   counts and search — read-only (management stays in Brevo).
-- Read-only subscription panel (e-mail / SMS) on the customer fiche, matched by e-mail and
-  normalized phone against Brevo.
+- Subscription panel (e-mail / SMS) on the customer fiche, matched by e-mail and normalized phone
+  against Brevo, and **editable**: ticking subscribes, unticking unsubscribes — written directly to
+  Brevo (no double opt-in; consent is assumed collected by the shop owner). SMS needs an e-mail (the
+  Brevo contact identifier) and a mobile number. Unit tests + integration e2e
+  (`make e2e-subscription-write-local` / `-prod`, Brevo calls intercepted — no contact touched).
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).

@@ -136,6 +136,10 @@ e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + s
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-address-lookup-local.php';" --user=admin
 
+.PHONY: e2e-subscription-write-local
+e2e-subscription-write-local: ## Teste l'écriture d'abonnement Brevo (inscription/désinscription, appels interceptés), aucun contact touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-subscription-write-local.php';" --user=admin
+
 .PHONY: e2e-newsletter-local
 e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Brevo intercepté, aucun e-mail)
 	$(DC) run --rm --user root -v "$(CURDIR)/prod-mu-plugins:/mu-src:ro" wpcli sh -c 'mkdir -p wp-content/mu-plugins && cp /mu-src/luziapi-newsletter-autosend.php wp-content/mu-plugins/luziapi-newsletter-autosend.php'
@@ -204,6 +208,10 @@ e2e-customer-profile-prod: ## Test e2e de la fiche client dédiée sur la PROD (
 .PHONY: e2e-address-lookup-prod
 e2e-address-lookup-prod: ## Test e2e de l'autocomplétion d'adresse (BAN) sur la PROD (appels interceptés, rien d'écrit)
 	@bash scripts/e2e-address-lookup-prod.sh
+
+.PHONY: e2e-subscription-write-prod
+e2e-subscription-write-prod: ## Test e2e de l'écriture d'abonnement Brevo sur la PROD (appels interceptés, aucun contact touché)
+	@bash scripts/e2e-subscription-write-prod.sh
 
 .PHONY: e2e-newsletter-prod
 e2e-newsletter-prod: ## Test e2e de l'auto-envoi newsletter sur la PROD (isolé, envoi Brevo intercepté, tout nettoyé)

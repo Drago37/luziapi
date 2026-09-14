@@ -9,6 +9,8 @@ use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandl
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
 use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
@@ -56,6 +58,7 @@ final readonly class CustomersController
         private ?AdjustLoyaltyPotsHandler $adjustPots = null,
         private ?SubscriberDirectory $subscribers = null,
         private ?SaveCustomerProfileHandler $saveProfile = null,
+        private ?UpdateSubscriptionHandler $subscriptions = null,
     ) {
     }
 
@@ -65,6 +68,56 @@ final readonly class CustomersController
         add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
         add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
         add_action('admin_post_luziapi_save_customer_profile', [$this, 'saveCustomerProfile']);
+        add_action('admin_post_luziapi_update_subscription', [$this, 'updateSubscription']);
+    }
+
+    public function updateSubscription(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_update_subscription');
+        $rawCustomer = wp_unslash($_POST['customer_id'] ?? '');
+        $customerId = is_string($rawCustomer) ? sanitize_key($rawCustomer) : '';
+
+        try {
+            if (! $this->subscriptions instanceof UpdateSubscriptionHandler) {
+                throw new \RuntimeException('Gestion des abonnements indisponible.');
+            }
+            $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+            if (! $directory->selectedCustomer instanceof CustomerProfile) {
+                throw new \InvalidArgumentException('Client introuvable.');
+            }
+            $customer = $directory->selectedCustomer;
+            $rawPhone = $customer->phones[0] ?? '';
+            $phone = '' !== $rawPhone ? (NormalizedPhone::fromString($rawPhone)?->international() ?? $rawPhone) : '';
+            $this->subscriptions->handle(new UpdateSubscriptionCommand(
+                $customer->emails[0] ?? '',
+                $phone,
+                isset($_POST['sub_email']),
+                isset($_POST['sub_sms']),
+            ));
+            $this->activity->record(
+                ActivityCategory::Customer,
+                'customer_subscription_updated',
+                'customer_subscription',
+                null,
+                'Abonnement client mis à jour (Brevo)',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'subscription_updated');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'customer_subscription_update_failed',
+                'customer_subscription',
+                null,
+                'Mise à jour d’abonnement client échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'subscription_error');
+        }
     }
 
     public function saveCustomerProfile(): void
@@ -256,6 +309,7 @@ final readonly class CustomersController
             'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
             'profile_nonce'     => wp_create_nonce('luziapi_save_customer_profile'),
             'address_nonce'     => wp_create_nonce('luziapi_address_search'),
+            'subscription_nonce' => wp_create_nonce('luziapi_update_subscription'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
@@ -428,12 +482,12 @@ final readonly class CustomersController
      * État d'abonnement (Brevo, lecture seule) du client affiché. `available` = false
      * quand le répertoire n'est pas configuré (dev sans clé) : l'encart est alors masqué.
      *
-     * @return array{available: bool, known: bool, email: bool, sms: bool}
+     * @return array{available: bool, known: bool, email: bool, sms: bool, writable: bool, has_phone: bool}
      */
     private function subscriptionStatus(CustomerProfile $customer): array
     {
         if (! $this->subscribers instanceof SubscriberDirectory || ! $this->subscribers->isConfigured()) {
-            return ['available' => false, 'known' => false, 'email' => false, 'sms' => false];
+            return ['available' => false, 'known' => false, 'email' => false, 'sms' => false, 'writable' => false, 'has_phone' => false];
         }
 
         $email = $customer->emails[0] ?? null;
@@ -447,6 +501,10 @@ final readonly class CustomersController
             'known'     => null !== $status,
             'email'     => null !== $status && $status->emailSubscribed,
             'sms'       => null !== $status && $status->smsSubscribed,
+            // Inscriptible seulement si l'écriture Brevo est câblée ET qu'on a un e-mail
+            // (identifiant du contact). Sans e-mail, l'encart reste en lecture seule.
+            'writable'  => $this->subscriptions instanceof UpdateSubscriptionHandler && null !== $email && '' !== $email,
+            'has_phone' => null !== $phone && '' !== $phone,
         ];
     }
 

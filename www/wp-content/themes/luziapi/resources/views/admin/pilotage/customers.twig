@@ -17,6 +17,8 @@
     {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
     {% if notice == 'profile_updated' %}<div class="notice notice-success inline"><p>La fiche du client a été enregistrée.</p></div>{% endif %}
     {% if notice == 'profile_error' %}<div class="notice notice-error inline"><p>La fiche n’a pas pu être enregistrée.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
+    {% if notice == 'subscription_updated' %}<div class="notice notice-success inline"><p>L’abonnement a été mis à jour dans Brevo.</p></div>{% endif %}
+    {% if notice == 'subscription_error' %}<div class="notice notice-error inline"><p>L’abonnement n’a pas pu être mis à jour.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     {% if selected_customer %}
@@ -64,12 +66,29 @@
                 <p><strong>Produits habituels :</strong> {{ selected_customer.products ? selected_customer.products|join(', ')|e : 'Pas encore assez de données' }}</p>
                 <p><strong>Sources :</strong> {{ selected_customer.sources ? selected_customer.sources|join(', ')|e : 'Non renseignée' }}</p>
                 {% if selected_customer.subscription.available %}
-                    <p style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
-                        <strong>Abonnements :</strong>
-                        <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ selected_customer.subscription.email ? 'checked' : '' }}> Newsletter e-mail</label>
-                        <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ selected_customer.subscription.sms ? 'checked' : '' }}> SMS</label>
-                        {% if selected_customer.subscription.known %}<span class="description">lecture seule · géré dans Brevo</span>{% else %}<span class="description">contact non trouvé dans Brevo</span>{% endif %}
-                    </p>
+                    {% set sub = selected_customer.subscription %}
+                    {% if sub.writable %}
+                        <form action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:6px">
+                            <input type="hidden" name="action" value="luziapi_update_subscription">
+                            <input type="hidden" name="_wpnonce" value="{{ subscription_nonce|e('html_attr') }}">
+                            <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                            <p style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:0">
+                                <strong>Abonnements :</strong>
+                                <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" name="sub_email" {{ sub.email ? 'checked' : '' }}> Newsletter e-mail</label>
+                                <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" name="sub_sms" {{ sub.sms ? 'checked' : '' }} {{ sub.has_phone ? '' : 'disabled' }}> SMS</label>
+                                <button type="submit" class="button">Enregistrer l’abonnement</button>
+                                <span class="description">écrit directement dans Brevo · cocher inscrit, décocher désinscrit</span>
+                            </p>
+                            {% if not sub.has_phone %}<span class="description">Ajoutez un mobile à la fiche pour activer l’abonnement SMS.</span>{% endif %}
+                        </form>
+                    {% else %}
+                        <p style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+                            <strong>Abonnements :</strong>
+                            <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ sub.email ? 'checked' : '' }}> Newsletter e-mail</label>
+                            <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" disabled {{ sub.sms ? 'checked' : '' }}> SMS</label>
+                            {% if sub.known %}<span class="description">lecture seule · géré dans Brevo</span>{% else %}<span class="description">contact non trouvé dans Brevo</span>{% endif %}
+                        </p>
+                    {% endif %}
                 {% endif %}
             </div>
             {% set b = selected_customer.billing %}
