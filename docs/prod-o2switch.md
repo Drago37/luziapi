@@ -661,6 +661,19 @@ prod saine, CI verte sur `63c1785`) — **abonnement Brevo éditable depuis la f
   `make e2e-subscription-write-prod` (appels Brevo interceptés, aucun contact touché).
 - **RGPD** : l'opt-in direct suppose le consentement recueilli hors ligne ; repasser en double opt-in
   si besoin.
+
+_Suite le 14 septembre 2026 (commit `b1c5e28`, PR #32 mergée dans `release/1.2.0` **encore
+ouverte**, delta `63c1785 → 8b63de0`, 5 fichiers, **5/5 SHA**, OPcache vidé, prod saine) — ergonomie
+de l'édition client :_
+
+- **Formulaire d'édition sur 2 colonnes** (1 colonne sous 782 px) et **catégorie client intégrée au
+  formulaire** : « Enregistrer la fiche » sauvegarde désormais coordonnées **et** catégorie en une
+  seule action (l'ancien formulaire de catégorie séparé est retiré).
+- **Autocomplétion d'adresse nationale, sans règle** : biais de proximité retiré, filtre
+  `type=housenumber` retiré (les voies seules remontent aussi), liste élargie (10, plafond 15). Une
+  même voie présente dans plusieurs communes (ex. « 10 rue de Loches », 6ᵉ au national, à Luzillé)
+  redevient accessible — on choisit sur le code postal. `make e2e-address-lookup-prod` valide la
+  requête (appels BAN interceptés).
 - Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
   toujours ouverte).
 
