@@ -114,12 +114,12 @@ final class BrevoSubscriberDirectory implements SubscriberDirectory
             if ('' === $email && '' === $sms) {
                 continue;
             }
-            $smsBlacklisted = (bool) ($row['smsBlacklisted'] ?? false);
 
             $subscribers[] = new Subscriber(
                 $email,
-                '' !== $sms && ! $smsBlacklisted,
                 '' !== $sms ? $sms : null,
+                (bool) ($row['emailBlacklisted'] ?? false),
+                (bool) ($row['smsBlacklisted'] ?? false),
                 $this->parseDate($row['createdAt'] ?? null),
             );
         }

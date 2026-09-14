@@ -16,13 +16,14 @@ final readonly class GetSubscribersHandler
     public function handle(GetSubscribersQuery $query): SubscribersView
     {
         if (! $this->directory->isConfigured()) {
-            return new SubscribersView(false, 0, 0, 0, []);
+            return new SubscribersView(false, 0, 0, 0, 0, []);
         }
 
         $all = $this->directory->all();
         $total = count($all);
-        $emailCount = count(array_filter($all, static fn (Subscriber $s): bool => '' !== $s->email));
-        $smsCount = count(array_filter($all, static fn (Subscriber $s): bool => $s->smsSubscribed));
+        $emailCount = count(array_filter($all, static fn (Subscriber $s): bool => $s->emailSubscribed()));
+        $smsCount = count(array_filter($all, static fn (Subscriber $s): bool => $s->smsSubscribed()));
+        $blockedCount = count(array_filter($all, static fn (Subscriber $s): bool => $s->hasBlockedChannel()));
 
         $search = trim(mb_strtolower($query->search));
         $rows = '' === $search
@@ -32,6 +33,6 @@ final readonly class GetSubscribersHandler
                     || (null !== $s->phone && str_contains($s->phone, $search));
             }));
 
-        return new SubscribersView(true, $total, $emailCount, $smsCount, $rows);
+        return new SubscribersView(true, $total, $emailCount, $smsCount, $blockedCount, $rows);
     }
 }

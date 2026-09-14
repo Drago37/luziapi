@@ -31,16 +31,20 @@ final readonly class SubscribersController
             'configured'    => $view->configured,
             'search'        => $search,
             'metrics'       => [
-                ['label' => 'Abonnés (total)', 'value' => (string) $view->total],
+                ['label' => 'Contacts (total)', 'value' => (string) $view->total],
                 ['label' => 'Abonnés e-mail', 'value' => (string) $view->emailCount],
                 ['label' => 'Abonnés SMS', 'value' => (string) $view->smsCount],
+                ['label' => 'Bloqués', 'value' => (string) $view->blockedCount],
             ],
             'subscribers'   => array_map(
                 static fn (Subscriber $subscriber): array => [
-                    'email' => $subscriber->email,
-                    'sms'   => $subscriber->smsSubscribed,
-                    'phone' => $subscriber->phone ?? '',
-                    'date'  => null !== $subscriber->subscribedAt
+                    'email'          => $subscriber->email,
+                    'email_ok'       => $subscriber->emailSubscribed(),
+                    'email_blocked'  => $subscriber->hasEmail() && $subscriber->emailBlacklisted,
+                    'phone'          => $subscriber->phone ?? '',
+                    'sms_ok'         => $subscriber->smsSubscribed(),
+                    'sms_blocked'    => $subscriber->hasSms() && $subscriber->smsBlacklisted,
+                    'date'           => null !== $subscriber->subscribedAt
                         ? wp_date('d/m/Y', $subscriber->subscribedAt->getTimestamp())
                         : '',
                 ],

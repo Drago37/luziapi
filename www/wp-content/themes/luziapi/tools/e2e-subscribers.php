@@ -72,15 +72,16 @@ if (! function_exists('luziapi_e2e_subscribers_run')) {
             $view = $handler->handle(new \LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersQuery(''));
 
             $assert('Répertoire configuré (clé injectée)', $view->configured);
-            $assert('5 abonnés au total (dont 1 SMS-seul)', 5 === $view->total, 'total=' . $view->total);
-            $assert('4 abonnés e-mail listés', 4 === $view->emailCount, 'emailCount=' . $view->emailCount);
-            $assert('3 abonnés SMS (blacklist SMS exclue, SMS-seul inclus)', 3 === $view->smsCount, 'smsCount=' . $view->smsCount);
-            $smsOnly = array_filter($view->subscribers, static fn ($s): bool => '' === $s->email && $s->smsSubscribed);
+            $assert('5 contacts au total (dont 1 SMS-seul)', 5 === $view->total, 'total=' . $view->total);
+            $assert('3 abonnés e-mail actifs (c bloqué e-mail exclu)', 3 === $view->emailCount, 'emailCount=' . $view->emailCount);
+            $assert('3 abonnés SMS actifs (c bloqué SMS exclu, SMS-seul inclus)', 3 === $view->smsCount, 'smsCount=' . $view->smsCount);
+            $assert('1 contact bloqué (c)', 1 === $view->blockedCount, 'blocked=' . $view->blockedCount);
+            $smsOnly = array_filter($view->subscribers, static fn ($s): bool => '' === $s->email && $s->smsSubscribed());
             $assert('Abonné SMS-seul (sans e-mail) bien inclus', 1 === count($smsOnly));
 
             $rowsBySms = [];
             foreach ($view->subscribers as $row) {
-                $rowsBySms[$row->email] = $row->smsSubscribed;
+                $rowsBySms[$row->email] = $row->smsSubscribed();
             }
             $assert('a@ : SMS abonné', true === ($rowsBySms['a@example.test'] ?? null));
             $assert('c@ : SMS non abonné (blacklist SMS)', false === ($rowsBySms['c@example.test'] ?? null));

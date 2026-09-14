@@ -9,17 +9,19 @@ use LuziApi\Newsletter\Domain\Subscriber;
 final readonly class SubscribersView
 {
     /**
-     * @param bool             $configured  false = répertoire indisponible (pas de clé API)
-     * @param int              $total       nombre total d'abonnés (e-mail et/ou SMS)
-     * @param int              $emailCount  nombre d'abonnés e-mail
-     * @param int              $smsCount    nombre d'abonnés SMS
-     * @param list<Subscriber> $subscribers abonnés affichés (après recherche éventuelle)
+     * @param bool             $configured   false = répertoire indisponible (pas de clé API)
+     * @param int              $total        nombre total de contacts (e-mail et/ou SMS)
+     * @param int              $emailCount   abonnés e-mail actifs (non bloqués)
+     * @param int              $smsCount     abonnés SMS actifs (non bloqués)
+     * @param int              $blockedCount contacts ayant bloqué au moins un canal
+     * @param list<Subscriber> $subscribers  contacts affichés (après recherche éventuelle)
      */
     public function __construct(
         public bool $configured,
         public int $total,
         public int $emailCount,
         public int $smsCount,
+        public int $blockedCount,
         public array $subscribers,
     ) {
     }
