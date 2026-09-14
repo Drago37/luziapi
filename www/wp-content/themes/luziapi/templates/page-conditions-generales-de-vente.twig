@@ -31,6 +31,7 @@
                 <li><a href="#donnees">Données personnelles</a></li>
                 <li><a href="#mediation">Réclamations et médiation</a></li>
                 <li><a href="#droit">Droit applicable</a></li>
+                <li><a href="#fidelite">Programme de fidélité</a></li>
             </ol>
         </nav>
 
@@ -160,6 +161,13 @@
             <section id="droit">
                 <h2>13. Droit applicable et règlement des litiges</h2>
                 <p>Les présentes CGV sont soumises au droit français. En l’absence d’accord amiable ou de solution acceptée à l’issue de la médiation, le litige relève des juridictions compétentes selon les règles de droit commun.</p>
+            </section>
+
+            <section id="fidelite">
+                <h2>14. Programme de fidélité</h2>
+                <p>LuziApi propose un programme de fidélité sans carte ni inscription : <strong>{{ loyalty.pots_per_reward|default(15) }} pots de miel admissibles achetés ouvrent droit à un pot offert</strong>. Un pot est comptabilisé lorsque la commande qui le contient est remise au client (statut « Terminée ») ; une commande annulée ou remboursée ne compte pas. Les pots restent valables {{ loyalty.pot_lifetime_years|default(2) }} ans à compter de leur acquisition.</p>
+                <p>Le pot offert est un pot de miel admissible au choix du client parmi les références disponibles, remisé à 100 %. Il ne peut être ni converti en argent, ni remboursé en espèces. L'avantage est cumulable avec la remise de volume mentionnée à l'article 4, dans le respect de l'encadrement des promotions.</p>
+                <p>Les conditions complètes (admissibilité, identification du client, expiration, annulation, évolution du programme) figurent dans le <a href="{{ loyalty_program_url }}">règlement du programme de fidélité</a>, conservé sur support durable. La participation au programme ne vaut pas consentement à recevoir la newsletter ou des SMS commerciaux, qui reposent sur un accord distinct.</p>
             </section>
 
             <section id="formulaire">
