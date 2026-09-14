@@ -25,6 +25,15 @@ trait SurfacesActionErrors
         );
     }
 
+    /**
+     * Met de côté un détail de message (succès comme échec), récupéré par `render()`
+     * via {@see takeErrorDetail()} — même canal, exclusif dans une même requête.
+     */
+    private function rememberDetail(string $scope, string $text): void
+    {
+        set_transient($this->errorTransientKey($scope), $text, 120);
+    }
+
     private function takeErrorDetail(string $scope): string
     {
         $key = $this->errorTransientKey($scope);

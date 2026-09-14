@@ -27,15 +27,30 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
         $cleanup = 'non exécuté';
 
         $captured = [];
+        $lastBody = [];
         $foreignCalls = 0;
-        $intercept = static function ($pre, array $args, string $url) use (&$captured, &$foreignCalls) {
+        $intercept = static function ($pre, array $args, string $url) use (&$captured, &$lastBody, &$foreignCalls) {
             if (false !== stripos($url, 'brevo.com')) {
-                $body = isset($args['body']) && is_string($args['body']) ? json_decode($args['body'], true) : null;
-                $captured[] = is_array($body) ? $body : [];
-                // Un e-mail contenant « fail » simule un refus Brevo.
-                $code = (is_array($body) && isset($body['email']) && is_string($body['email']) && false !== stripos($body['email'], 'fail')) ? 400 : 201;
+                $method = isset($args['method']) && is_string($args['method']) ? strtoupper($args['method']) : 'GET';
+                if ('POST' === $method) {
+                    $body = isset($args['body']) && is_string($args['body']) ? json_decode($args['body'], true) : null;
+                    $lastBody = is_array($body) ? $body : [];
+                    $captured[] = $lastBody;
+                    // Un e-mail contenant « fail » simule un refus Brevo.
+                    $code = (isset($lastBody['email']) && is_string($lastBody['email']) && false !== stripos($lastBody['email'], 'fail')) ? 400 : 201;
 
-                return ['response' => ['code' => $code], 'body' => wp_json_encode(['ok' => 201 === $code])];
+                    return ['response' => ['code' => $code], 'body' => wp_json_encode(['ok' => 201 === $code])];
+                }
+
+                // GET de relecture : on renvoie un contact reflétant le dernier POST
+                // (Brevo confirme l'état qu'on vient d'écrire).
+                return ['response' => ['code' => 200], 'body' => wp_json_encode([
+                    'email'            => $lastBody['email'] ?? '',
+                    'listIds'          => $lastBody['listIds'] ?? [],
+                    'emailBlacklisted' => (bool) ($lastBody['emailBlacklisted'] ?? false),
+                    'smsBlacklisted'   => (bool) ($lastBody['smsBlacklisted'] ?? false),
+                    'attributes'       => $lastBody['attributes'] ?? [],
+                ])];
             }
 
             ++$foreignCalls;
@@ -48,8 +63,8 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
             $writer = new \LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberWriter('e2e-fake-key', 2);
             $handler = new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler($writer);
 
-            // 1. Inscription e-mail + SMS.
-            $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', true, true));
+            // 1. Inscription e-mail + SMS (le handler renvoie l'état confirmé par relecture).
+            $confirmedSub = $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', true, true));
             $sub = $captured[0] ?? [];
             $assert('Inscription : e-mail transmis', ($sub['email'] ?? null) === 'a@e2e-sub.test');
             $assert('Inscription : ajouté à la liste 2', ($sub['listIds'] ?? null) === [2]);
@@ -57,12 +72,14 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
             $assert('Inscription : SMS NON blacklisté', false === ($sub['smsBlacklisted'] ?? null));
             $assert('Inscription : attribut SMS posé', (($sub['attributes'] ?? [])['SMS'] ?? null) === '+33600000001');
             $assert('Inscription : updateEnabled (upsert)', true === ($sub['updateEnabled'] ?? null));
+            $assert('Inscription : relecture confirme e-mail + SMS abonnés', $confirmedSub->emailSubscribed && $confirmedSub->smsSubscribed);
 
             // 2. Désinscription des deux canaux.
-            $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', false, false));
+            $confirmedUnsub = $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', false, false));
             $unsub = $captured[1] ?? [];
             $assert('Désinscription : e-mail blacklisté', true === ($unsub['emailBlacklisted'] ?? null));
             $assert('Désinscription : SMS blacklisté', true === ($unsub['smsBlacklisted'] ?? null));
+            $assert('Désinscription : relecture confirme les deux désabonnés', ! $confirmedUnsub->emailSubscribed && ! $confirmedUnsub->smsSubscribed);
 
             // 3. Une réponse non-2xx de Brevo lève une exception (pas d'échec silencieux).
             $threw = false;

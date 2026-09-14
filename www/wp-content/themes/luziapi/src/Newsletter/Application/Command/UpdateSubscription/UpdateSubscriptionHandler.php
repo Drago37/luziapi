@@ -6,6 +6,7 @@ namespace LuziApi\Newsletter\Application\Command\UpdateSubscription;
 
 use InvalidArgumentException;
 use LuziApi\Newsletter\Application\Port\SubscriberWriter;
+use LuziApi\Newsletter\Domain\SubscriptionStatus;
 
 final readonly class UpdateSubscriptionHandler
 {
@@ -13,7 +14,10 @@ final readonly class UpdateSubscriptionHandler
     {
     }
 
-    public function handle(UpdateSubscriptionCommand $command): void
+    /**
+     * @return SubscriptionStatus état confirmé par relecture côté Brevo
+     */
+    public function handle(UpdateSubscriptionCommand $command): SubscriptionStatus
     {
         $email = trim($command->email);
         if ('' === $email || false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -23,6 +27,6 @@ final readonly class UpdateSubscriptionHandler
             throw new InvalidArgumentException('Un numéro de mobile est requis pour l’abonnement SMS.');
         }
 
-        $this->writer->setSubscription($email, trim($command->phone), $command->emailSubscribed, $command->smsSubscribed);
+        return $this->writer->setSubscription($email, trim($command->phone), $command->emailSubscribed, $command->smsSubscribed);
     }
 }

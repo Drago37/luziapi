@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand;
 use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
 use LuziApi\Newsletter\Application\Port\SubscriberWriter;
+use LuziApi\Newsletter\Domain\SubscriptionStatus;
 use PHPUnit\Framework\TestCase;
 
 final class UpdateSubscriptionHandlerTest extends TestCase
@@ -15,7 +16,7 @@ final class UpdateSubscriptionHandlerTest extends TestCase
     public function testItSubscribesBothChannels(): void
     {
         $writer = new RecordingSubscriberWriter();
-        (new UpdateSubscriptionHandler($writer))->handle(
+        $confirmed = (new UpdateSubscriptionHandler($writer))->handle(
             new UpdateSubscriptionCommand('helene@example.test', '+33631437046', true, true),
         );
 
@@ -24,6 +25,9 @@ final class UpdateSubscriptionHandlerTest extends TestCase
         self::assertSame('+33631437046', $writer->phone);
         self::assertTrue($writer->emailSubscribed);
         self::assertTrue($writer->smsSubscribed);
+        // Le handler retourne l'état confirmé (relecture) renvoyé par le writer.
+        self::assertTrue($confirmed->emailSubscribed);
+        self::assertTrue($confirmed->smsSubscribed);
     }
 
     public function testUncheckingUnsubscribes(): void
@@ -78,12 +82,14 @@ final class RecordingSubscriberWriter implements SubscriberWriter
         return true;
     }
 
-    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed): void
+    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed): SubscriptionStatus
     {
         ++$this->calls;
         $this->email = $email;
         $this->phone = $phone;
         $this->emailSubscribed = $emailSubscribed;
         $this->smsSubscribed = $smsSubscribed;
+
+        return new SubscriptionStatus($emailSubscribed, $smsSubscribed);
     }
 }
