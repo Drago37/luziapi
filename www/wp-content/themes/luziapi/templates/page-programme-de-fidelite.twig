@@ -8,6 +8,7 @@
 <article class="page legal loyalty-page">
     <div class="wrap page-legal">
         <header class="legal-head">
+            <img class="legal-print-logo" src="{{ theme_uri }}/assets/img/logo-email.png" width="90" height="90" alt="LuziApi">
             <span class="eyebrow">Programme de fidélité LuziApi</span>
             <h1>{{ per_reward }} pots achetés, le {{ next_pot }}<sup>e</sup> offert</h1>
             <p class="legal-version">{{ loyalty.reglement_label|default('Règlement en vigueur') }}</p>
@@ -44,49 +45,130 @@
 
         <div class="prose legal-prose">
             <section>
-                <h2>Les règles en clair</h2>
-                <ul>
-                    <li><strong>{{ per_reward }} pots achetés = 1 pot offert.</strong> Par exemple, {{ per_reward * 2 + 3 }} pots
-                        vous donnent 2 pots offerts et une progression de 3/{{ per_reward }} en cours.</li>
-                    <li><strong>Tous les canaux comptent :</strong> boutique en ligne, téléphone, marché,
-                        e-mail ou commande saisie par LuziApi.</li>
-                    <li><strong>Un pot compte une fois la commande remise</strong> (statut « Terminée »).
-                        Une commande annulée ou remboursée ne compte pas.</li>
-                    <li><strong>Vos pots restent valables {{ lifetime }} ans</strong> à compter de leur acquisition :
-                        à tout moment, ce sont vos achats des {{ lifetime }} dernières années qui comptent.
-                        Un pot offert déjà utilisé vous reste, lui, définitivement acquis.</li>
-                    <li><strong>Le pot offert est un pot de miel de votre choix</strong> parmi les références
-                        admissibles disponibles, remisé à 100 %. Il ne peut pas être échangé contre de l'argent.</li>
-                    <li><strong>Cumulable</strong> avec la remise de volume de la boutique (à partir de deux pots).</li>
-                </ul>
+                <h2>1. Objet</h2>
+                <p>Le programme de fidélité LuziApi récompense les clients fidèles : <strong>{{ per_reward }} pots
+                   de miel achetés, le {{ next_pot }}<sup>e</sup> est offert</strong>. Il s'adresse à tous les
+                   clients, avec ou sans compte en ligne, et ne nécessite aucune carte. Le mot « offert » est
+                   employé volontairement : l'avantage est un pot de miel remis sans contrepartie financière au
+                   titre de la fidélité.</p>
             </section>
 
             <section>
-                <h2>Depuis quand ?</h2>
+                <h2>2. Date d'effet et clients concernés</h2>
                 <p>Le programme prend effet le <strong>{{ loyalty.start_label|default('14 septembre 2024') }}</strong>.
-                   Vos achats des {{ lifetime }} dernières années sont donc déjà pris en compte : c'est notre façon
-                   de remercier les clients qui nous font confiance depuis le début.</p>
+                   Sont pris en compte les pots admissibles des commandes atteignant le statut « Terminée » à
+                   partir de cette date : ce point de départ récompense les clients des {{ lifetime }} dernières
+                   années, puisqu'il coïncide avec la durée de validité d'un pot (voir article 6).</p>
+                <p>Le programme est ouvert à tous les clients identifiables (article 5), quel que soit le canal
+                   d'achat, à l'exception des commandes relevant d'un tarif professionnel négocié explicitement
+                   incompatible avec le programme.</p>
             </section>
 
             <section>
-                <h2>Comment savoir où j'en suis ?</h2>
-                <p>Votre progression s'affiche sur la <a href="{{ order_tracking_url }}">page de suivi de vos commandes</a>,
-                   une fois votre commande identifiée (numéro + e-mail). Elle est aussi rappelée dans l'e-mail
-                   confirmant qu'une commande vous a été remise.</p>
+                <h2>3. Produits admissibles</h2>
+                <p>Seul un pot de miel configuré comme admissible au programme compte comme « pot ». Les coffrets,
+                   frais de livraison, cartes cadeaux et produits non éligibles ne comptent pas. Un pot remis au
+                   titre d'un avantage (pot offert) ne compte pas comme un nouvel achat : il ne recrédite pas la
+                   progression.</p>
             </section>
 
             <section>
-                <h2>Bon à savoir</h2>
-                <p>Participer au programme ne vous inscrit <strong>pas</strong> à la newsletter ni aux SMS :
-                   ces envois relèvent d'un accord séparé, que vous donnez si vous le souhaitez. Vos données ne
-                   servent qu'à gérer votre fidélité. Vous pouvez à tout moment demander l'accès à votre historique
-                   ou sa suppression en écrivant à <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>.</p>
-                <p>Le règlement complet précise l'ensemble des conditions (admissibilité, expiration, annulation,
-                   évolution du programme). Il est également résumé dans nos
-                   {% if cgv_url %}<a href="{{ cgv_url }}">conditions générales de vente</a>{% else %}conditions générales de vente{% endif %}.
-                   Le traitement de vos données est détaillé dans la
-                   <a href="{{ function('home_url', '/politique-de-confidentialite/') }}">politique de confidentialité</a>.</p>
+                <h2>4. Canaux d'achat pris en compte</h2>
+                <p>Tous les canaux de vente comptent, dès lors qu'une identité client suffisamment fiable est
+                   renseignée : boutique en ligne, commande par téléphone, vente sur les marchés, commande par
+                   e-mail ou formulaire, et commande saisie manuellement par LuziApi.</p>
             </section>
+
+            <section>
+                <h2>5. Identification du client</h2>
+                <p>Le client est identifié par son adresse e-mail en priorité, à défaut par son numéro de
+                   téléphone (normalisé). Un même client peut être connu sous plusieurs e-mails ou numéros ; ses
+                   achats sont alors regroupés. Aucune adhésion formelle n'est requise. En cas de doute sur
+                   l'identité (coordonnées ambiguës ou en double), LuziApi conserve l'historique sans fusion
+                   silencieuse et arbitre au cas par cas.</p>
+            </section>
+
+            <section>
+                <h2>6. Fait générateur, validité et expiration</h2>
+                <p>Un pot est crédité lorsque la commande qui le contient atteint le statut « Terminée »,
+                   c'est-à-dire après sa remise effective au client. Une commande annulée, remboursée ou non
+                   remise ne crédite aucun pot.</p>
+                <div class="legal-callout"><strong>Validité {{ lifetime }} ans, en fenêtre glissante :</strong>
+                   à tout moment, seuls les pots acquis au cours des {{ lifetime }} dernières années sont comptés
+                   dans le solde courant. Un pot plus ancien cesse de compter, sans que cela remette en cause les
+                   avantages déjà utilisés. Un avantage déjà consommé reste définitivement acquis.</div>
+            </section>
+
+            <section>
+                <h2>7. Acquisition et utilisation des avantages</h2>
+                <p>Chaque tranche de {{ per_reward }} pots admissibles ouvre droit à 1 pot offert. Exemple :
+                   {{ per_reward * 2 + 3 }} pots donnent 2 avantages acquis et laissent une progression de
+                   3/{{ per_reward }} sur la tranche en cours.</p>
+                <p>Le client choisit son pot offert parmi les pots de miel admissibles disponibles en stock. Le
+                   pot est remisé à 100 %, sorti du stock et tracé comme un pot vendu. Une même commande peut
+                   utiliser plusieurs pots offerts si le solde d'avantages et les quantités le permettent.
+                   L'avantage ne peut pas être converti en argent, remboursé en espèces, ni conduire le total des
+                   produits sous zéro.</p>
+            </section>
+
+            <section>
+                <h2>8. Cumul avec les autres réductions</h2>
+                <p>Le pot offert est cumulable avec la remise de volume appliquée au panier de la boutique en
+                   ligne (réduction accordée à partir de deux pots). Les deux avantages restent distincts. Le
+                   cumul s'applique dans le respect de l'encadrement en valeur des promotions alimentaires ; si,
+                   pour une référence ou une période donnée, ce cumul n'était pas juridiquement sûr, LuziApi se
+                   réserve de le limiter.</p>
+            </section>
+
+            <section>
+                <h2>9. Annulation et remboursement</h2>
+                <p>Si une commande quitte le statut « Terminée » (annulation, remboursement, remise en attente),
+                   les pots qu'elle avait crédités sont contre-passés : le solde revient exactement à son état
+                   antérieur. Si l'avantage correspondant a déjà été utilisé, le dossier est signalé à LuziApi
+                   pour arbitrage ; aucune dette n'est créée automatiquement à la charge du client.</p>
+            </section>
+
+            <section>
+                <h2>10. Traçabilité</h2>
+                <p>Toutes les opérations (crédit d'un achat, contre-passation, avantage acquis, avantage
+                   consommé, correction manuelle) sont enregistrées dans un journal inaltérable. Une correction
+                   ne se fait jamais par modification directe d'un solde, mais par une écriture compensatrice
+                   visible.</p>
+            </section>
+
+            <section>
+                <h2>11. Évolution et fin du programme</h2>
+                <p>LuziApi peut faire évoluer ou arrêter le programme à tout moment. Une modification n'annule
+                   pas rétroactivement un avantage déjà acquis ; seule l'expiration naturelle des pots (article 6)
+                   s'applique. Toute évolution des présentes règles donne lieu à une nouvelle version datée du
+                   règlement, les versions antérieures étant conservées sur support durable.</p>
+            </section>
+
+            <section>
+                <h2>12. Données personnelles</h2>
+                <p>Les données utilisées (e-mail, téléphone, historique d'achats) servent uniquement à la gestion
+                   du programme de fidélité. La base légale est l'intérêt légitime de LuziApi à fidéliser sa
+                   clientèle. La participation au programme ne vaut pas consentement à recevoir la newsletter ou
+                   des SMS commerciaux : ces canaux relèvent d'un consentement séparé. Le client dispose d'un
+                   droit d'accès, de rectification et de portabilité de son historique et de ses avantages,
+                   détaillé dans la <a href="{{ function('home_url', '/politique-de-confidentialite/') }}">politique
+                   de confidentialité</a>.</p>
+            </section>
+
+            <section>
+                <h2>13. Suivi et contact</h2>
+                <p>Votre progression s'affiche sur la <a href="{{ order_tracking_url }}">page de suivi de vos
+                   commandes</a>, une fois votre commande identifiée (numéro + e-mail), et vous est rappelée dans
+                   l'e-mail confirmant qu'une commande vous a été remise. Pour toute question relative au
+                   programme, à sa progression ou à ses avantages : <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>.</p>
+                <p class="no-print">Ce programme est également résumé dans nos
+                   {% if cgv_url %}<a href="{{ cgv_url }}">conditions générales de vente</a>{% else %}conditions générales de vente{% endif %}.</p>
+            </section>
+        </div>
+
+        <div class="legal-print-end" aria-hidden="true">
+            <span>LuziApi · Miel artisanal à Luzillé</span>
+            <span>{{ loyalty.reglement_label|default('') }}</span>
         </div>
     </div>
 </article>
