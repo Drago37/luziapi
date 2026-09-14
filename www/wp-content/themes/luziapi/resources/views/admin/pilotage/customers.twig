@@ -15,6 +15,8 @@
     {% if notice == 'discount_applied' %}<div class="notice notice-success inline"><p>La remise remerciement a été appliquée à la commande.</p></div>{% endif %}
     {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
+    {% if notice == 'contact_updated' %}<div class="notice notice-success inline"><p>Les coordonnées du client ont été mises à jour sur ses commandes.</p></div>{% endif %}
+    {% if notice == 'contact_error' %}<div class="notice notice-error inline"><p>Les coordonnées n’ont pas pu être mises à jour.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     {% if selected_customer %}
@@ -60,6 +62,23 @@
                     </p>
                 {% endif %}
             </div>
+            <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:14px">
+                <input type="hidden" name="action" value="luziapi_update_customer_contact">
+                <input type="hidden" name="_wpnonce" value="{{ contact_nonce|e('html_attr') }}">
+                <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
+                <p class="luziapi-pilotage__eyebrow" style="margin:0 0 6px">Modifier les coordonnées</p>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+                    <label style="display:flex;flex-direction:column;font-size:12px">E-mail
+                        <input type="email" name="contact_email" value="{{ selected_customer.emails|first|default('')|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Téléphone
+                        <input type="text" name="contact_phone" value="{{ (selected_customer.phones|first).label|default('')|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Ville
+                        <input type="text" name="contact_city" value="{{ selected_customer.city|e('html_attr') }}"></label>
+                    <button type="submit" class="button button-primary">Enregistrer</button>
+                </div>
+                <span class="description">Met à jour ces champs sur toutes les commandes du client. Corriger l’e-mail ou le téléphone fusionne d’éventuels doublons ; laisser un champ vide le conserve.</span>
+            </form>
+
             {% if selected_customer.loyalty %}
                 {% set loyalty = selected_customer.loyalty %}
                 <div class="luziapi-pilotage__loyalty">

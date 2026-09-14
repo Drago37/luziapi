@@ -27,6 +27,9 @@ _Nothing yet._
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).
+- Edit a customer's contact details (e-mail, phone, city) from the Clients fiche — writes to the
+  customer's orders and, by aligning the e-mail/phone, merges duplicate entries. Integration e2e
+  (`make e2e-customer-contact-local` / `-prod`).
 
 ### Changed
 

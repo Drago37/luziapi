@@ -18,6 +18,7 @@ use LuziApi\Pilotage\Application\Command\RecordOrderStockMovement\OrderStockMove
 use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Pilotage\Application\Command\RecordStockMovement\RecordStockMovementHandler;
 use LuziApi\Pilotage\Application\Command\ReverseReceipt\ReverseReceiptHandler;
+use LuziApi\Pilotage\Application\Command\UpdateCustomerContact\UpdateCustomerContactHandler;
 use LuziApi\Pilotage\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
@@ -34,6 +35,7 @@ use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerContactWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
@@ -197,6 +199,7 @@ final class PilotageServiceProvider
             ),
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
             $subscribers,
+            new UpdateCustomerContactHandler(new WooCommerceCustomerContactWriter()),
         );
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,

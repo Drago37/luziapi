@@ -15,6 +15,8 @@ use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDisc
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
+use LuziApi\Pilotage\Application\Command\UpdateCustomerContact\UpdateCustomerContactCommand;
+use LuziApi\Pilotage\Application\Command\UpdateCustomerContact\UpdateCustomerContactHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
@@ -52,6 +54,7 @@ final readonly class CustomersController
         private ?ApplyThankYouDiscountHandler $applyDiscount = null,
         private ?AdjustLoyaltyPotsHandler $adjustPots = null,
         private ?SubscriberDirectory $subscribers = null,
+        private ?UpdateCustomerContactHandler $updateContact = null,
     ) {
     }
 
@@ -60,6 +63,61 @@ final readonly class CustomersController
         add_action('admin_post_luziapi_assign_customer_category', [$this, 'assignCategory']);
         add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
         add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
+        add_action('admin_post_luziapi_update_customer_contact', [$this, 'updateCustomerContact']);
+    }
+
+    public function updateCustomerContact(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_update_customer_contact');
+        $rawCustomer = wp_unslash($_POST['customer_id'] ?? '');
+        $customerId = is_string($rawCustomer) ? sanitize_key($rawCustomer) : '';
+
+        try {
+            if (! $this->updateContact instanceof UpdateCustomerContactHandler) {
+                throw new \RuntimeException('Édition des coordonnées indisponible.');
+            }
+            $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+            if (! $directory->selectedCustomer instanceof CustomerProfile) {
+                throw new \InvalidArgumentException('Client introuvable.');
+            }
+            $orderIds = array_map(static fn (OrderSnapshot $order): int => $order->id, $directory->selectedCustomer->orders);
+            $rawEmail = wp_unslash($_POST['contact_email'] ?? '');
+            $rawPhone = wp_unslash($_POST['contact_phone'] ?? '');
+            $rawCity = wp_unslash($_POST['contact_city'] ?? '');
+            $updated = $this->updateContact->handle(new UpdateCustomerContactCommand(
+                $orderIds,
+                '',
+                '',
+                is_string($rawEmail) ? sanitize_email($rawEmail) : '',
+                is_string($rawPhone) ? sanitize_text_field($rawPhone) : '',
+                is_string($rawCity) ? sanitize_text_field($rawCity) : '',
+            ));
+            $this->activity->record(
+                ActivityCategory::Customer,
+                'customer_contact_updated',
+                'customer_contact',
+                null,
+                sprintf('Coordonnées client mises à jour sur %d commande(s)', $updated),
+                [],
+                get_current_user_id(),
+            );
+            // L'identité (donc l'ID de groupe) peut changer après édition de l'e-mail :
+            // on redirige vers la liste plutôt que vers une fiche introuvable.
+            $this->redirectAfterCategory('', 'contact_updated');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'customer_contact_update_failed',
+                'customer_contact',
+                null,
+                'Modification des coordonnées client échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'contact_error');
+        }
     }
 
     public function adjustLoyaltyPots(): void
@@ -178,6 +236,7 @@ final readonly class CustomersController
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
             'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
             'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
+            'contact_nonce'     => wp_create_nonce('luziapi_update_customer_contact'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
