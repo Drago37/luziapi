@@ -17,7 +17,7 @@ final class UpdateSubscriptionHandlerTest extends TestCase
     {
         $writer = new RecordingSubscriberWriter();
         $confirmed = (new UpdateSubscriptionHandler($writer))->handle(
-            new UpdateSubscriptionCommand('helene@example.test', '+33631437046', true, true),
+            new UpdateSubscriptionCommand('helene@example.test', '+33631437046', true, true, 'Hélène', 'Dupont'),
         );
 
         self::assertSame(1, $writer->calls);
@@ -25,6 +25,8 @@ final class UpdateSubscriptionHandlerTest extends TestCase
         self::assertSame('+33631437046', $writer->phone);
         self::assertTrue($writer->emailSubscribed);
         self::assertTrue($writer->smsSubscribed);
+        self::assertSame('Hélène', $writer->firstName);
+        self::assertSame('Dupont', $writer->lastName);
         // Le handler retourne l'état confirmé (relecture) renvoyé par le writer.
         self::assertTrue($confirmed->emailSubscribed);
         self::assertTrue($confirmed->smsSubscribed);
@@ -76,19 +78,23 @@ final class RecordingSubscriberWriter implements SubscriberWriter
     public string $phone = '';
     public bool $emailSubscribed = false;
     public bool $smsSubscribed = false;
+    public string $firstName = '';
+    public string $lastName = '';
 
     public function isConfigured(): bool
     {
         return true;
     }
 
-    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed): SubscriptionStatus
+    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed, string $firstName = '', string $lastName = ''): SubscriptionStatus
     {
         ++$this->calls;
         $this->email = $email;
         $this->phone = $phone;
         $this->emailSubscribed = $emailSubscribed;
         $this->smsSubscribed = $smsSubscribed;
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
 
         return new SubscriptionStatus($emailSubscribed, $smsSubscribed);
     }

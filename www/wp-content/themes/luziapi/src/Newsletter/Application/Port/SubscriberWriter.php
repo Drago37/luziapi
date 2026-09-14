@@ -23,8 +23,18 @@ interface SubscriberWriter
      * n'est pas une supposition : c'est ce que Brevo renvoie après écriture).
      * `$phone` (format international, ou vide) porte le numéro pour le canal SMS.
      *
+     * `$firstName` / `$lastName` alimentent, quand ils sont fournis, les attributs Brevo
+     * `PRENOM` / `NOM` (en repli silencieux si ces attributs n'existent pas sur le compte).
+     *
      * @throws \RuntimeException si l'écriture échoue, si la relecture est impossible, ou
      *                          si l'état confirmé ne correspond pas à l'état demandé
      */
-    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed): SubscriptionStatus;
+    public function setSubscription(
+        string $email,
+        string $phone,
+        bool $emailSubscribed,
+        bool $smsSubscribed,
+        string $firstName = '',
+        string $lastName = '',
+    ): SubscriptionStatus;
 }

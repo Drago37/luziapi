@@ -27,8 +27,11 @@ _Nothing yet._
   Brevo (no double opt-in; consent is assumed collected by the shop owner). SMS needs an e-mail (the
   Brevo contact identifier) and a mobile number. After writing, the contact is **read back** to
   confirm the state Brevo actually stored — success is reported only if it matches, and the confirmed
-  state is shown in the notice. Unit tests + integration e2e (`make e2e-subscription-write-local` /
-  `-prod`, Brevo calls intercepted — no contact touched).
+  state is shown in the notice. A customer **not yet in Brevo** gets an **"Ajouter dans Brevo"**
+  button that creates the contact from the fiche (e-mail, mobile, and name via the `PRENOM` / `NOM`
+  attributes — best-effort, with a silent fallback if the account lacks those attributes). Unit tests
+  + integration e2e (`make e2e-subscription-write-local` / `-prod`, Brevo calls intercepted — no
+  contact touched).
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).

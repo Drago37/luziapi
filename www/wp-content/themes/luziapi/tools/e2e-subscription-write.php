@@ -36,8 +36,16 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
                     $body = isset($args['body']) && is_string($args['body']) ? json_decode($args['body'], true) : null;
                     $lastBody = is_array($body) ? $body : [];
                     $captured[] = $lastBody;
-                    // Un e-mail contenant « fail » simule un refus Brevo.
-                    $code = (isset($lastBody['email']) && is_string($lastBody['email']) && false !== stripos($lastBody['email'], 'fail')) ? 400 : 201;
+                    $email = isset($lastBody['email']) && is_string($lastBody['email']) ? $lastBody['email'] : '';
+                    $attrs = isset($lastBody['attributes']) && is_array($lastBody['attributes']) ? $lastBody['attributes'] : [];
+                    $hasName = isset($attrs['PRENOM']) || isset($attrs['NOM']);
+                    if (false !== stripos($email, 'fail')) {
+                        $code = 400; // refus dur (les deux tentatives échouent)
+                    } elseif (false !== stripos($email, 'fallback') && $hasName) {
+                        $code = 400; // simule un compte SANS attributs PRENOM/NOM → repli attendu
+                    } else {
+                        $code = 201;
+                    }
 
                     return ['response' => ['code' => $code], 'body' => wp_json_encode(['ok' => 201 === $code])];
                 }
@@ -63,14 +71,15 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
             $writer = new \LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberWriter('e2e-fake-key', 2);
             $handler = new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler($writer);
 
-            // 1. Inscription e-mail + SMS (le handler renvoie l'état confirmé par relecture).
-            $confirmedSub = $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', true, true));
+            // 1. Inscription e-mail + SMS avec nom/prénom (état confirmé par relecture).
+            $confirmedSub = $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('a@e2e-sub.test', '+33600000001', true, true, 'Emile', 'Graule'));
             $sub = $captured[0] ?? [];
             $assert('Inscription : e-mail transmis', ($sub['email'] ?? null) === 'a@e2e-sub.test');
             $assert('Inscription : ajouté à la liste 2', ($sub['listIds'] ?? null) === [2]);
             $assert('Inscription : e-mail NON blacklisté', false === ($sub['emailBlacklisted'] ?? null));
             $assert('Inscription : SMS NON blacklisté', false === ($sub['smsBlacklisted'] ?? null));
             $assert('Inscription : attribut SMS posé', (($sub['attributes'] ?? [])['SMS'] ?? null) === '+33600000001');
+            $assert('Inscription : attributs PRENOM/NOM posés', (($sub['attributes'] ?? [])['PRENOM'] ?? null) === 'Emile' && (($sub['attributes'] ?? [])['NOM'] ?? null) === 'Graule');
             $assert('Inscription : updateEnabled (upsert)', true === ($sub['updateEnabled'] ?? null));
             $assert('Inscription : relecture confirme e-mail + SMS abonnés', $confirmedSub->emailSubscribed && $confirmedSub->smsSubscribed);
 
@@ -89,6 +98,23 @@ if (! function_exists('luziapi_e2e_subscription_write_run')) {
                 $threw = true;
             }
             $assert('Erreur Brevo (HTTP 400) → exception', $threw);
+
+            // 4. Repli : compte sans attributs PRENOM/NOM → le POST avec nom échoue (400),
+            // on rejoue SANS les attributs de nom et le contact est bien créé/inscrit.
+            $before = count($captured);
+            $threwFallback = false;
+            $confirmedFallback = null;
+            try {
+                $confirmedFallback = $handler->handle(new \LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand('fallback@e2e-sub.test', '+33600000009', true, false, 'Jean', 'Test'));
+            } catch (\RuntimeException) {
+                $threwFallback = true;
+            }
+            $fallbackPosts = array_slice($captured, $before);
+            $lastFallback = [] !== $fallbackPosts ? end($fallbackPosts) : [];
+            $assert('Repli : deux POST (avec nom refusé, puis sans nom)', 2 === count($fallbackPosts), 'posts=' . count($fallbackPosts));
+            $assert('Repli : la 2e tentative n’envoie plus PRENOM/NOM', ! isset(($lastFallback['attributes'] ?? [])['PRENOM']) && ! isset(($lastFallback['attributes'] ?? [])['NOM']));
+            $assert('Repli : SMS conservé sur la 2e tentative', (($lastFallback['attributes'] ?? [])['SMS'] ?? null) === '+33600000009');
+            $assert('Repli : pas d’exception, contact inscrit', ! $threwFallback && null !== $confirmedFallback && $confirmedFallback->emailSubscribed);
 
             $assert('Sûreté : aucun appel réseau hors Brevo', 0 === $foreignCalls, 'hors-Brevo=' . $foreignCalls);
         } catch (\Throwable $exception) {

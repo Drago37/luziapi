@@ -27,6 +27,13 @@ final readonly class UpdateSubscriptionHandler
             throw new InvalidArgumentException('Un numéro de mobile est requis pour l’abonnement SMS.');
         }
 
-        return $this->writer->setSubscription($email, trim($command->phone), $command->emailSubscribed, $command->smsSubscribed);
+        return $this->writer->setSubscription(
+            $email,
+            trim($command->phone),
+            $command->emailSubscribed,
+            $command->smsSubscribed,
+            trim($command->firstName),
+            trim($command->lastName),
+        );
     }
 }

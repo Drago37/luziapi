@@ -29,8 +29,14 @@ final class BrevoSubscriberWriter implements SubscriberWriter
         return '' !== trim($this->apiKey);
     }
 
-    public function setSubscription(string $email, string $phone, bool $emailSubscribed, bool $smsSubscribed): SubscriptionStatus
-    {
+    public function setSubscription(
+        string $email,
+        string $phone,
+        bool $emailSubscribed,
+        bool $smsSubscribed,
+        string $firstName = '',
+        string $lastName = '',
+    ): SubscriptionStatus {
         if (! $this->isConfigured()) {
             throw new RuntimeException('Clé API Brevo absente : abonnement non modifiable.');
         }
@@ -42,23 +48,34 @@ final class BrevoSubscriberWriter implements SubscriberWriter
             'emailBlacklisted' => ! $emailSubscribed,
             'smsBlacklisted'   => ! $smsSubscribed,
         ];
+        $attributes = [];
         if ('' !== $phone) {
-            $body['attributes'] = ['SMS' => $phone];
+            $attributes['SMS'] = $phone;
+        }
+        // Attributs de nom : par défaut PRENOM/NOM sur un compte Brevo FR. S'ils n'existent
+        // pas, Brevo renvoie un 400 et on rejoue sans eux (voir plus bas).
+        $nameAttributes = [];
+        if ('' !== $firstName) {
+            $nameAttributes['PRENOM'] = $firstName;
+        }
+        if ('' !== $lastName) {
+            $nameAttributes['NOM'] = $lastName;
+        }
+        if ([] !== $attributes || [] !== $nameAttributes) {
+            $body['attributes'] = $attributes + $nameAttributes;
         }
 
-        $response = wp_remote_post(self::API . '/contacts', [
-            'timeout' => 8,
-            'headers' => [
-                'api-key'      => $this->apiKey,
-                'accept'       => 'application/json',
-                'content-type' => 'application/json',
-            ],
-            'body' => (string) wp_json_encode($body),
-        ]);
-        if ($response instanceof \WP_Error) {
-            throw new RuntimeException('Brevo injoignable : ' . $response->get_error_message());
+        $code = $this->post($body);
+        // Repli : un 400 alors qu'on envoyait PRENOM/NOM = attributs absents du compte ;
+        // on réessaie sans eux pour créer/mettre à jour quand même le contact.
+        if ((400 === $code || 404 === $code) && [] !== $nameAttributes) {
+            if ([] === $attributes) {
+                unset($body['attributes']);
+            } else {
+                $body['attributes'] = $attributes;
+            }
+            $code = $this->post($body);
         }
-        $code = (int) wp_remote_retrieve_response_code($response);
         // 201 = contact créé, 204 = contact mis à jour ; tout le 2xx est un succès.
         if ($code < 200 || $code >= 300) {
             throw new RuntimeException('Brevo a refusé la mise à jour (HTTP ' . $code . ').');
@@ -77,6 +94,29 @@ final class BrevoSubscriberWriter implements SubscriberWriter
         }
 
         return $confirmed;
+    }
+
+    /**
+     * POST le contact et renvoie le code HTTP (lève sur erreur réseau).
+     *
+     * @param array<string, mixed> $body
+     */
+    private function post(array $body): int
+    {
+        $response = wp_remote_post(self::API . '/contacts', [
+            'timeout' => 8,
+            'headers' => [
+                'api-key'      => $this->apiKey,
+                'accept'       => 'application/json',
+                'content-type' => 'application/json',
+            ],
+            'body' => (string) wp_json_encode($body),
+        ]);
+        if ($response instanceof \WP_Error) {
+            throw new RuntimeException('Brevo injoignable : ' . $response->get_error_message());
+        }
+
+        return (int) wp_remote_retrieve_response_code($response);
     }
 
     /**
