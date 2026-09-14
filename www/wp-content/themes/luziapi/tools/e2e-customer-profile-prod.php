@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Test e2e « édition des coordonnées client » sur la PRODUCTION (script à jeton, usage
- * unique). Déposé sous `_e2e-customer-contact.php` avec le cœur `_e2e-customer-contact-core.php`.
- * Commandes de test isolées (statut pending, aucune notification), tout nettoyé.
+ * Test e2e « fiche client dédiée » sur la PRODUCTION (script à jeton, usage unique).
+ * Déposé sous `_e2e-customer-profile.php` avec le cœur `_e2e-customer-profile-core.php`.
+ * Commande de test isolée (statut pending, aucune notification), tout nettoyé.
  * Sortie : JSON { mode, all_passed, summary, results, cleanup, fatal_error }.
  */
 
@@ -18,9 +18,9 @@ if (! isset($_GET['k']) || ! hash_equals($token, (string) $_GET['k'])) {
 require __DIR__ . '/../../../wp-load.php';
 header('Content-Type: application/json');
 
-require __DIR__ . '/_e2e-customer-contact-core.php';
+require __DIR__ . '/_e2e-customer-profile-core.php';
 
-$run = luziapi_e2e_customer_contact_run();
+$run = luziapi_e2e_customer_profile_run();
 $failed = count(array_filter($run['results'], static fn (array $r): bool => ! $r['ok']));
 
 echo json_encode([

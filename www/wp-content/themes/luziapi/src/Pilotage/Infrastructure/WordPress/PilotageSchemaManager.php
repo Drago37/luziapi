@@ -8,7 +8,7 @@ use wpdb;
 
 final readonly class PilotageSchemaManager
 {
-    public const VERSION = '8';
+    public const VERSION = '9';
     private const OPTION = 'luziapi_pilotage_receipts_schema_version';
 
     public function __construct(private wpdb $database)
@@ -117,6 +117,24 @@ final readonly class PilotageSchemaManager
             KEY category (category)
         ) {$charset};");
 
+        $customerProfilesTable = $this->customerProfilesTableName();
+        dbDelta("CREATE TABLE {$customerProfilesTable} (
+            customer_key char(20) NOT NULL,
+            first_name varchar(190) NOT NULL DEFAULT '',
+            last_name varchar(190) NOT NULL DEFAULT '',
+            company varchar(190) NOT NULL DEFAULT '',
+            address_1 varchar(190) NOT NULL DEFAULT '',
+            address_2 varchar(190) NOT NULL DEFAULT '',
+            postcode varchar(20) NOT NULL DEFAULT '',
+            city varchar(190) NOT NULL DEFAULT '',
+            country varchar(2) NOT NULL DEFAULT '',
+            email varchar(190) NOT NULL DEFAULT '',
+            phone varchar(40) NOT NULL DEFAULT '',
+            updated_by bigint(20) unsigned NOT NULL DEFAULT 0,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (customer_key)
+        ) {$charset};");
+
         // dbDelta ne modifie pas la nullabilité d'une colonne existante. Les
         // premières tables ont été créées avec `sequence_number` en NOT NULL, or
         // le dépôt insère d'abord NULL puis le renseigne (= id) : sans ce correctif,
@@ -151,5 +169,10 @@ final readonly class PilotageSchemaManager
     public function customerCategoriesTableName(): string
     {
         return $this->database->prefix . 'luziapi_customer_categories';
+    }
+
+    public function customerProfilesTableName(): string
+    {
+        return $this->database->prefix . 'luziapi_customer_profiles';
     }
 }

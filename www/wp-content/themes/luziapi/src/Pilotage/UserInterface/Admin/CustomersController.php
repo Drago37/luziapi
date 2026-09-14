@@ -15,11 +15,12 @@ use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDisc
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
-use LuziApi\Pilotage\Application\Command\UpdateCustomerContact\UpdateCustomerContactCommand;
-use LuziApi\Pilotage\Application\Command\UpdateCustomerContact\UpdateCustomerContactHandler;
+use LuziApi\Pilotage\Application\Command\SaveCustomerProfile\SaveCustomerProfileCommand;
+use LuziApi\Pilotage\Application\Command\SaveCustomerProfile\SaveCustomerProfileHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
 use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
+use LuziApi\Pilotage\Domain\Customer\CustomerBilling;
 use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
@@ -54,7 +55,7 @@ final readonly class CustomersController
         private ?ApplyThankYouDiscountHandler $applyDiscount = null,
         private ?AdjustLoyaltyPotsHandler $adjustPots = null,
         private ?SubscriberDirectory $subscribers = null,
-        private ?UpdateCustomerContactHandler $updateContact = null,
+        private ?SaveCustomerProfileHandler $saveProfile = null,
     ) {
     }
 
@@ -63,61 +64,78 @@ final readonly class CustomersController
         add_action('admin_post_luziapi_assign_customer_category', [$this, 'assignCategory']);
         add_action('admin_post_luziapi_apply_thankyou_discount', [$this, 'applyThankYouDiscount']);
         add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
-        add_action('admin_post_luziapi_update_customer_contact', [$this, 'updateCustomerContact']);
+        add_action('admin_post_luziapi_save_customer_profile', [$this, 'saveCustomerProfile']);
     }
 
-    public function updateCustomerContact(): void
+    public function saveCustomerProfile(): void
     {
         $this->assertPermission();
-        check_admin_referer('luziapi_update_customer_contact');
+        check_admin_referer('luziapi_save_customer_profile');
         $rawCustomer = wp_unslash($_POST['customer_id'] ?? '');
         $customerId = is_string($rawCustomer) ? sanitize_key($rawCustomer) : '';
 
         try {
-            if (! $this->updateContact instanceof UpdateCustomerContactHandler) {
-                throw new \RuntimeException('Édition des coordonnées indisponible.');
+            if (! $this->saveProfile instanceof SaveCustomerProfileHandler) {
+                throw new \RuntimeException('Édition de la fiche client indisponible.');
             }
             $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
             if (! $directory->selectedCustomer instanceof CustomerProfile) {
                 throw new \InvalidArgumentException('Client introuvable.');
             }
-            $orderIds = array_map(static fn (OrderSnapshot $order): int => $order->id, $directory->selectedCustomer->orders);
-            $rawEmail = wp_unslash($_POST['contact_email'] ?? '');
-            $rawPhone = wp_unslash($_POST['contact_phone'] ?? '');
-            $rawCity = wp_unslash($_POST['contact_city'] ?? '');
-            $updated = $this->updateContact->handle(new UpdateCustomerContactCommand(
-                $orderIds,
-                '',
-                '',
-                is_string($rawEmail) ? sanitize_email($rawEmail) : '',
-                is_string($rawPhone) ? sanitize_text_field($rawPhone) : '',
-                is_string($rawCity) ? sanitize_text_field($rawCity) : '',
+            $this->saveProfile->handle(new SaveCustomerProfileCommand(
+                $directory->selectedCustomer->identityIds,
+                $this->readBilling(),
+                get_current_user_id(),
             ));
             $this->activity->record(
                 ActivityCategory::Customer,
-                'customer_contact_updated',
-                'customer_contact',
+                'customer_profile_saved',
+                'customer_profile',
                 null,
-                sprintf('Coordonnées client mises à jour sur %d commande(s)', $updated),
+                'Fiche client mise à jour',
                 [],
                 get_current_user_id(),
             );
-            // L'identité (donc l'ID de groupe) peut changer après édition de l'e-mail :
-            // on redirige vers la liste plutôt que vers une fiche introuvable.
-            $this->redirectAfterCategory('', 'contact_updated');
+            // L'identité ne change pas (la fiche surcharge l'affichage sans réécrire
+            // les commandes) : on revient sur la fiche du client.
+            $this->redirectAfterCategory($customerId, 'profile_updated');
         } catch (Throwable $exception) {
             $this->rememberErrorDetail('customers', $exception);
             $this->activity->record(
                 ActivityCategory::Error,
-                'customer_contact_update_failed',
-                'customer_contact',
+                'customer_profile_save_failed',
+                'customer_profile',
                 null,
-                'Modification des coordonnées client échouée',
+                'Mise à jour de la fiche client échouée',
                 [],
                 get_current_user_id(),
             );
-            $this->redirectAfterCategory($customerId, 'contact_error');
+            $this->redirectAfterCategory($customerId, 'profile_error');
         }
+    }
+
+    private function readBilling(): CustomerBilling
+    {
+        $text = static function (string $field): string {
+            $raw = wp_unslash($_POST[$field] ?? '');
+
+            return is_string($raw) ? sanitize_text_field($raw) : '';
+        };
+        $rawEmail = wp_unslash($_POST['billing_email'] ?? '');
+        $rawCountry = wp_unslash($_POST['billing_country'] ?? '');
+
+        return new CustomerBilling(
+            $text('billing_first_name'),
+            $text('billing_last_name'),
+            $text('billing_company'),
+            $text('billing_address_1'),
+            $text('billing_address_2'),
+            $text('billing_postcode'),
+            $text('billing_city'),
+            is_string($rawCountry) ? strtoupper(sanitize_text_field($rawCountry)) : '',
+            is_string($rawEmail) ? sanitize_email($rawEmail) : '',
+            $text('billing_phone'),
+        );
     }
 
     public function adjustLoyaltyPots(): void
@@ -236,7 +254,7 @@ final readonly class CustomersController
             'category_nonce'    => wp_create_nonce('luziapi_assign_customer_category'),
             'discount_nonce'    => wp_create_nonce('luziapi_apply_thankyou_discount'),
             'adjust_pots_nonce' => wp_create_nonce('luziapi_adjust_loyalty_pots'),
-            'contact_nonce'     => wp_create_nonce('luziapi_update_customer_contact'),
+            'profile_nonce'     => wp_create_nonce('luziapi_save_customer_profile'),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
@@ -338,8 +356,71 @@ final readonly class CustomersController
         $formatted['orders'] = array_map($this->formatOrder(...), $customer->orders);
         $formatted['loyalty'] = $this->formatLoyalty($customer);
         $formatted['subscription'] = $this->subscriptionStatus($customer);
+        $formatted['billing'] = $this->billingFor($customer);
 
         return $formatted;
+    }
+
+    /**
+     * Coordonnées à afficher et à préremplir dans le formulaire d'édition : la fiche
+     * dédiée si elle existe, sinon un brouillon issu de la dernière commande (lecture
+     * WooCommerce directe — aucune écriture).
+     *
+     * @return array<string, string>
+     */
+    private function billingFor(CustomerProfile $customer): array
+    {
+        $billing = $customer->billingOverride;
+        $hasOverride = $billing instanceof CustomerBilling && ! $billing->isEmpty();
+        if (! $billing instanceof CustomerBilling || $billing->isEmpty()) {
+            $billing = $this->draftFromLastOrder($customer);
+        }
+
+        return [
+            'first_name' => $billing->firstName,
+            'last_name'  => $billing->lastName,
+            'company'    => $billing->company,
+            'address_1'  => $billing->address1,
+            'address_2'  => $billing->address2,
+            'postcode'   => $billing->postcode,
+            'city'       => $billing->city,
+            'country'    => '' !== $billing->country ? $billing->country : 'FR',
+            'email'      => $billing->email,
+            'phone'      => $billing->phone,
+            'has_override' => $hasOverride ? '1' : '',
+        ];
+    }
+
+    private function draftFromLastOrder(CustomerProfile $customer): CustomerBilling
+    {
+        $order = wc_get_order($customer->lastOrder()->id);
+        if (! $order instanceof \WC_Order) {
+            return new CustomerBilling(
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                $customer->city,
+                'FR',
+                $customer->emails[0] ?? '',
+                $customer->phones[0] ?? '',
+            );
+        }
+
+        return new CustomerBilling(
+            $order->get_billing_first_name(),
+            $order->get_billing_last_name(),
+            $order->get_billing_company(),
+            $order->get_billing_address_1(),
+            $order->get_billing_address_2(),
+            $order->get_billing_postcode(),
+            $order->get_billing_city(),
+            '' !== $order->get_billing_country() ? $order->get_billing_country() : 'FR',
+            $order->get_billing_email(),
+            $order->get_billing_phone(),
+        );
     }
 
     /**

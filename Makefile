@@ -128,9 +128,9 @@ e2e-orphan-receipt-local: ## Teste le retrait de la recette quand la commande es
 e2e-subscribers-local: ## Teste le répertoire d'abonnés Brevo (lecture seule, appels Brevo interceptés)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-subscribers-directory.php';" --user=admin
 
-.PHONY: e2e-customer-contact-local
-e2e-customer-contact-local: ## Teste l'édition des coordonnées client (writer réel → fusion de doublon), tout nettoyé
-	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-customer-contact-local.php';" --user=admin
+.PHONY: e2e-customer-profile-local
+e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + schéma + surcharge d'affichage), tout nettoyé
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-customer-profile-local.php';" --user=admin
 
 .PHONY: e2e-newsletter-local
 e2e-newsletter-local: ## Teste l'auto-envoi newsletter (planification + envoi Brevo intercepté, aucun e-mail)
@@ -193,9 +193,9 @@ e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la P
 e2e-subscribers-prod: ## Test e2e du répertoire d'abonnés Brevo sur la PROD (lecture seule, appels Brevo interceptés)
 	@bash scripts/e2e-subscribers-prod.sh
 
-.PHONY: e2e-customer-contact-prod
-e2e-customer-contact-prod: ## Test e2e de l'édition des coordonnées client sur la PROD (commandes de test isolées, tout nettoyé)
-	@bash scripts/e2e-customer-contact-prod.sh
+.PHONY: e2e-customer-profile-prod
+e2e-customer-profile-prod: ## Test e2e de la fiche client dédiée sur la PROD (commande + fiche de test isolées, tout nettoyé)
+	@bash scripts/e2e-customer-profile-prod.sh
 
 .PHONY: e2e-newsletter-prod
 e2e-newsletter-prod: ## Test e2e de l'auto-envoi newsletter sur la PROD (isolé, envoi Brevo intercepté, tout nettoyé)

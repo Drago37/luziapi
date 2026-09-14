@@ -15,8 +15,8 @@
     {% if notice == 'discount_applied' %}<div class="notice notice-success inline"><p>La remise remerciement a été appliquée à la commande.</p></div>{% endif %}
     {% if notice == 'discount_error' %}<div class="notice notice-error inline"><p>La remise remerciement n’a pas pu être appliquée. Vérifie la commande et le montant.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_adjusted' %}<div class="notice notice-success inline"><p>Le solde de pots a été ajusté.</p></div>{% endif %}
-    {% if notice == 'contact_updated' %}<div class="notice notice-success inline"><p>Les coordonnées du client ont été mises à jour sur ses commandes.</p></div>{% endif %}
-    {% if notice == 'contact_error' %}<div class="notice notice-error inline"><p>Les coordonnées n’ont pas pu être mises à jour.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
+    {% if notice == 'profile_updated' %}<div class="notice notice-success inline"><p>La fiche du client a été enregistrée.</p></div>{% endif %}
+    {% if notice == 'profile_error' %}<div class="notice notice-error inline"><p>La fiche n’a pas pu être enregistrée.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
     {% if notice == 'pots_error' %}<div class="notice notice-error inline"><p>L’ajustement des pots a échoué. Vérifie la quantité saisie.</p>{% if notice_detail %}<p><strong>Détail&nbsp;:</strong> <code>{{ notice_detail|e }}</code></p>{% endif %}</div>{% endif %}
 
     {% if selected_customer %}
@@ -49,6 +49,16 @@
                     {% for email in selected_customer.emails %}<a href="mailto:{{ email|e('html_attr') }}">{{ email|e }}</a>{% endfor %}
                     {% for phone in selected_customer.phones %}<a href="tel:{{ phone.href|e('html_attr') }}">{{ phone.label|e }}</a>{% endfor %}
                 </div>
+                {% set b = selected_customer.billing %}
+                {% if b.address_1 or b.postcode or b.company %}
+                <div>
+                    <span>Adresse postale</span>
+                    {% if b.company %}<strong>{{ b.company|e }}</strong><br>{% endif %}
+                    {% if b.address_1 %}{{ b.address_1|e }}<br>{% endif %}
+                    {% if b.address_2 %}{{ b.address_2|e }}<br>{% endif %}
+                    {{ (b.postcode ~ ' ' ~ b.city)|trim|e }}{% if b.country and b.country != 'FR' %}<br>{{ b.country|e }}{% endif %}
+                </div>
+                {% endif %}
             </div>
             <div class="luziapi-pilotage__customer-insights">
                 <p><strong>Produits habituels :</strong> {{ selected_customer.products ? selected_customer.products|join(', ')|e : 'Pas encore assez de données' }}</p>
@@ -62,21 +72,40 @@
                     </p>
                 {% endif %}
             </div>
-            <form class="luziapi-pilotage__customer-category-form" action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:14px">
-                <input type="hidden" name="action" value="luziapi_update_customer_contact">
-                <input type="hidden" name="_wpnonce" value="{{ contact_nonce|e('html_attr') }}">
+            {% set b = selected_customer.billing %}
+            <form class="luziapi-pilotage__customer-profile-form" action="{{ action_url|e('html_attr') }}" method="post" style="margin-top:14px;padding:14px;border:1px solid #dcdcde;border-radius:6px">
+                <input type="hidden" name="action" value="luziapi_save_customer_profile">
+                <input type="hidden" name="_wpnonce" value="{{ profile_nonce|e('html_attr') }}">
                 <input type="hidden" name="customer_id" value="{{ selected_customer.id|e('html_attr') }}">
-                <p class="luziapi-pilotage__eyebrow" style="margin:0 0 6px">Modifier les coordonnées</p>
-                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+                <p class="luziapi-pilotage__eyebrow" style="margin:0 0 6px">Modifier la fiche client</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+                    <label style="display:flex;flex-direction:column;font-size:12px">Prénom
+                        <input type="text" name="billing_first_name" value="{{ b.first_name|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Nom
+                        <input type="text" name="billing_last_name" value="{{ b.last_name|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Société <span class="description">(facultatif)</span>
+                        <input type="text" name="billing_company" value="{{ b.company|e('html_attr') }}"></label>
                     <label style="display:flex;flex-direction:column;font-size:12px">E-mail
-                        <input type="email" name="contact_email" value="{{ selected_customer.emails|first|default('')|e('html_attr') }}"></label>
+                        <input type="email" name="billing_email" value="{{ b.email|e('html_attr') }}"></label>
                     <label style="display:flex;flex-direction:column;font-size:12px">Téléphone
-                        <input type="text" name="contact_phone" value="{{ (selected_customer.phones|first).label|default('')|e('html_attr') }}"></label>
+                        <input type="text" name="billing_phone" value="{{ b.phone|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px;grid-column:1/-1">Adresse
+                        <input type="text" name="billing_address_1" value="{{ b.address_1|e('html_attr') }}" autocomplete="off" data-luziapi-address="1" placeholder="Commencez à taper puis choisissez une suggestion">
+                        <span class="description" data-luziapi-address-hint>Suggestions officielles (Base Adresse Nationale) : un clic remplit code postal et ville.</span></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px;grid-column:1/-1">Complément d’adresse <span class="description">(facultatif)</span>
+                        <input type="text" name="billing_address_2" value="{{ b.address_2|e('html_attr') }}"></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Code postal
+                        <input type="text" name="billing_postcode" value="{{ b.postcode|e('html_attr') }}" data-luziapi-postcode></label>
                     <label style="display:flex;flex-direction:column;font-size:12px">Ville
-                        <input type="text" name="contact_city" value="{{ selected_customer.city|e('html_attr') }}"></label>
-                    <button type="submit" class="button button-primary">Enregistrer</button>
+                        <input type="text" name="billing_city" value="{{ b.city|e('html_attr') }}" data-luziapi-city></label>
+                    <label style="display:flex;flex-direction:column;font-size:12px">Pays
+                        <input type="text" name="billing_country" value="{{ b.country|e('html_attr') }}" maxlength="2" style="text-transform:uppercase" placeholder="FR"></label>
                 </div>
-                <span class="description">Met à jour ces champs sur toutes les commandes du client. Corriger l’e-mail ou le téléphone fusionne d’éventuels doublons ; laisser un champ vide le conserve.</span>
+                <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
+                    <button type="submit" class="button button-primary">Enregistrer la fiche</button>
+                    {% if not b.has_override %}<span class="description">Prérempli depuis la dernière commande. L’enregistrement crée une fiche dédiée.</span>{% endif %}
+                </div>
+                <p class="description" style="margin-top:8px">La fiche est la donnée de référence du client : elle <strong>ne réécrit pas</strong> les commandes passées (factures préservées). Pour corriger une commande précise, ouvrez-la depuis l’historique ci-dessous.</p>
             </form>
 
             {% if selected_customer.loyalty %}
@@ -153,6 +182,62 @@
                 {% for event in timeline %}<article><div><span class="luziapi-pilotage__badge {{ event.public ? 'is-public' : 'is-private' }}">{{ event.visibility|e }}</span><time>{{ event.date|e }}</time> · <a href="{{ event.order_url|e('html_attr') }}">commande n°{{ event.order_number|e }}</a></div><p>{{ event.content|e }}</p></article>{% else %}<p>Aucune note enregistrée pour ces commandes.</p>{% endfor %}
             </div>
         </section>
+        <script>
+        (function () {
+            // Autocomplétion d'adresse via la Base Adresse Nationale (api-adresse.data.gouv.fr),
+            // gratuite et sans clé. Amélioration progressive : si l'API ne répond pas, la saisie
+            // manuelle reste pleinement fonctionnelle.
+            var input = document.querySelector('input[data-luziapi-address]');
+            if (!input || !window.fetch) { return; }
+            var form = input.form;
+            var postcode = form.querySelector('[data-luziapi-postcode]');
+            var city = form.querySelector('[data-luziapi-city]');
+            var country = form.querySelector('input[name="billing_country"]');
+            var box = document.createElement('ul');
+            box.style.cssText = 'list-style:none;margin:2px 0 0;padding:0;border:1px solid #dcdcde;border-radius:4px;background:#fff;position:absolute;z-index:100;max-height:220px;overflow:auto;box-shadow:0 2px 6px rgba(0,0,0,.12);min-width:280px;display:none';
+            input.parentNode.style.position = 'relative';
+            input.parentNode.appendChild(box);
+            var timer = null;
+
+            function hide() { box.style.display = 'none'; box.innerHTML = ''; }
+
+            function pick(props) {
+                input.value = props.name || props.label || input.value;
+                if (postcode && props.postcode) { postcode.value = props.postcode; }
+                if (city && props.city) { city.value = props.city; }
+                if (country && !country.value) { country.value = 'FR'; }
+                hide();
+            }
+
+            function render(features) {
+                box.innerHTML = '';
+                if (!features.length) { hide(); return; }
+                features.forEach(function (f) {
+                    var li = document.createElement('li');
+                    li.textContent = f.properties.label;
+                    li.style.cssText = 'padding:6px 10px;cursor:pointer;font-size:13px';
+                    li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(f.properties); });
+                    li.addEventListener('mouseenter', function () { li.style.background = '#f0f0f1'; });
+                    li.addEventListener('mouseleave', function () { li.style.background = '#fff'; });
+                    box.appendChild(li);
+                });
+                box.style.display = 'block';
+            }
+
+            input.addEventListener('input', function () {
+                var q = input.value.trim();
+                if (timer) { clearTimeout(timer); }
+                if (q.length < 4) { hide(); return; }
+                timer = setTimeout(function () {
+                    var url = 'https://api-adresse.data.gouv.fr/search/?limit=5&q=' + encodeURIComponent(q);
+                    fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
+                        if (data && data.features) { render(data.features); }
+                    }).catch(function () { hide(); });
+                }, 250);
+            });
+            input.addEventListener('blur', function () { setTimeout(hide, 150); });
+        })();
+        </script>
     {% endif %}
 
     <section class="luziapi-pilotage__panel luziapi-pilotage__customers">

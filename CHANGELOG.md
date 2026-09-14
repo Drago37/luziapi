@@ -27,9 +27,11 @@ _Nothing yet._
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).
-- Edit a customer's contact details (e-mail, phone, city) from the Clients fiche — writes to the
-  customer's orders and, by aligning the e-mail/phone, merges duplicate entries. Integration e2e
-  (`make e2e-customer-contact-local` / `-prod`).
+- Edit **all** of a customer's billing details (first/last name, company, postal address, postcode,
+  city, country, e-mail, phone) from the Clients fiche, stored as a dedicated customer record that
+  overlays the display **without** rewriting past orders (invoices preserved); individual orders stay
+  editable in WooCommerce. Address fields offer autocomplete from the French Base Adresse Nationale
+  (`api-adresse.data.gouv.fr`, no key). Integration e2e (`make e2e-customer-profile-local` / `-prod`).
 
 ### Changed
 
