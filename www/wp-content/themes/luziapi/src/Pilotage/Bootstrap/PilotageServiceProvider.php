@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Bootstrap;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
+use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersHandler;
 use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberDirectory;
+use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberWriter;
 use LuziApi\Newsletter\Infrastructure\NullSubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
@@ -189,6 +191,9 @@ final class PilotageServiceProvider
         $subscribers = '' !== trim($brevoKey)
             ? new BrevoSubscriberDirectory($brevoKey, $brevoListId)
             : new NullSubscriberDirectory();
+        $updateSubscription = '' !== trim($brevoKey)
+            ? new UpdateSubscriptionHandler(new BrevoSubscriberWriter($brevoKey, $brevoListId))
+            : null;
 
         $customersController = new CustomersController(
             $customerHandler,
@@ -205,6 +210,7 @@ final class PilotageServiceProvider
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
             $subscribers,
             new SaveCustomerProfileHandler($customerProfiles, $clock),
+            $updateSubscription,
         );
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,

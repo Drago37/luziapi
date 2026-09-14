@@ -466,6 +466,16 @@ Decisions made deliberately — do not undo them without discussing:
   address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
   + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
   (BAN calls intercepted, nothing written).
+- **Subscription panel on the fiche = editable, writes DIRECTLY to Brevo** (reverses the earlier
+  read-only choice, on the owner's decision — "draft mode" on this first prod). Ticking subscribes,
+  unticking unsubscribes (Brevo `emailBlacklisted` / `smsBlacklisted`); **direct opt-in, no
+  double opt-in** (consent assumed collected by the owner). The contact is identified by e-mail, so
+  SMS needs an e-mail **and** a mobile; without an e-mail the panel stays read-only. Port
+  `Newsletter/Application/Port/SubscriberWriter` + `BrevoSubscriberWriter` (create/update contact,
+  list 2, SMS attribute, blacklists; busts the read cache) + `UpdateSubscription` command/handler;
+  admin-post action `luziapi_update_subscription`. Unit tests + e2e
+  `make e2e-subscription-write-local` / `-prod` (Brevo calls intercepted, no contact touched).
+  _GDPR:_ direct opt-in assumes consent was collected offline; revisit (double opt-in) if needed.
 
 ---
 
