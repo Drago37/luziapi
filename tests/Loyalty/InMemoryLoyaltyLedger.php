@@ -72,6 +72,18 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return null;
     }
 
+    public function sourceOrderIds(): array
+    {
+        $ids = [];
+        foreach ($this->entries as $entry) {
+            if (null !== $entry->sourceOrderId) {
+                $ids[$entry->sourceOrderId] = true;
+            }
+        }
+
+        return array_values(array_map('intval', array_keys($ids)));
+    }
+
     public function orderTotals(int $orderId): array
     {
         $pots = 0;

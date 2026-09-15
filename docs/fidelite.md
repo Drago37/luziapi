@@ -211,6 +211,18 @@ rendue dans les deux variantes (HTML + texte).
   le journal en est la base.
 - **Ajustement manuel** des pots depuis la fiche client (`AdjustLoyaltyPots`,
   écriture `ManualAdjustment`).
+- **Passif sur le dashboard** : l'encart de synthèse affiche « Avantages dus
+  (passif) » = total des avantages disponibles non réclamés, tous clients (les
+  pots offerts que la boutique devra honorer). Port `LoyaltyRewardsReader` +
+  adaptateur `LoyaltyModuleRewardsReader`.
+- **Audit de dérive** (lecture seule, comme les recettes) : `make audit-loyalty-local`
+  / `make audit-loyalty-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent deux
+  anomalies — **trou de crédit** (commande admissible « Terminée » jamais créditée →
+  produit non coché « admissible » ou backfill à lancer) et **crédit orphelin**
+  (commande disparue encore positive au journal). Cœur `AuditLoyaltyDriftHandler` +
+  `LoyaltyDriftReport` ; ports `EligiblePotReader` / `LoyaltyLedgerReader` ; tests
+  `AuditLoyaltyDriftHandlerTest` et e2e `make e2e-audit-loyalty-local`. À lancer
+  **avant** un backfill prod pour voir les trous.
 - **Surfaces client** : rappel du programme dans l'**e-mail de confirmation**
   (on-hold / processing, `luziapi_email_loyalty_reminder()`), bloc fidélité sur la
   **boutique / fiche produit / panier** (`luziapi_offer_html`), sur l'**accueil**

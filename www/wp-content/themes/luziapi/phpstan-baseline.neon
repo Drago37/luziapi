@@ -381,7 +381,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 14
+			count: 15
 			path: src/Loyalty/Infrastructure/WordPress/WordPressLoyaltyLedger.php
 
 		-

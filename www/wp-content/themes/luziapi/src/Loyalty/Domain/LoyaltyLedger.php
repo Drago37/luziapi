@@ -31,6 +31,15 @@ interface LoyaltyLedger
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry;
 
     /**
+     * Identifiants de commande cités comme source (`source_order_id`) d'au moins une
+     * écriture, distincts. Sert à l'audit à repérer les crédits orphelins (commande
+     * disparue) et les commandes déjà vues par le moteur.
+     *
+     * @return list<int>
+     */
+    public function sourceOrderIds(): array;
+
+    /**
      * Totaux déjà journalisés pour une commande (toutes écritures dont
      * `source_order_id` vaut `$orderId`) : `pots` = somme des `pots_delta`,
      * `rights` = somme brute des `rights_delta`. Base de la réconciliation.

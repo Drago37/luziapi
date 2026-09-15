@@ -89,6 +89,19 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return null !== $found;
     }
 
+    public function sourceOrderIds(): array
+    {
+        $ids = $this->database->get_col(
+            'SELECT DISTINCT source_order_id FROM ' . $this->schema->ledgerTableName()
+            . ' WHERE source_order_id IS NOT NULL',
+        );
+
+        return array_values(array_map(
+            static fn ($id): int => (int) $id,
+            is_array($ids) ? $ids : [],
+        ));
+    }
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
         $row = $this->database->get_row($this->database->prepare(
