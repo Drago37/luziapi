@@ -9,18 +9,12 @@ namespace LuziApi\Loyalty\Domain;
  *
  * Calcul à partir du nombre net de pots crédités (achats moins contre-passations
  * de remboursement/annulation). Chaque tranche de 15 pots ouvre un avantage :
- * 33 pots → 2 avantages acquis et 3/15 sur la tranche en cours.
- *
- * Le lot 1 ne consomme pas encore d'avantage (pot offert = lot 2) ; le nombre
- * d'avantages consommés est passé pour rester juste le jour où il deviendra non
- * nul, sans changer ce calcul.
+ * 33 pots → 2 avantages acquis et 3/15 sur la tranche en cours. Les avantages se
+ * cumulent et **n'expirent jamais** : aucune limite de validité sur les pots.
  */
 final readonly class LoyaltyProgress
 {
     private const POTS_PER_REWARD = 15;
-
-    /** Durée de vie d'un pot dans le solde de fidélité : au-delà, il n'est plus compté. */
-    public const POT_LIFETIME_YEARS = 2;
 
     public int $netPots;
 

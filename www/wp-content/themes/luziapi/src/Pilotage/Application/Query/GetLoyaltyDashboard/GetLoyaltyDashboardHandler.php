@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard;
 
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Application\Port\LoyaltyEconomicsReader;
+use LuziApi\Pilotage\Application\Port\LoyaltyRewardsReader;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
@@ -15,15 +16,21 @@ use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
  * Construit le récapitulatif de fidélité par client et les classements pour une
  * période (une année, les 2 dernières années, ou tout), à partir des commandes
  * **terminées**. Fournit aussi les totaux cumulés toutes années pour un encart
- * de synthèse toujours visible.
+ * de synthèse toujours visible, dont le **passif** = avantages fidélité dus mais
+ * non encore réclamés (pots offerts que la boutique devra honorer).
  */
 final readonly class GetLoyaltyDashboardHandler
 {
+    /**
+     * @param LoyaltyRewardsReader|null $rewards source des avantages disponibles par
+     *                                           client (passif) ; `null` = passif à 0
+     */
     public function __construct(
         private OrderRepository $orders,
         private CustomerHistoryProjector $projector,
         private LoyaltyEconomicsReader $economics,
         private Clock $clock,
+        private ?LoyaltyRewardsReader $rewards = null,
     ) {
     }
 
@@ -79,6 +86,7 @@ final readonly class GetLoyaltyDashboardHandler
         $byPots = $this->sorted($rows, static fn (LoyaltyCustomerRow $r): int => $r->potsBought);
 
         return new LoyaltyDashboardView(
+            grandRewardsOwed: $this->rewardsOwed($profiles),
             periodKey: $periodKey,
             periodLabel: $periodLabel,
             availableYears: $availableYears,
@@ -95,6 +103,32 @@ final readonly class GetLoyaltyDashboardHandler
             grandOfferedPots: $grandOffered,
             grandDiscountCents: $grandDiscount,
         );
+    }
+
+    /**
+     * Passif du programme : total des avantages fidélité disponibles (non réclamés)
+     * de tous les clients. Les avantages n'expirent pas : c'est un cumul toutes
+     * années, calculé sur les clés d'identité de chaque profil en une requête.
+     *
+     * @param list<CustomerProfile> $profiles
+     */
+    private function rewardsOwed(array $profiles): int
+    {
+        if (! $this->rewards instanceof LoyaltyRewardsReader) {
+            return 0;
+        }
+
+        $keysByCustomer = [];
+        foreach ($profiles as $profile) {
+            if ([] !== $profile->identityIds) {
+                $keysByCustomer[$profile->id] = $profile->identityIds;
+            }
+        }
+        if ([] === $keysByCustomer) {
+            return 0;
+        }
+
+        return array_sum($this->rewards->availableRewardsByCustomer($keysByCustomer));
     }
 
     /**

@@ -41,6 +41,7 @@ final readonly class LoyaltyController
                 ['label' => 'Pots achetés', 'value' => (string) $dashboard->grandPots],
                 ['label' => 'Pots offerts', 'value' => (string) $dashboard->grandOfferedPots],
                 ['label' => 'Remises remerciement', 'value' => $this->formatMoney($dashboard->grandDiscountCents)],
+                ['label' => 'Avantages dus (passif)', 'value' => (string) $dashboard->grandRewardsOwed],
             ],
             'metrics'             => [
                 ['label' => 'Clients fidélité', 'value' => (string) $dashboard->totalCustomers],

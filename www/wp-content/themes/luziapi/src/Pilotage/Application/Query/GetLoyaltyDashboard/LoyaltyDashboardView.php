@@ -35,6 +35,7 @@ final readonly class LoyaltyDashboardView
         public int $grandPots,
         public int $grandOfferedPots,
         public int $grandDiscountCents,
+        public int $grandRewardsOwed = 0,
     ) {
     }
 }

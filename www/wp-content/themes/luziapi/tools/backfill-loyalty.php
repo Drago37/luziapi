@@ -2,10 +2,13 @@
 
 /**
  * Backfill de la fidélité : rétro-crédite les pots des commandes déjà « Terminée »
- * qui ne figurent pas encore au journal. Idempotent — réutilise la clé
- * `credit:{orderId}` du moteur live (INSERT IGNORE), donc rejouable sans doublon
- * et sans conflit avec le crédit automatique. Chaque écriture est datée à la date
- * de complétion réelle de la commande.
+ * qui ne figurent pas encore au journal. Idempotent à deux niveaux : (1) on ignore
+ * toute commande ayant DÉJÀ la moindre écriture au journal — quelle que soit la clé,
+ * y compris les clés `reconcile-*` du moteur live — pour ne jamais recréditer une
+ * commande déjà prise en compte ; (2) l'écriture elle-même porte la clé
+ * `credit:{orderId}` en INSERT IGNORE, donc un second passage du backfill ne double
+ * rien. Chaque écriture est datée à la date de complétion réelle de la commande (les
+ * pots n'expirent pas : tout l'historique « Terminée » est rattrapé, sans plancher).
  *
  * Ne compte que les commandes ACTUELLEMENT « completed » (une commande terminée
  * puis annulée est aujourd'hui « cancelled » → non comptée, ce qui est correct).
@@ -33,9 +36,13 @@ if (! defined('ABSPATH')) {
 /**
  * Rétro-crédite les pots des commandes « Terminée ». Retourne un rapport chiffré.
  *
+ * @param list<int> $onlyOrderIds Restreint le backfill à ces commandes (vide = toutes
+ *                                les commandes terminées). Sert aux tests isolés et à
+ *                                un déploiement prudent par sous-ensemble.
+ *
  * @return array{orders:int, credited:int, pots:int, already:int, no_contact:int, no_pots:int, dry:bool}
  */
-function luziapi_backfill_loyalty(bool $dry): array
+function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
 {
     global $wpdb;
 
@@ -52,6 +59,16 @@ function luziapi_backfill_loyalty(bool $dry): array
         'return' => 'objects',
     ]);
 
+    // Ciblage optionnel par liste d'IDs, filtré côté PHP pour rester portable
+    // HPOS ↔ legacy (wc_get_orders n'expose pas de filtre d'IDs fiable partout).
+    if ([] !== $onlyOrderIds) {
+        $allowed = array_flip(array_map('intval', $onlyOrderIds));
+        $orders = array_values(array_filter(
+            $orders,
+            static fn ($order): bool => $order instanceof WC_Order && isset($allowed[$order->get_id()])
+        ));
+    }
+
     $report = ['orders' => 0, 'credited' => 0, 'pots' => 0, 'already' => 0, 'no_contact' => 0, 'no_pots' => 0, 'dry' => $dry];
 
     foreach ($orders as $order) {
@@ -61,7 +78,11 @@ function luziapi_backfill_loyalty(bool $dry): array
         ++$report['orders'];
         $orderId = $order->get_id();
 
-        if ($ledger->hasEntryForIdempotencyKey('credit:' . $orderId)) {
+        // On ne rétro-crédite QUE les commandes jamais vues par le moteur. Tester la
+        // seule clé `credit:{orderId}` ne suffit pas : le moteur live crédite désormais
+        // par RÉCONCILIATION (clés `reconcile-pots:*`), donc une commande récente déjà
+        // créditée n'a pas de clé `credit:` et serait recréditée → double comptage.
+        if ($ledger->hasEntryForOrder($orderId)) {
             ++$report['already'];
             continue;
         }

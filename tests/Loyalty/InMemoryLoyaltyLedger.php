@@ -50,6 +50,17 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return null !== $this->findByIdempotencyKey($idempotencyKey);
     }
 
+    public function hasEntryForOrder(int $orderId): bool
+    {
+        foreach ($this->entries as $entry) {
+            if ($entry->sourceOrderId === $orderId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
         foreach ($this->entries as $entry) {
@@ -59,6 +70,18 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         }
 
         return null;
+    }
+
+    public function sourceOrderIds(): array
+    {
+        $ids = [];
+        foreach ($this->entries as $entry) {
+            if (null !== $entry->sourceOrderId) {
+                $ids[$entry->sourceOrderId] = true;
+            }
+        }
+
+        return array_values(array_map('intval', array_keys($ids)));
     }
 
     public function orderTotals(int $orderId): array
@@ -75,15 +98,13 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return ['pots' => $pots, 'rights' => $rights];
     }
 
-    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
+    public function totalsForCustomerKeys(array $customerKeys): array
     {
         $pots = 0;
         $rights = 0;
         $count = 0;
         foreach ($this->forKeys($customerKeys) as $entry) {
-            if (null === $potsSince || $entry->occurredAt >= $potsSince) {
-                $pots += $entry->potsDelta;
-            }
+            $pots += $entry->potsDelta;
             $rights += $entry->rightsDelta;
             ++$count;
         }
@@ -91,14 +112,12 @@ final class InMemoryLoyaltyLedger implements LoyaltyLedger
         return ['pots' => $pots, 'rightsConsumed' => max(0, -$rights), 'entryCount' => $count];
     }
 
-    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
+    public function balancesByCustomerKeys(array $customerKeys): array
     {
         $balances = [];
         foreach ($this->forKeys($customerKeys) as $entry) {
             $balances[$entry->customerKey] ??= ['pots' => 0, 'rights' => 0];
-            if (null === $potsSince || $entry->occurredAt >= $potsSince) {
-                $balances[$entry->customerKey]['pots'] += $entry->potsDelta;
-            }
+            $balances[$entry->customerKey]['pots'] += $entry->potsDelta;
             $balances[$entry->customerKey]['rights'] += $entry->rightsDelta;
         }
 

@@ -20,7 +20,24 @@ interface LoyaltyLedger
 
     public function hasEntryForIdempotencyKey(string $idempotencyKey): bool;
 
+    /**
+     * Vrai dès qu'une écriture — quelle que soit sa clé d'idempotence — est rattachée
+     * à la commande (comme source). Sert au backfill à ne rétro-créditer que les
+     * commandes jamais vues par le moteur, quel que soit le schéma de clés utilisé
+     * (crédit direct historique ou réconciliation).
+     */
+    public function hasEntryForOrder(int $orderId): bool;
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry;
+
+    /**
+     * Identifiants de commande cités comme source (`source_order_id`) d'au moins une
+     * écriture, distincts. Sert à l'audit à repérer les crédits orphelins (commande
+     * disparue) et les commandes déjà vues par le moteur.
+     *
+     * @return list<int>
+     */
+    public function sourceOrderIds(): array;
 
     /**
      * Totaux déjà journalisés pour une commande (toutes écritures dont
@@ -33,32 +50,28 @@ interface LoyaltyLedger
 
     /**
      * Soldes nets pour un ensemble de clés client (tous les `identityIds` d'un
-     * même profil). `pots` = somme des `pots_delta` ; `rightsConsumed` = solde net
-     * des avantages consommés = `max(0, -somme(rights_delta))` (une consommation
-     * écrit un delta négatif, sa contre-passation un delta positif : le net revient
-     * à zéro).
-     *
-     * `$potsSince` (optionnel) borne les **pots** aux écritures survenues depuis
-     * cette date (expiration : un pot acheté avant n'entre plus dans le solde) ;
-     * les avantages consommés/rendus ne sont jamais expirés.
+     * même profil). `pots` = somme des `pots_delta` (les pots n'expirent jamais) ;
+     * `rightsConsumed` = solde net des avantages consommés = `max(0, -somme(rights_delta))`
+     * (une consommation écrit un delta négatif, sa contre-passation un delta positif :
+     * le net revient à zéro).
      *
      * @param list<string> $customerKeys
      *
      * @return array{pots: int, rightsConsumed: int, entryCount: int}
      */
-    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array;
+    public function totalsForCustomerKeys(array $customerKeys): array;
 
     /**
      * Soldes bruts par clé client (une entrée par clé ayant au moins un mouvement) :
      * utilisé pour calculer d'un coup les avantages disponibles de plusieurs clients
-     * (liste de la Vente). `pots` = somme des `pots_delta` (bornée à `$potsSince` si
-     * fourni), `rights` = somme brute des `rights_delta` (jamais expirée).
+     * (liste de la Vente). `pots` = somme des `pots_delta`, `rights` = somme brute
+     * des `rights_delta`.
      *
      * @param list<string> $customerKeys
      *
      * @return array<string, array{pots: int, rights: int}>
      */
-    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array;
+    public function balancesByCustomerKeys(array $customerKeys): array;
 
     /**
      * Écritures d'un ensemble de clés client, les plus récentes d'abord.
