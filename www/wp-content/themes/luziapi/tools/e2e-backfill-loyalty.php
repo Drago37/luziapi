@@ -138,6 +138,16 @@ try {
     $assert('Second passage : le nombre d\'écritures est inchangé', $entriesBefore === $ledger->totalsForCustomerKeys([$customerKey])['entryCount']);
     $assert('Le total net du client reste 4 pots', 4 === $ledger->totalsForCustomerKeys([$customerKey])['pots']);
 
+    // Expiration (fenêtre glissante de POT_LIFETIME_YEARS) appliquée par le VRAI SQL du
+    // ledger : le crédit daté du 2025-03-01 est compté sous un seuil antérieur, mais exclu
+    // sous un seuil postérieur. Couvre la clause SQL « occurred_at >= potsSince » que les
+    // tests unitaires (ledger en mémoire) ne peuvent pas exercer — engagement légal du
+    // règlement (« pots valables 2 ans »).
+    $beforeCutoff = new DateTimeImmutable('2025-01-01 00:00:00', wp_timezone());
+    $afterCutoff = new DateTimeImmutable('2026-01-01 00:00:00', wp_timezone());
+    $assert('Expiration SQL : crédit du ' . $completedOn . ' compté avant le seuil', 4 === $ledger->totalsForCustomerKeys([$customerKey], $beforeCutoff)['pots']);
+    $assert('Expiration SQL : crédit du ' . $completedOn . ' exclu après le seuil', 0 === $ledger->totalsForCustomerKeys([$customerKey], $afterCutoff)['pots']);
+
     // Non-régression du double comptage : une commande déjà créditée par le moteur
     // live (réconciliation, clés `reconcile-*`) ne doit PAS être recréditée par le
     // backfill (le bug corrigé : la détection ne se limite plus à la clé `credit:`).
