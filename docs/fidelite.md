@@ -2,8 +2,8 @@
 
 > Suivi de l'implémentation de l'issue #4 : acquisition des pots, utilisation d'un
 > avantage, remise remerciement, affichage client et page de pilotage — tout en
-> place. Les évolutions (seuil 15, expiration, réconciliation…) sont résumées en
-> fin de document.
+> place. Les évolutions (seuil 15, cumul sans expiration, réconciliation…) sont
+> résumées en fin de document.
 
 ## Règle métier
 
@@ -11,8 +11,8 @@
 contient passe **« Terminée »** (= encaissée, cohérent avec l'auto-encaissement
 de la recette). Chaque tranche de 15 pots nets ouvre **un avantage** (un pot
 offert). Exemple : 33 pots = 2 avantages acquis + 3/15 sur la tranche en cours.
-Un pot **expire au bout de 2 ans** : passé ce délai, il ne compte plus dans le
-solde courant (les avantages déjà utilisés, eux, restent définitifs).
+**Les pots n'expirent pas** : ils se cumulent sans limite de validité, et les
+avantages acquis (utilisés ou non) restent définitifs. Règle unique : 15 = 1.
 
 Un client est identifié comme dans le tableau de pilotage : **e-mail prioritaire,
 sinon téléphone normalisé**. Un même client peut avoir plusieurs e-mails /
@@ -166,7 +166,7 @@ les valeurs pour l'empêcher.
   et une ceinture `pre_wp_mail` bloque tout envoi. Couvre le cycle complet sur les
   vraies classes et la vraie base : résolution d'identité, compteur (offerts
   exclus, pot offert fidélité), réconciliation à « Terminée », lecture fiche
-  client **et** suivi sans compte (expiration active), **remboursement partiel**
+  client **et** suivi sans compte, **remboursement partiel**
   (net = 2), annulation (retour à zéro, avantage rendu), et absence de ligne de
   journal résiduelle. À rejouer après tout déploiement touchant `src/Loyalty/`.
   Le runner vit sous `tools/` (exclu du déploiement) et est **uploadé au runtime**
@@ -199,10 +199,10 @@ rendue dans les deux variantes (HTML + texte).
 
 - **Seuil porté à 15** (le 16e offert) : `LoyaltyProgress::POTS_PER_REWARD`. Les
   textes client suivent la variable ; les libellés en dur ont été mis à jour.
-- **Expiration 2 ans** (`LoyaltyProgress::POT_LIFETIME_YEARS`) : le solde courant
-  ne compte que les pots crédités depuis moins de 2 ans — fenêtre glissante
-  calculée à la lecture (`GetCustomerLoyaltyHandler` reçoit une horloge ; le port
-  du journal borne les pots par date). La page **par année** n'est pas concernée.
+- **Pas d'expiration (cumul illimité)** : les pots n'expirent jamais et se cumulent
+  (15 = 1, 30 = 2…). L'ancienne fenêtre glissante de 2 ans a été **retirée**
+  (constante `POT_LIFETIME_YEARS`, paramètre `potsSince` du journal et horloge de
+  lecture supprimés). Le backfill rattrape donc **tout** l'historique « Terminée ».
 - **Moteur en réconciliation** : le couple crédit / contre-passation est remplacé
   par une réconciliation (`ReconcileOrderLoyalty`) qui porte le journal de chaque
   commande à son état cible et n'écrit que l'écart. Couvre uniformément le

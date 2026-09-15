@@ -49,7 +49,6 @@ function luziapi_loyalty_reglement_pdf_url(): string
  *
  * @return array{
  *     pots_per_reward: int,
- *     pot_lifetime_years: int,
  *     start_label: string,
  *     reglement_label: string,
  *     reglement_version: string
@@ -57,11 +56,10 @@ function luziapi_loyalty_reglement_pdf_url(): string
  */
 function luziapi_loyalty_program_numbers(): array
 {
-    // La classe du domaine est la source unique du seuil et de la durée de validité :
-    // le texte client suit toujours la règle réellement appliquée par le moteur.
+    // La classe du domaine est la source unique du seuil : le texte client suit
+    // toujours la règle réellement appliquée par le moteur. Les pots n'expirent pas.
     return [
         'pots_per_reward'    => \LuziApi\Loyalty\Domain\LoyaltyProgress::potsPerReward(),
-        'pot_lifetime_years' => \LuziApi\Loyalty\Domain\LoyaltyProgress::POT_LIFETIME_YEARS,
         'start_label'        => LUZIAPI_LOYALTY_START_LABEL,
         'reglement_label'    => LUZIAPI_LOYALTY_REGLEMENT_LABEL,
         'reglement_version'  => LUZIAPI_LOYALTY_REGLEMENT_VERSION,

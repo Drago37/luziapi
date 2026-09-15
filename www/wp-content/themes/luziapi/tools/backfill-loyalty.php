@@ -7,8 +7,8 @@
  * y compris les clés `reconcile-*` du moteur live — pour ne jamais recréditer une
  * commande déjà prise en compte ; (2) l'écriture elle-même porte la clé
  * `credit:{orderId}` en INSERT IGNORE, donc un second passage du backfill ne double
- * rien. Chaque écriture est datée à la date de complétion réelle de la commande, de
- * sorte que la fenêtre glissante de 2 ans reste correcte pour les commandes anciennes.
+ * rien. Chaque écriture est datée à la date de complétion réelle de la commande (les
+ * pots n'expirent pas : tout l'historique « Terminée » est rattrapé, sans plancher).
  *
  * Ne compte que les commandes ACTUELLEMENT « completed » (une commande terminée
  * puis annulée est aujourd'hui « cancelled » → non comptée, ce qui est correct).

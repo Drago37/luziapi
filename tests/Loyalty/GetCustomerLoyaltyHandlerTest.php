@@ -30,23 +30,18 @@ final class GetCustomerLoyaltyHandlerTest extends TestCase
         $this->query = new GetCustomerLoyaltyHandler($this->ledger);
     }
 
-    public function testPotsOlderThanTwoYearsExpireWhenAClockIsProvided(): void
+    public function testPotsNeverExpireRegardlessOfTheirAge(): void
     {
-        // Un crédit d'il y a 3 ans et un crédit récent, même client.
-        (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2023-01-01 10:00:00')))
+        // Un crédit très ancien et un crédit récent, même client : les pots ne
+        // s'expirent jamais, ils se cumulent tous, quel que soit leur âge.
+        (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2020-01-01 10:00:00')))
             ->handle(new RecordCompletedOrderCommand(1, 'key', 6));
         (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2026-09-10 10:00:00')))
             ->handle(new RecordCompletedOrderCommand(2, 'key', 4));
 
-        // Sans horloge : tous les pots comptent (10).
-        $allTime = (new GetCustomerLoyaltyHandler($this->ledger))
-            ->handle(new GetCustomerLoyaltyQuery(['key']));
-        self::assertSame(10, $allTime->netPots);
+        $view = $this->query->handle(new GetCustomerLoyaltyQuery(['key']));
 
-        // Avec horloge à 2026 : le crédit de 2023 (> 2 ans) est expiré, reste 4.
-        $withExpiry = (new GetCustomerLoyaltyHandler($this->ledger, FixedClock::at('2026-09-10 10:00:00')))
-            ->handle(new GetCustomerLoyaltyQuery(['key']));
-        self::assertSame(4, $withExpiry->netPots);
+        self::assertSame(10, $view->netPots);
     }
 
     public function testEmptyWhenNoKeys(): void
@@ -90,21 +85,14 @@ final class GetCustomerLoyaltyHandlerTest extends TestCase
      * d'un coup, appelé par la liste de la Vente) — doivent renvoyer exactement la même
      * valeur pour un même client. Un écart afficherait « 1 avantage » côté fiche et « 0 »
      * côté Vente (ou l'inverse). Le scénario cumule ce qui peut les faire diverger :
-     * plusieurs clés d'identité, un avantage déjà consommé, et un crédit expiré (> 2 ans).
+     * plusieurs clés d'identité et un avantage déjà consommé.
      */
     public function testAvailableRewardsIsConsistentAcrossBothReadPaths(): void
     {
-        $clock = FixedClock::at('2026-09-10 10:00:00');
-
-        // Un même client, deux clés d'identité (e-mail + téléphone) : 30 pots récents.
-        (new RecordCompletedOrderHandler($this->ledger, $clock))
-            ->handle(new RecordCompletedOrderCommand(1, 'key-email', 18));
-        (new RecordCompletedOrderHandler($this->ledger, $clock))
-            ->handle(new RecordCompletedOrderCommand(2, 'key-phone', 12));
-        // Un crédit d'il y a 3 ans : expiré, il ne doit compter dans aucun des deux chemins.
-        (new RecordCompletedOrderHandler($this->ledger, FixedClock::at('2023-01-01 10:00:00')))
-            ->handle(new RecordCompletedOrderCommand(3, 'key-email', 30));
-        // Un avantage déjà consommé (les droits ne s'expirent jamais).
+        // Un même client, deux clés d'identité (e-mail + téléphone) : 30 pots au total.
+        $this->record->handle(new RecordCompletedOrderCommand(1, 'key-email', 18));
+        $this->record->handle(new RecordCompletedOrderCommand(2, 'key-phone', 12));
+        // Un avantage déjà consommé (delta de droits négatif).
         $this->ledger->append(new NewLoyaltyEntry(
             'key-email',
             LoyaltyEntryType::RewardConsumed,
@@ -121,11 +109,10 @@ final class GetCustomerLoyaltyHandlerTest extends TestCase
         ));
 
         $keys = ['key-email', 'key-phone'];
-        $handler = new GetCustomerLoyaltyHandler($this->ledger, $clock);
 
-        // 30 pots récents → 2 avantages acquis ; 1 consommé → 1 disponible.
-        $single = $handler->availableRewards($keys);
-        $batch = $handler->availableRewardsByCustomer(['the-customer' => $keys])['the-customer'];
+        // 30 pots → 2 avantages acquis ; 1 consommé → 1 disponible.
+        $single = $this->query->availableRewards($keys);
+        $batch = $this->query->availableRewardsByCustomer(['the-customer' => $keys])['the-customer'];
 
         self::assertSame(1, $single);
         self::assertSame($single, $batch);

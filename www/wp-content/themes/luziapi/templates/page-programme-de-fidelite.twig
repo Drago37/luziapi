@@ -2,7 +2,6 @@
 
 {% set per_reward = loyalty.pots_per_reward|default(15) %}
 {% set next_pot = per_reward + 1 %}
-{% set lifetime = loyalty.pot_lifetime_years|default(2) %}
 
 {% block content %}
 <article class="page legal loyalty-page">
@@ -89,14 +88,13 @@
             </section>
 
             <section>
-                <h2>6. Fait générateur, validité et expiration</h2>
+                <h2>6. Fait générateur et validité</h2>
                 <p>Un pot est crédité lorsque la commande qui le contient atteint le statut « Terminée »,
                    c'est-à-dire après sa remise effective au client. Une commande annulée, remboursée ou non
                    remise ne crédite aucun pot.</p>
-                <div class="legal-callout"><strong>Validité {{ lifetime }} ans, en fenêtre glissante :</strong>
-                   à tout moment, seuls les pots acquis au cours des {{ lifetime }} dernières années sont comptés
-                   dans le solde courant. Un pot plus ancien cesse de compter, sans que cela remette en cause les
-                   avantages déjà utilisés. Un avantage déjà consommé reste définitivement acquis.</div>
+                <div class="legal-callout"><strong>Sans limite de validité :</strong>
+                   les pots n'expirent pas. Ils se cumulent d'une commande à l'autre et restent acquis tant que
+                   le programme existe. Un avantage déjà consommé reste, lui aussi, définitivement acquis.</div>
             </section>
 
             <section>
@@ -139,9 +137,9 @@
             <section>
                 <h2>11. Évolution et fin du programme</h2>
                 <p>LuziApi peut faire évoluer ou arrêter le programme à tout moment. Une modification n'annule
-                   pas rétroactivement un avantage déjà acquis ; seule l'expiration naturelle des pots (article 6)
-                   s'applique. Toute évolution des présentes règles donne lieu à une nouvelle version datée du
-                   règlement, les versions antérieures étant conservées sur support durable.</p>
+                   pas rétroactivement un avantage déjà acquis. Toute évolution des présentes règles donne lieu
+                   à une nouvelle version datée du règlement, les versions antérieures étant conservées sur
+                   support durable.</p>
             </section>
 
             <section>
