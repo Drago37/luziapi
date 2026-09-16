@@ -13,8 +13,8 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const LUZIAPI_LOYALTY_REGLEMENT_VERSION = '2026-09-14-v1';
-const LUZIAPI_LOYALTY_REGLEMENT_LABEL   = 'Version du 14 septembre 2026 — révision 1';
+const LUZIAPI_LOYALTY_REGLEMENT_VERSION = '2026-09-16-v2';
+const LUZIAPI_LOYALTY_REGLEMENT_LABEL   = 'Version du 16 septembre 2026 — révision 2';
 const LUZIAPI_LOYALTY_START_LABEL       = '14 septembre 2024';
 const LUZIAPI_LOYALTY_REGLEMENT_PDF     = 'LuziApi-Reglement-Fidelite-' . LUZIAPI_LOYALTY_REGLEMENT_VERSION . '.pdf';
 

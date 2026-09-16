@@ -10,8 +10,8 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const LUZIAPI_CGV_VERSION = '2026-09-14-v4';
-const LUZIAPI_CGV_LABEL   = 'Version du 14 septembre 2026 — révision 4';
+const LUZIAPI_CGV_VERSION = '2026-09-16-v5';
+const LUZIAPI_CGV_LABEL   = 'Version du 16 septembre 2026 — révision 5';
 const LUZIAPI_CGV_PDF     = 'LuziApi-CGV-' . LUZIAPI_CGV_VERSION . '.pdf';
 
 /**
