@@ -45,7 +45,33 @@ fi
 
 TOKEN="$(openssl rand -hex 16)"
 WORK="$(mktemp -d)"
-trap 'rm -rf "${WORK}"' EXIT
+uploaded=0
+
+# Nettoyage garanti sur TOUT chemin de sortie (y compris échec dur de curl sous
+# `set -e`) : on retire les fichiers distants dès qu'ils ont été déposés, sinon un
+# runner à jeton capable d'écrire dans le journal resterait sur la prod. La
+# vérification se fait AVEC le jeton : un runner présent répond 200 (simulation,
+# sans `apply`), un runner supprimé donne un 404 Apache — un curl sans jeton
+# renverrait toujours 404 et masquerait un fichier resté en place.
+cleanup() {
+  local status=$?
+  if ((uploaded)); then
+    ftp_do "rm _backfill-loyalty.php; rm backfill-loyalty.php;" \
+      && echo "→  Scripts distants supprimés." \
+      || echo "⚠️   Suppression distante à vérifier MANUELLEMENT."
+    local code
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${RUNNER_URL}?k=${TOKEN}")" || code="000"
+    if [[ "${code}" == "404" ]]; then
+      echo "✓  Runner confirmé supprimé (HTTP 404)."
+    else
+      echo "⚠️   Runner encore accessible (HTTP ${code}) — à retirer MANUELLEMENT (jeton actif)."
+    fi
+  fi
+  rm -rf "${WORK}"
+  exit "${status}"
+}
+trap cleanup EXIT
+
 LOCAL_RUNNER="${WORK}/_backfill-loyalty.php"
 sed -e "s/REPLACE_WITH_TOKEN/${TOKEN}/" "${RUNNER}" > "${LOCAL_RUNNER}"
 php -l "${LOCAL_RUNNER}" >/dev/null || { echo "❌  Runner généré invalide." >&2; exit 1; }
@@ -55,16 +81,12 @@ ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" 
 
 echo "→  Dépôt du cœur + du runner à jeton…"
 ftp_do "put -O . ${CORE}; put -O . ${LOCAL_RUNNER};" || { echo "❌  Échec du dépôt FTPS." >&2; exit 1; }
+uploaded=1
 
 QUERY="k=${TOKEN}"
 [[ "${apply}" == "1" ]] && QUERY="${QUERY}&apply=1"
 echo "→  Exécution sur la prod…"
 RESULT="$(curl -sS "${RUNNER_URL}?${QUERY}")"
-
-echo "→  Suppression des scripts…"
-ftp_do "rm _backfill-loyalty.php; rm backfill-loyalty.php;" || echo "⚠️   Suppression à vérifier manuellement."
-CODE="$(curl -s -o /dev/null -w '%{http_code}' "${RUNNER_URL}")" || CODE="000"
-[[ "${CODE}" == "404" ]] && echo "✓  Runner supprimé (HTTP 404)." || echo "⚠️   Runner encore accessible (HTTP ${CODE}) — à retirer."
 
 echo
 printf '%s' "${RESULT}" > "${WORK}/result.json"

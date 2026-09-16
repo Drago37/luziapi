@@ -40,7 +40,32 @@ echo "ℹ️   Audit lecture seule : aucune écriture, aucun e-mail."
 TOKEN="$(openssl rand -hex 16)"
 
 WORK="$(mktemp -d)"
-trap 'rm -rf "${WORK}"' EXIT
+uploaded=0
+
+# Nettoyage garanti sur TOUT chemin de sortie (y compris échec dur de curl sous
+# `set -e`) : dès que les fichiers sont déposés, on les retire, sinon un script à
+# jeton resterait sur la prod. Vérification AVEC le jeton : un wrapper présent
+# répond 200, un wrapper supprimé donne un 404 Apache — un curl sans jeton
+# renverrait toujours 404 et masquerait un fichier resté en place.
+cleanup() {
+  local status=$?
+  if ((uploaded)); then
+    ftp_do "rm _audit-loyalty-drift.php; rm _audit-loyalty-drift-core.php;" \
+      && echo "→  Scripts distants supprimés." \
+      || echo "⚠️   Suppression distante à vérifier MANUELLEMENT."
+    local code
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${URL}?k=${TOKEN}")" || code="000"
+    if [[ "${code}" == "404" ]]; then
+      echo "✓  Wrapper confirmé supprimé (HTTP 404)."
+    else
+      echo "⚠️   Wrapper encore accessible (HTTP ${code}) — à retirer MANUELLEMENT (jeton actif)."
+    fi
+  fi
+  rm -rf "${WORK}"
+  exit "${status}"
+}
+trap cleanup EXIT
+
 LOCAL_CORE="${WORK}/_audit-loyalty-drift-core.php"
 LOCAL_WRAPPER="${WORK}/_audit-loyalty-drift.php"
 cp "${CORE}" "${LOCAL_CORE}"
@@ -53,18 +78,10 @@ ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" 
 
 echo "→  Dépôt du cœur + du script à jeton…"
 ftp_do "put -O . ${LOCAL_CORE}; put -O . ${LOCAL_WRAPPER};" || { echo "❌  Échec du dépôt FTPS." >&2; exit 1; }
+uploaded=1
 
 echo "→  Exécution sur la prod…"
 RESULT="$(curl -sS "${URL}?k=${TOKEN}${YEAR_QS}")"
-
-echo "→  Suppression des scripts…"
-ftp_do "rm _audit-loyalty-drift.php; rm _audit-loyalty-drift-core.php;" || echo "⚠️   Suppression à vérifier manuellement."
-CODE="$(curl -s -o /dev/null -w '%{http_code}' "${URL}")" || CODE="000"
-if [[ "${CODE}" == "404" ]]; then
-  echo "✓  Scripts supprimés (HTTP 404)."
-else
-  echo "⚠️   Wrapper encore accessible (HTTP ${CODE}) — à retirer."
-fi
 
 echo
 printf '%s' "${RESULT}" > "${WORK}/result.json"
