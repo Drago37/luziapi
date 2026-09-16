@@ -70,7 +70,12 @@ echo
 printf '%s' "${RESULT}" > "${WORK}/result.json"
 if python3 - "${WORK}/result.json" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1]))
+try:
+    d = json.load(open(sys.argv[1]))
+except (json.JSONDecodeError, ValueError):
+    # Réponse non-JSON (page de fatal, HTML d'erreur…) : ni « OK » ni « dérive ».
+    print("Réponse non-JSON de la prod (fatal ou page d'erreur ?).")
+    sys.exit(2)
 if d.get("fatal_error"):
     print("FATAL:", d["fatal_error"]); sys.exit(1)
 scope = f"année {d['year']}" if d.get("year") else "tout l'historique"

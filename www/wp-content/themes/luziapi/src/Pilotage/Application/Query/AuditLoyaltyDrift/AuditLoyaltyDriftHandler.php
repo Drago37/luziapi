@@ -40,8 +40,9 @@ final readonly class AuditLoyaltyDriftHandler
         ));
         $completedIds = array_map(static fn (OrderSnapshot $order): int => $order->id, $completed);
 
+        $sourceOrderIds = $this->ledger->sourceOrderIds();
         $eligible = $this->eligiblePots->eligiblePotsByOrderIds($completedIds);
-        $credited = array_fill_keys($this->ledger->sourceOrderIds(), true);
+        $credited = array_fill_keys($sourceOrderIds, true);
 
         $creditGaps = [];
         foreach ($completed as $order) {
@@ -51,7 +52,7 @@ final readonly class AuditLoyaltyDriftHandler
             }
         }
 
-        return new LoyaltyDriftReport($creditGaps, $this->orphans());
+        return new LoyaltyDriftReport($creditGaps, $this->orphans($sourceOrderIds));
     }
 
     /**
@@ -60,11 +61,12 @@ final readonly class AuditLoyaltyDriftHandler
      * que celles dont le solde net de pots reste positif (une contre-passation
      * ramenant à zéro n'est pas une dérive). Toujours sur tout l'historique.
      *
+     * @param list<int> $referenced identifiants de commande cités par le journal
+     *
      * @return list<OrphanLoyaltyCredit>
      */
-    private function orphans(): array
+    private function orphans(array $referenced): array
     {
-        $referenced = $this->ledger->sourceOrderIds();
         if ([] === $referenced) {
             return [];
         }
