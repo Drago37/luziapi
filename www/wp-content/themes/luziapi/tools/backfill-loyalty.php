@@ -27,6 +27,7 @@ use LuziApi\Loyalty\Domain\NewLoyaltyEntry;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
+use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
 
 if (! defined('ABSPATH')) {
@@ -49,6 +50,7 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
     $schema = new LoyaltySchemaManager($wpdb);
     $schema->migrate();
     $ledger = new WordPressLoyaltyLedger($wpdb, $schema, wp_timezone());
+    $links = new WordPressLoyaltyIdentityLinks($wpdb, $schema);
     $counter = new WooCommerceEligiblePotCounter();
     $resolver = new WooCommerceOrderIdentityResolver();
 
@@ -77,6 +79,13 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
         }
         ++$report['orders'];
         $orderId = $order->get_id();
+
+        // Semer les liens d'identité pour TOUTE commande terminée (indépendant du
+        // crédit, avant même le saut ci-dessous) : deux commandes historiques du même
+        // client — 2ᵉ e-mail, changement de numéro — se rejoignent rétroactivement.
+        if (! $dry) {
+            $links->union($resolver->keysFor($order));
+        }
 
         // On ne rétro-crédite QUE les commandes jamais vues par le moteur. Tester la
         // seule clé `credit:{orderId}` ne suffit pas : le moteur live crédite désormais

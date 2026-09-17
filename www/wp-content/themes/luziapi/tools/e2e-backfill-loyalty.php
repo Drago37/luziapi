@@ -23,6 +23,7 @@ use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressIdGenerator;
+use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
@@ -52,6 +53,7 @@ $assert = static function (string $label, bool $success, string $detail = '') us
 $productIds = [];
 $orderId = 0;
 $customerKey = '';
+$phoneKey = '';
 $completedOn = '2025-03-01';
 $testSuffix = strtolower(wp_generate_password(10, false, false));
 $customerEmail = 'backfill-' . $testSuffix . '@example.test';
@@ -103,6 +105,7 @@ try {
     $orderId = (int) $order->get_id();
 
     $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)?->key ?? '';
+    $phoneKey = LoyaltyIdentity::keysForContact('', $customerPhone)[0] ?? '';
     $assert('L\'identité fidélité de la commande est résolue', '' !== $customerKey);
 
     // Passer le statut à « Terminée » a pu déclencher le subscriber live (crédit par
@@ -124,6 +127,10 @@ try {
     $assert('Rétro-crédit : 1 commande créditée', 1 === $run['credited'], 'credited=' . $run['credited']);
     $assert('Rétro-crédit : 4 pots crédités', 4 === $run['pots'], 'pots=' . $run['pots']);
     $assert('Le journal de la commande porte 4 pots', 4 === $ledger->orderTotals($orderId)['pots']);
+
+    // Le backfill sème aussi les liens d'identité (e-mail ↔ téléphone) rétroactivement.
+    $linksReader = new WordPressLoyaltyIdentityLinks($wpdb, $schema);
+    $assert('Backfill : lien d\'identité semé (e-mail ↔ téléphone)', in_array($phoneKey, $linksReader->expand([$customerKey]), true));
 
     $storedDate = (string) $wpdb->get_var($wpdb->prepare(
         'SELECT occurred_at FROM ' . $schema->ledgerTableName() . ' WHERE idempotency_key = %s',
@@ -153,6 +160,10 @@ try {
 } finally {
     if ('' !== $customerKey) {
         $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $customerKey], ['%s']);
+        $wpdb->delete($schema->identityLinksTableName(), ['identity_key' => $customerKey], ['%s']);
+    }
+    if ('' !== $phoneKey) {
+        $wpdb->delete($schema->identityLinksTableName(), ['identity_key' => $phoneKey], ['%s']);
     }
     if ($orderId > 0) {
         $order = wc_get_order($orderId);
