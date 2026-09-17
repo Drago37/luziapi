@@ -4,13 +4,24 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Query\GetCustomerLoyalty;
 
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\LoyaltyProgress;
 
 final readonly class GetCustomerLoyaltyHandler
 {
+    /**
+     * @param LoyaltyIdentityLinks|null $links étend les clés d'un client à toutes celles
+     *                                         de son groupe (2ᵉ e-mail, changement de
+     *                                         numéro, fusion manuelle) ; `null` = pas de
+     *                                         regroupement. N'est appliqué qu'aux lectures
+     *                                         mono-client (fiche, suivi, bornage du geste),
+     *                                         pas à la somme multi-clients (pour ne pas
+     *                                         double-compter deux profils fusionnés).
+     */
     public function __construct(
         private LoyaltyLedger $ledger,
+        private ?LoyaltyIdentityLinks $links = null,
     ) {
     }
 
@@ -23,6 +34,7 @@ final readonly class GetCustomerLoyaltyHandler
         if ([] === $keys) {
             return CustomerLoyaltyView::empty();
         }
+        $keys = $this->expand($keys);
 
         $totals = $this->ledger->totalsForCustomerKeys($keys);
         $progress = new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']);
@@ -39,9 +51,22 @@ final readonly class GetCustomerLoyaltyHandler
      */
     public function availableRewards(array $customerKeys): int
     {
-        $totals = $this->ledger->totalsForCustomerKeys($customerKeys);
+        $totals = $this->ledger->totalsForCustomerKeys($this->expand($customerKeys));
 
         return (new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']))->rightsAvailable;
+    }
+
+    /**
+     * Étend un ensemble de clés à tout le groupe d'identité du client, si un service
+     * de liens est branché. Sinon renvoie les clés telles quelles (dédoublonnées).
+     *
+     * @param list<string> $keys
+     *
+     * @return list<string>
+     */
+    private function expand(array $keys): array
+    {
+        return $this->links?->expand($keys) ?? array_values(array_unique($keys));
     }
 
     /**

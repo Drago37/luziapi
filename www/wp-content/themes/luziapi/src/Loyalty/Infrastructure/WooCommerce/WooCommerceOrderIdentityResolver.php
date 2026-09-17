@@ -23,4 +23,12 @@ final readonly class WooCommerceOrderIdentityResolver implements OrderIdentityRe
 
         return $identity?->key;
     }
+
+    public function keysFor(WC_Order $order): array
+    {
+        return LoyaltyIdentity::keysForContact(
+            (string) $order->get_billing_email(),
+            (string) $order->get_billing_phone(),
+        );
+    }
 }

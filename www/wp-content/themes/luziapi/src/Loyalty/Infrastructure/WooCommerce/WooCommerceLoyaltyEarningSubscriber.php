@@ -6,6 +6,7 @@ namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyCommand;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use Psr\Log\LoggerInterface;
 use WC_Order;
 
@@ -31,6 +32,7 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         private EligiblePotCounter $counter,
         private OrderIdentityResolver $identityResolver,
         private LoggerInterface $logger,
+        private ?LoyaltyIdentityLinks $links = null,
     ) {
     }
 
@@ -130,6 +132,13 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         $customerKey = $this->identityResolver->resolve($order);
         if (null === $customerKey) {
             return; // commande sans contact rattachable : pas de fidélité
+        }
+
+        // Auto-alimentation des liens d'identité : si la commande porte à la fois un
+        // e-mail et un téléphone, on relie ces identifiants comme appartenant au même
+        // client (union sans effet en dessous de deux clés). Indépendant du crédit.
+        if ($this->links instanceof LoyaltyIdentityLinks) {
+            $this->links->union($this->identityResolver->keysFor($order));
         }
 
         // Garde : une commande explicitement exclue (ex. import d'historique)

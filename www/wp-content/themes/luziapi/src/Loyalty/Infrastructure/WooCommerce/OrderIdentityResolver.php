@@ -15,4 +15,12 @@ use WC_Order;
 interface OrderIdentityResolver
 {
     public function resolve(WC_Order $order): ?string;
+
+    /**
+     * Toutes les clés d'identité de la commande (e-mail ET téléphone présents), pour
+     * relier ces identifiants comme appartenant au même client. `[]` si aucun contact.
+     *
+     * @return list<string>
+     */
+    public function keysFor(WC_Order $order): array;
 }

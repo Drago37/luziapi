@@ -132,6 +132,10 @@ e2e-backfill-loyalty-local: ## Teste le backfill de fidélité (rétro-crédit d
 e2e-audit-loyalty-local: ## Teste l'audit de dérive fidélité (trou de crédit détecté, commande créditée saine, orphelin après suppression)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-audit-loyalty.php';" --user=admin
 
+.PHONY: e2e-identity-links-local
+e2e-identity-links-local: ## Teste les liens d'identité fidélité (auto-lien e-mail/téléphone, fusion manuelle, agrégation)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-identity-links.php';" --user=admin
+
 .PHONY: e2e-exclusion-local
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-exclusion-on-toggle.php';" --user=admin

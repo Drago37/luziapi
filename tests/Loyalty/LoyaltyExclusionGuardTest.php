@@ -149,6 +149,11 @@ final class LoyaltyExclusionGuardTest extends TestCase
             {
                 throw new RuntimeException('resolver down');
             }
+
+            public function keysFor(WC_Order $order): array
+            {
+                return [];
+            }
         };
 
         return $this->makeSubscriber($this->counter(0, 0), $resolver);
@@ -183,6 +188,11 @@ final class LoyaltyExclusionGuardTest extends TestCase
             public function resolve(WC_Order $order): ?string
             {
                 return $this->contactKey;
+            }
+
+            public function keysFor(WC_Order $order): array
+            {
+                return null !== $this->contactKey ? [$this->contactKey] : [];
             }
         };
 
