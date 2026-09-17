@@ -215,6 +215,17 @@ rendue dans les deux variantes (HTML + texte).
   (passif) » = total des avantages disponibles non réclamés, tous clients (les
   pots offerts que la boutique devra honorer). Port `LoyaltyRewardsReader` +
   adaptateur `LoyaltyModuleRewardsReader`.
+- **Liens d'identité** (pots qui n'expirent pas = il faut regrouper un client connu
+  sous plusieurs identités) : port `LoyaltyIdentityLinks` (table `…_identity_links`,
+  schéma v2) qui rattache les clés d'un même client à une **canonique**. **Auto-alimenté**
+  par le subscriber de crédit dès qu'une commande porte e-mail **et** téléphone (un 2ᵉ
+  e-mail ou un changement de numéro reste relié via l'identifiant stable). Les lectures
+  **mono-client** (`GetCustomerLoyalty::handle` / `availableRewards`) étendent les clés au
+  groupe ; la **somme multi-clients** (passif) ne l'étend PAS (sinon double-comptage de
+  deux profils fusionnés). Cas résiduel (2 e-mails sans téléphone commun) : **fusion
+  manuelle** depuis la fiche client (`MergeLoyaltyIdentities`, action admin-post
+  `luziapi_merge_loyalty_customers`). Tests : `LoyaltyIdentityLinksTest` + e2e
+  `make e2e-identity-links-local` (auto-lien sur le chemin réel + fusion).
 - **Audit de dérive** (lecture seule, comme les recettes) : `make audit-loyalty-local`
   / `make audit-loyalty-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent deux
   anomalies — **trou de crédit** (commande admissible « Terminée » jamais créditée →
