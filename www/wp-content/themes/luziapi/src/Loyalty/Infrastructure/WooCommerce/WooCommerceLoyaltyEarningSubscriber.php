@@ -27,12 +27,17 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
     /** Préfixe du transient (par utilisateur) signalant un recalcul admin échoué. */
     private const ADMIN_NOTICE_TRANSIENT = 'luziapi_loyalty_reconcile_failed_';
 
+    /**
+     * @param list<string> $placeholderEmailKeys clés e-mail à ne jamais auto-lier
+     *                                            (adresses fourre-tout : boutique…)
+     */
     public function __construct(
         private ReconcileOrderLoyaltyHandler $reconcile,
         private EligiblePotCounter $counter,
         private OrderIdentityResolver $identityResolver,
         private LoggerInterface $logger,
         private ?LoyaltyIdentityLinks $links = null,
+        private array $placeholderEmailKeys = [],
     ) {
     }
 
@@ -148,7 +153,9 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         // manuelle depuis la fiche).
         if ($completed && ! $excluded && $this->links instanceof LoyaltyIdentityLinks) {
             $contactKeys = $this->identityResolver->contactKeys($order);
-            if (null !== $contactKeys['email'] && null !== $contactKeys['phone']) {
+            if (null !== $contactKeys['email']
+                && null !== $contactKeys['phone']
+                && ! in_array($contactKeys['email'], $this->placeholderEmailKeys, true)) {
                 $this->links->autoLink($contactKeys['email'], $contactKeys['phone']);
             }
         }

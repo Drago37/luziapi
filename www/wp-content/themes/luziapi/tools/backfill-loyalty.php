@@ -53,6 +53,7 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
     $links = new WordPressLoyaltyIdentityLinks($wpdb, $schema);
     $counter = new WooCommerceEligiblePotCounter();
     $resolver = new WooCommerceOrderIdentityResolver();
+    $placeholderEmailKeys = \LuziApi\Loyalty\Infrastructure\WooCommerce\LoyaltyPlaceholderEmails::emailKeys();
 
     $orders = wc_get_orders([
         'status' => 'completed',
@@ -86,7 +87,9 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
         // rattaché n'absorbe pas un 2ᵉ e-mail (foyer partagé → fusion manuelle).
         if (! $dry && 'yes' !== (string) $order->get_meta('_luziapi_loyalty_excluded')) {
             $contactKeys = $resolver->contactKeys($order);
-            if (null !== $contactKeys['email'] && null !== $contactKeys['phone']) {
+            if (null !== $contactKeys['email']
+                && null !== $contactKeys['phone']
+                && ! in_array($contactKeys['email'], $placeholderEmailKeys, true)) {
                 $links->autoLink($contactKeys['email'], $contactKeys['phone']);
             }
         }

@@ -69,6 +69,7 @@ final class LoyaltyServiceProvider
             new WooCommerceOrderIdentityResolver(),
             $logger,
             $links,
+            \LuziApi\Loyalty\Infrastructure\WooCommerce\LoyaltyPlaceholderEmails::emailKeys(),
         ))->register();
     }
 

@@ -6,6 +6,7 @@ namespace LuziApi\Tests\Loyalty;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
 use LuziApi\Loyalty\Application\Port\IdGenerator;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\EligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\OrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber;
@@ -56,6 +57,73 @@ final class LoyaltyExclusionGuardTest extends TestCase
         $this->subscriber(eligible: 2, rewards: 1)->reconcile(42, $this->order('processing'));
 
         self::assertSame(0, $this->ledger->orderTotals(42)['pots']);
+    }
+
+    public function testAutoLinkRunsForANonPlaceholderEmail(): void
+    {
+        $spy = $this->spyLinks();
+        $this->makeSubscriber($this->counter(2, 0), $this->keyedResolver('email-key-000000000a', 'phone-key-00000000ab'), $spy)
+            ->reconcile(42, $this->order('completed'));
+
+        self::assertSame([['email-key-000000000a', 'phone-key-00000000ab']], $spy->autoLinked);
+    }
+
+    public function testAutoLinkSkippedForAPlaceholderEmail(): void
+    {
+        $spy = $this->spyLinks();
+        $this->makeSubscriber(
+            $this->counter(2, 0),
+            $this->keyedResolver('email-key-000000000a', 'phone-key-00000000ab'),
+            $spy,
+            ['email-key-000000000a'], // e-mail placeholder (ex. adresse boutique)
+        )->reconcile(42, $this->order('completed'));
+
+        self::assertSame([], $spy->autoLinked);
+    }
+
+    private function spyLinks(): LoyaltyIdentityLinks
+    {
+        return new class implements LoyaltyIdentityLinks {
+            /** @var list<array{0: string, 1: string}> */
+            public array $autoLinked = [];
+
+            public function expand(array $keys): array
+            {
+                return $keys;
+            }
+
+            public function union(array $keys): void
+            {
+            }
+
+            public function autoLink(string $emailKey, string $phoneKey): void
+            {
+                $this->autoLinked[] = [$emailKey, $phoneKey];
+            }
+
+            public function unlink(array $keys): void
+            {
+            }
+        };
+    }
+
+    private function keyedResolver(string $emailKey, string $phoneKey): OrderIdentityResolver
+    {
+        return new class($emailKey, $phoneKey) implements OrderIdentityResolver {
+            public function __construct(private string $emailKey, private string $phoneKey)
+            {
+            }
+
+            public function resolve(WC_Order $order): ?string
+            {
+                return $this->emailKey;
+            }
+
+            public function contactKeys(WC_Order $order): array
+            {
+                return ['email' => $this->emailKey, 'phone' => $this->phoneKey];
+            }
+        };
     }
 
     public function testTogglingExclusionRecalculatesPotsAndRewards(): void
@@ -199,8 +267,15 @@ final class LoyaltyExclusionGuardTest extends TestCase
         return $this->makeSubscriber($this->counter($eligible, $rewards), $resolver);
     }
 
-    private function makeSubscriber(EligiblePotCounter $counter, OrderIdentityResolver $resolver): WooCommerceLoyaltyEarningSubscriber
-    {
+    /**
+     * @param list<string> $placeholderEmailKeys
+     */
+    private function makeSubscriber(
+        EligiblePotCounter $counter,
+        OrderIdentityResolver $resolver,
+        ?LoyaltyIdentityLinks $links = null,
+        array $placeholderEmailKeys = [],
+    ): WooCommerceLoyaltyEarningSubscriber {
         $handler = new ReconcileOrderLoyaltyHandler(
             $this->ledger,
             FixedClock::at('2026-09-11 10:00:00'),
@@ -214,6 +289,6 @@ final class LoyaltyExclusionGuardTest extends TestCase
             },
         );
 
-        return new WooCommerceLoyaltyEarningSubscriber($handler, $counter, $resolver, new NullLogger());
+        return new WooCommerceLoyaltyEarningSubscriber($handler, $counter, $resolver, new NullLogger(), $links, $placeholderEmailKeys);
     }
 }

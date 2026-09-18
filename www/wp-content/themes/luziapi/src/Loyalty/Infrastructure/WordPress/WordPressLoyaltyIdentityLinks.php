@@ -139,8 +139,29 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
         $remaining = array_values(array_filter($all, static fn (string $key): bool => ! isset($detachSet[$key])));
 
         // Deux groupes séparés : les clés détachées d'un côté, le reste de l'autre.
-        $this->repoint($detach);
-        $this->repoint($remaining);
+        // Transaction : le DELETE+ré-INSERT des deux repointages est atomique, pour ne
+        // jamais laisser un groupe à moitié scindé en cas d'échec en cours de route.
+        $this->transactional(function () use ($detach, $remaining): void {
+            $this->repoint($detach);
+            $this->repoint($remaining);
+        });
+    }
+
+    /**
+     * Exécute des écritures dans une transaction, avec rollback si une exception est
+     * levée. Sur MySQL/InnoDB (tables WP), garantit l'atomicité d'une séquence.
+     */
+    private function transactional(\Closure $writes): void
+    {
+        $this->database->query('START TRANSACTION');
+        try {
+            $writes();
+            $this->database->query('COMMIT');
+        } catch (\Throwable $exception) {
+            $this->database->query('ROLLBACK');
+
+            throw $exception;
+        }
     }
 
     /**
