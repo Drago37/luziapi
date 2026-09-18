@@ -237,8 +237,11 @@ rendue dans les deux variantes (HTML + texte).
   téléphones différents regrouperait deux personnes. C'est **largement pré-existant** — deux
   personnes sous le même e-mail ont déjà leurs pots poolés par la clé de crédit (e-mail
   prioritaire), indépendamment des liens ; l'auto-lien n'y ajoute que d'éventuelles commandes
-  téléphone-seul. Parade : la **défusion** corrige a posteriori ; si un e-mail placeholder connu
-  pose problème, l'exclure de l'auto-lien (denylist) côté subscriber/backfill est une option.
+  téléphone-seul. Parades en place : (1) une **denylist** exclut de l'auto-lien les e-mails
+  fourre-tout (adresse admin/boutique par défaut, extensible via le filtre
+  `luziapi_loyalty_placeholder_emails` — `LoyaltyPlaceholderEmails`) ; (2) la **défusion**
+  corrige a posteriori. La défusion (`unlink`) s'exécute en **transaction** (pas de groupe
+  scindé à moitié).
 - **Audit de dérive** (lecture seule, comme les recettes) : `make audit-loyalty-local`
   / `make audit-loyalty-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent deux
   anomalies — **trou de crédit** (commande admissible « Terminée » jamais créditée →
