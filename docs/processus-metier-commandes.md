@@ -140,9 +140,14 @@ Règles d'affichage et de vente :
 
 - Devise : euro.
 - Les taxes sont désactivées ; WooCommerce ne calcule donc ni TVA ni taxe de livraison.
-- Une remise LuziApi est appliquée automatiquement dès que le panier contient au moins deux pots :
+- Une remise LuziApi est appliquée automatiquement dès qu'il y a au moins deux pots :
   **−1 € × nombre total de pots**.
 - Exemples : deux pots donnent −2 €, trois pots donnent −3 €.
+- **Règle unique partagée** : `VolumeDiscount` (`src/Pilotage/Domain/Sales/`) calcule cette remise,
+  utilisée à la fois par le panier du site (`inc/shop.php`) **et** par la Vente du pilotage
+  (`WooCommerceQuickSaleOrderWriter`) — les deux chemins ne peuvent donc pas diverger. _Historique :_
+  la Vente ne l'appliquait pas (le fee de panier ne se déclenche que sur le checkout du site, pas sur
+  une commande créée en admin) ; corrigé + couvert par `make e2e-vente-volume-local`.
 - Les codes promo sont autorisés dans WooCommerce, mais aucun coupon n'est actuellement publié.
 - La remise LuziApi est une ligne de frais négative, pas un coupon. Si un coupon est créé plus tard,
   il pourra se cumuler avec elle sauf règle supplémentaire.

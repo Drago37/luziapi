@@ -140,6 +140,14 @@ e2e-identity-links-local: ## Teste les liens d'identité fidélité (auto-lien e
 e2e-merge-admin-local: ## Teste le chemin admin de fusion/défusion de clients fidélité (vrai CustomersController)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-merge-admin.php';" --user=admin
 
+.PHONY: e2e-vente-volume-local
+e2e-vente-volume-local: ## Teste la remise de volume (−1 €/pot dès 2 pots) dans la Vente (plusieurs miels)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente-volume.php';" --user=admin
+
+.PHONY: e2e-cart-volume-local
+e2e-cart-volume-local: ## Teste la remise de volume au PANIER du site (fee woocommerce_cart_calculate_fees)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-cart-volume.php';" --user=admin
+
 .PHONY: e2e-exclusion-local
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-exclusion-on-toggle.php';" --user=admin
