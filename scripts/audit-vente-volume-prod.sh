@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+#
+# Audit de la remise de volume sur les commandes Vente en PRODUCTION (lecture seule).
+#
+#   scripts/audit-vente-volume-prod.sh
+#   LUZIAPI_AUDIT_YEAR=2026 scripts/audit-vente-volume-prod.sh
+#
+# Dépose deux fichiers à usage unique à la racine du thème — le cœur partagé
+# (`_audit-vente-volume-core.php`) et le wrapper à jeton (`_audit-vente-volume.php`) —
+# appelle le wrapper en HTTPS (jeton embarqué), affiche le rapport, puis supprime les
+# deux dans tous les cas. Aucune écriture, aucun e-mail. Sort en erreur si des
+# commandes sont à rattraper.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+THEME="www/wp-content/themes/luziapi"
+CORE="${THEME}/tools/audit-vente-volume-core.php"
+WRAPPER="${THEME}/tools/audit-vente-volume-prod.php"
+URL="https://www.luziapi.fr/wp-content/themes/luziapi/_audit-vente-volume.php"
+
+for f in "${CORE}" "${WRAPPER}" .env.local; do
+  [[ -f "${f}" ]] || { echo "❌  Fichier requis absent : ${f}" >&2; exit 1; }
+done
+for bin in lftp curl php openssl python3; do
+  command -v "${bin}" >/dev/null || { echo "❌  Commande requise absente : ${bin}" >&2; exit 1; }
+done
+
+set -a; . ./.env.local; set +a
+: "${DEPLOY_FTP_USER:?manquant dans .env.local}"
+: "${DEPLOY_FTP_PASS:?manquant dans .env.local}"
+: "${DEPLOY_FTP_HOST:?manquant dans .env.local}"
+
+YEAR_QS=""
+[[ -n "${LUZIAPI_AUDIT_YEAR:-}" ]] && YEAR_QS="&year=${LUZIAPI_AUDIT_YEAR}"
+
+echo "ℹ️   Audit lecture seule : aucune écriture, aucun e-mail."
+
+TOKEN="$(openssl rand -hex 16)"
+
+WORK="$(mktemp -d)"
+uploaded=0
+
+# Nettoyage garanti sur TOUT chemin de sortie : dès que les fichiers sont déposés, on
+# les retire, sinon un script à jeton resterait sur la prod. Vérification AVEC le
+# jeton : un wrapper présent répond 200, un wrapper supprimé donne un 404.
+cleanup() {
+  local status=$?
+  if ((uploaded)); then
+    ftp_do "rm _audit-vente-volume.php; rm _audit-vente-volume-core.php;" \
+      && echo "→  Scripts distants supprimés." \
+      || echo "⚠️   Suppression distante à vérifier MANUELLEMENT."
+    local code
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${URL}?k=${TOKEN}")" || code="000"
+    if [[ "${code}" == "404" ]]; then
+      echo "✓  Wrapper confirmé supprimé (HTTP 404)."
+    else
+      echo "⚠️   Wrapper encore accessible (HTTP ${code}) — à retirer MANUELLEMENT (jeton actif)."
+    fi
+  fi
+  rm -rf "${WORK}"
+  exit "${status}"
+}
+trap cleanup EXIT
+
+LOCAL_CORE="${WORK}/_audit-vente-volume-core.php"
+LOCAL_WRAPPER="${WORK}/_audit-vente-volume.php"
+cp "${CORE}" "${LOCAL_CORE}"
+sed -e "s/REPLACE_WITH_TOKEN/${TOKEN}/" "${WRAPPER}" > "${LOCAL_WRAPPER}"
+php -l "${LOCAL_CORE}" >/dev/null || { echo "❌  Cœur invalide." >&2; exit 1; }
+php -l "${LOCAL_WRAPPER}" >/dev/null || { echo "❌  Wrapper généré invalide." >&2; exit 1; }
+
+FTP_OPTS="set ftp:ssl-force true; set ssl:verify-certificate yes; set ftp:ssl-protect-data true; set passive-mode true;"
+ftp_do() { lftp -u "${DEPLOY_FTP_USER},${DEPLOY_FTP_PASS}" "${DEPLOY_FTP_HOST}" -e "${FTP_OPTS} $1 bye" >/dev/null 2>&1; }
+
+echo "→  Dépôt du cœur + du script à jeton…"
+ftp_do "put -O . ${LOCAL_CORE}; put -O . ${LOCAL_WRAPPER};" || { echo "❌  Échec du dépôt FTPS." >&2; exit 1; }
+uploaded=1
+
+echo "→  Exécution sur la prod…"
+RESULT="$(curl -sS "${URL}?k=${TOKEN}${YEAR_QS}")"
+
+echo
+printf '%s' "${RESULT}" > "${WORK}/result.json"
+if python3 - "${WORK}/result.json" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except (json.JSONDecodeError, ValueError):
+    print("Réponse non-JSON de la prod (fatal ou page d'erreur ?).")
+    sys.exit(2)
+if d.get("fatal_error"):
+    print("FATAL:", d["fatal_error"]); sys.exit(1)
+euros = lambda c: f"{c/100:,.2f} €".replace(",", " ").replace(".", ",")
+scope = f"année {d['year']}" if d.get("year") else "tout l'historique"
+print(f"Audit de la remise de volume sur les commandes Vente — {scope}")
+if not d.get("has_drift"):
+    print("✔  Aucune commande Vente sans remise de volume : tout est correct.")
+    sys.exit(0)
+for r in d.get("missing", []):
+    print(f"  ⚠  Commande {r['order']} (#{r['id']}, {r['status']}) : {r['paid_jars']} pots payés, remise manquante {euros(r['missing_cents'])} à rattraper")
+print(f"✖  {d['anomaly_count']} commande(s) à rattraper, remise de volume totale manquante {euros(d['total_missing_cents'])}.")
+sys.exit(1)
+PY
+then
+  echo "✔  Audit prod terminé : aucune commande à rattraper."
+else
+  status=$?
+  if [[ "${status}" -ne 1 ]]; then
+    echo "✖  Réponse inattendue :"
+    printf '%s\n' "${RESULT}" | head -c 800
+  fi
+  exit 1
+fi

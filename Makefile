@@ -108,6 +108,14 @@ audit-loyalty-local: ## Audite la dérive fidélité en local (trous de crédit 
 audit-loyalty-prod: ## Audite la dérive fidélité sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	@bash scripts/audit-loyalty-prod.sh
 
+.PHONY: audit-vente-volume-local
+audit-vente-volume-local: ## Audite les commandes Vente sans remise de volume en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-vente-volume.php';" --user=admin
+
+.PHONY: audit-vente-volume-prod
+audit-vente-volume-prod: ## Audite les commandes Vente sans remise de volume sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	@bash scripts/audit-vente-volume-prod.sh
+
 .PHONY: loyalty-inspect-prod
 loyalty-inspect-prod: ## Inspecte une commande côté fidélité sur la PROD (lecture seule) — ex : make loyalty-inspect-prod ORDER=106
 	@LUZIAPI_ORDER=$(ORDER) bash scripts/loyalty-inspect-prod.sh
@@ -147,6 +155,10 @@ e2e-vente-volume-local: ## Teste la remise de volume (−1 €/pot dès 2 pots) 
 .PHONY: e2e-cart-volume-local
 e2e-cart-volume-local: ## Teste la remise de volume au PANIER du site (fee woocommerce_cart_calculate_fees)
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-cart-volume.php';" --user=admin
+
+.PHONY: e2e-vente-volume-rattrapage-local
+e2e-vente-volume-rattrapage-local: ## Teste le rattrapage de la remise de volume sur une commande (vrai chemin admin + recette + audit)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente-volume-rattrapage.php';" --user=admin
 
 .PHONY: e2e-exclusion-local
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
@@ -228,6 +240,10 @@ e2e-exclusion-prod: ## Test e2e de la case « Exclure de la fidélité » sur la
 .PHONY: e2e-offered-pot-prod
 e2e-offered-pot-prod: ## Test e2e de l'ajout d'un pot offert à une commande existante sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-offered-pot-prod.sh
+
+.PHONY: e2e-vente-volume-rattrapage-prod
+e2e-vente-volume-rattrapage-prod: ## Test e2e du rattrapage de la remise de volume sur la PROD (isolé, aucun e-mail, tout nettoyé)
+	@bash scripts/e2e-vente-volume-rattrapage-prod.sh
 
 .PHONY: e2e-orphan-receipt-prod
 e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la PROD (isolé, aucun e-mail, tout nettoyé)
