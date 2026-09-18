@@ -23,6 +23,13 @@ final class VolumeDiscountTest extends TestCase
         self::assertSame(500, VolumeDiscount::cents(5));
     }
 
+    public function testEurosIsTheSharedConversion(): void
+    {
+        self::assertSame(0, VolumeDiscount::euros(1));
+        self::assertSame(2, VolumeDiscount::euros(2));
+        self::assertSame(5, VolumeDiscount::euros(5));
+    }
+
     public function testLabelStatesTheCount(): void
     {
         self::assertSame('Remise (−1 € par pot dès 2 pots) × 5', VolumeDiscount::label(5));

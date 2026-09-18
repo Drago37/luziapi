@@ -223,11 +223,11 @@ add_action('woocommerce_cart_calculate_fees', static function (\WC_Cart $cart): 
     }
 
     $qty = (int) $cart->get_cart_contents_count();
-    $cents = \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::cents($qty);
-    if ($cents > 0) {
+    $euros = \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::euros($qty);
+    if ($euros > 0) {
         $cart->add_fee(
             \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::label($qty),
-            -1 * ($cents / 100),
+            -1 * $euros,
         );
     }
 });

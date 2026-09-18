@@ -26,6 +26,16 @@ final class VolumeDiscount
         return $paidJarCount >= self::MIN_ITEMS ? $paidJarCount * self::PER_ITEM_CENTS : 0;
     }
 
+    /**
+     * Même remise, exprimée en euros entiers — conversion **unique** utilisée par les
+     * deux appelants (fee de panier et fee de commande), pour qu'ils ne convertissent
+     * pas différemment.
+     */
+    public static function euros(int $paidJarCount): int
+    {
+        return intdiv(self::cents($paidJarCount), 100);
+    }
+
     /** Libellé de la ligne de remise, identique côté site et côté Vente. */
     public static function label(int $paidJarCount): string
     {

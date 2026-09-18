@@ -95,11 +95,11 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
         // Remise de volume « −1 € par pot dès 2 pots », même règle que le panier du site
         // (le fee de panier ne se déclenche pas sur une commande admin). Portée aux pots
         // PAYÉS : les lignes offertes/fidélité sont déjà à 0 €.
-        $volumeCents = VolumeDiscount::cents($paidJars);
-        if ($volumeCents > 0) {
+        $volumeEuros = VolumeDiscount::euros($paidJars);
+        if ($volumeEuros > 0) {
             $fee = new WC_Order_Item_Fee();
             $fee->set_name(VolumeDiscount::label($paidJars));
-            $fee->set_total((string) (-1 * intdiv($volumeCents, 100)));
+            $fee->set_total((string) (-1 * $volumeEuros));
             $order->add_item($fee);
         }
         if (null !== $command->discount) {
