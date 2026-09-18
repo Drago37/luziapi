@@ -80,10 +80,11 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
         ++$report['orders'];
         $orderId = $order->get_id();
 
-        // Semer les liens d'identité pour TOUTE commande terminée (indépendant du
-        // crédit, avant même le saut ci-dessous) : deux commandes historiques du même
-        // client — 2ᵉ e-mail, changement de numéro — se rejoignent rétroactivement.
-        if (! $dry) {
+        // Semer les liens d'identité pour toute commande terminée NON exclue (indépendant
+        // du crédit, avant même le saut ci-dessous) : deux commandes historiques du même
+        // client — 2ᵉ e-mail, changement de numéro — se rejoignent rétroactivement. On
+        // saute les commandes exclues (imports, tests) pour ne pas fusionner d'identités.
+        if (! $dry && 'yes' !== (string) $order->get_meta('_luziapi_loyalty_excluded')) {
             $links->union($resolver->keysFor($order));
         }
 

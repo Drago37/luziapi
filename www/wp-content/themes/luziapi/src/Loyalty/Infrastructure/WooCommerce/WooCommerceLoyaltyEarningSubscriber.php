@@ -134,19 +134,20 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
             return; // commande sans contact rattachable : pas de fidélité
         }
 
-        // Auto-alimentation des liens d'identité : si la commande porte à la fois un
-        // e-mail et un téléphone, on relie ces identifiants comme appartenant au même
-        // client (union sans effet en dessous de deux clés). Indépendant du crédit.
-        if ($this->links instanceof LoyaltyIdentityLinks) {
-            $this->links->union($this->identityResolver->keysFor($order));
-        }
-
         // Garde : une commande explicitement exclue (ex. import d'historique)
         // ne cumule jamais de fidélité — cible à zéro quel que soit son statut,
         // ce qui la maintient sans crédit même si un hook se déclenche plus tard.
         $excluded = 'yes' === (string) $order->get_meta(self::LOYALTY_EXCLUDED_META);
 
         $completed = $order->has_status('completed');
+
+        // Auto-alimentation des liens d'identité : uniquement sur une commande RÉELLE et
+        // honorée (« Terminée », non exclue). On évite ainsi de relier des identités sur
+        // une commande abandonnée, impayée, remboursée ou exclue — où un contact erroné
+        // (faute de frappe, téléphone placeholder) ne doit pas fusionner des clients.
+        if ($completed && ! $excluded && $this->links instanceof LoyaltyIdentityLinks) {
+            $this->links->union($this->identityResolver->keysFor($order));
+        }
         $this->reconcile->handle(new ReconcileOrderLoyaltyCommand(
             orderId: $orderId,
             customerKey: $customerKey,
