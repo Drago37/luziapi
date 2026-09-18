@@ -448,7 +448,7 @@ seul paquet + autoload (voir `AGENTS.md` § 3). Le vendor de prod est désormais
   smoke test vérifiés, OPcache vidé. Lecture seule, aucune écriture. Passée ensuite en **affichage
   par année** (sélecteur, comme les Recettes).
 - **Évolutions fidélité — déployées le 10 septembre 2026 :** seuil porté à **15** (le 16e offert),
-  **expiration des pots à 2 ans**, moteur **en réconciliation** (remboursements partiels gérés),
+  moteur **en réconciliation** (remboursements partiels gérés),
   **ajustement manuel** des pots sur la fiche, et **explications client** (e-mail de confirmation,
   boutique / fiche produit / panier, accueil, page de suivi avant connexion). Déploiement FTPS
   ciblé + suppression des anciennes commandes du serveur ; OPcache vidé, empreintes et smoke test OK.

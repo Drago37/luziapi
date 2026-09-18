@@ -79,6 +79,29 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return null !== $found;
     }
 
+    public function hasEntryForOrder(int $orderId): bool
+    {
+        $found = $this->database->get_var($this->database->prepare(
+            'SELECT id FROM ' . $this->schema->ledgerTableName() . ' WHERE source_order_id = %d LIMIT 1',
+            $orderId,
+        ));
+
+        return null !== $found;
+    }
+
+    public function sourceOrderIds(): array
+    {
+        $ids = $this->database->get_col(
+            'SELECT DISTINCT source_order_id FROM ' . $this->schema->ledgerTableName()
+            . ' WHERE source_order_id IS NOT NULL',
+        );
+
+        return array_values(array_map(
+            static fn ($id): int => (int) $id,
+            is_array($ids) ? $ids : [],
+        ));
+    }
+
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
         $row = $this->database->get_row($this->database->prepare(
@@ -100,22 +123,21 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         return ['pots' => (int) ($row['pots'] ?? 0), 'rights' => (int) ($row['rights'] ?? 0)];
     }
 
-    public function totalsForCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
+    public function totalsForCustomerKeys(array $customerKeys): array
     {
         $keys = $this->sanitizeKeys($customerKeys);
         if ([] === $keys) {
             return ['pots' => 0, 'rightsConsumed' => 0, 'entryCount' => 0];
         }
 
-        [$potsExpr, $sinceArgs] = $this->potsExpression($potsSince);
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
         $row = $this->database->get_row($this->database->prepare(
-            'SELECT ' . $potsExpr . ' AS pots,'
+            'SELECT COALESCE(SUM(pots_delta), 0) AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights,'
             . ' COUNT(*) AS entry_count'
             . ' FROM ' . $this->schema->ledgerTableName()
             . " WHERE customer_key IN ({$placeholders})",
-            ...[...$sinceArgs, ...$keys],
+            ...$keys,
         ), ARRAY_A);
 
         return [
@@ -125,23 +147,22 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ];
     }
 
-    public function balancesByCustomerKeys(array $customerKeys, ?\DateTimeImmutable $potsSince = null): array
+    public function balancesByCustomerKeys(array $customerKeys): array
     {
         $keys = $this->sanitizeKeys($customerKeys);
         if ([] === $keys) {
             return [];
         }
 
-        [$potsExpr, $sinceArgs] = $this->potsExpression($potsSince);
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
         $rows = $this->database->get_results($this->database->prepare(
             'SELECT customer_key,'
-            . ' ' . $potsExpr . ' AS pots,'
+            . ' COALESCE(SUM(pots_delta), 0) AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights'
             . ' FROM ' . $this->schema->ledgerTableName()
             . " WHERE customer_key IN ({$placeholders})"
             . ' GROUP BY customer_key',
-            ...[...$sinceArgs, ...$keys],
+            ...$keys,
         ), ARRAY_A);
 
         $balances = [];
@@ -172,24 +193,6 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ), ARRAY_A);
 
         return array_map($this->hydrate(...), is_array($rows) ? $rows : []);
-    }
-
-    /**
-     * Expression SQL de la somme des pots (bornée à `$potsSince` si fourni) et les
-     * arguments préparés correspondants, à placer AVANT ceux du `IN (...)`.
-     *
-     * @return array{0: string, 1: list<string>}
-     */
-    private function potsExpression(?\DateTimeImmutable $potsSince): array
-    {
-        if (null === $potsSince) {
-            return ['COALESCE(SUM(pots_delta), 0)', []];
-        }
-
-        return [
-            'COALESCE(SUM(CASE WHEN occurred_at >= %s THEN pots_delta ELSE 0 END), 0)',
-            [$potsSince->format('Y-m-d H:i:s')],
-        ];
     }
 
     /**

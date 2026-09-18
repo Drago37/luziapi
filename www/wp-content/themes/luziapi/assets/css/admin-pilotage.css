@@ -82,6 +82,10 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.luziapi-pilotage__metrics--five {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .luziapi-pilotage__metric,
 .luziapi-pilotage__panel,
 .luziapi-pilotage__customer-card,

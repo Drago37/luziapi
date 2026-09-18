@@ -13,12 +13,15 @@
 
 declare(strict_types=1);
 
+use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
+use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
+use LuziApi\Pilotage\Infrastructure\Loyalty\LoyaltyModuleRewardsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceThankYouDiscount;
@@ -49,8 +52,10 @@ $keys = [];
 $suffix = strtolower(wp_generate_password(10, false, false));
 $emailA = 'dash-a-' . $suffix . '@example.test';
 $emailB = 'dash-b-' . $suffix . '@example.test';
+$emailC = 'dash-c-' . $suffix . '@example.test';
 $nameA = 'Alice-' . $suffix;
 $nameB = 'Bob-' . $suffix;
+$nameC = 'Carol-' . $suffix;
 $thisYear = (int) current_time('Y');
 $lastYear = $thisYear - 1;
 
@@ -134,6 +139,27 @@ try {
     $viewLast = $handler->handle(new GetLoyaltyDashboardQuery((string) $lastYear));
     $assert('L\'an dernier n\'a qu\'un client (Alice)', 1 === $viewLast->totalCustomers);
     $assert('L\'an dernier : Alice a 4 pots, 0 offert, 0 remise', 4 === $viewLast->totalPots && 0 === $viewLast->totalOfferedPots && 0 === $viewLast->totalDiscountCents);
+
+    // --- Passif (avantages dus) sur le VRAI chemin ledger ---
+    // Sans lecteur d'avantages, le passif reste nul (dépendance nullable).
+    $assert('Sans lecteur d\'avantages : passif nul', 0 === $handler->handle(new GetLoyaltyDashboardQuery('all'))->grandRewardsOwed);
+
+    $ledger = new WordPressLoyaltyLedger($wpdb, $schema, wp_timezone());
+    $handlerWithRewards = new GetLoyaltyDashboardHandler(
+        new WooCommerceOrderRepository(wp_timezone()),
+        new CustomerHistoryProjector(),
+        new WooCommerceLoyaltyEconomicsReader(new WooCommerceEligiblePotCounter()),
+        new WordPressClock(),
+        new LoyaltyModuleRewardsReader(new GetCustomerLoyaltyHandler($ledger)),
+    );
+    // Passif de référence (Alice 9 pots / Bob 3 pots donnent 0 avantage), puis Carol
+    // franchit 15 pots → 1 avantage dû : le passif doit augmenter d'EXACTEMENT 1
+    // (delta isolé, robuste aux autres données de la base).
+    $baseOwed = $handlerWithRewards->handle(new GetLoyaltyDashboardQuery('all'))->grandRewardsOwed;
+    $makeOrder($nameC, $emailC, 15, 0, 0, $thisYear);
+    $keys[] = LoyaltyIdentity::fromContact($emailC, '')?->key ?? '';
+    $afterOwed = $handlerWithRewards->handle(new GetLoyaltyDashboardQuery('all'))->grandRewardsOwed;
+    $assert('Passif : +1 avantage dû après 15 pots (Carol)', $baseOwed + 1 === $afterOwed, 'base=' . $baseOwed . ' after=' . $afterOwed);
 } catch (Throwable $exception) {
     $assert('Le scénario se termine sans exception', false, $exception->getMessage());
 } finally {

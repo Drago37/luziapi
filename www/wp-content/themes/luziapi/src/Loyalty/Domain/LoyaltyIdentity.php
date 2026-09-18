@@ -65,6 +65,23 @@ final readonly class LoyaltyIdentity
     }
 
     /**
+     * Clés d'identité **typées** d'un contact : `email` et `phone` séparément (chacune
+     * `null` si absente). Sert à l'auto-liaison prudente, qui doit distinguer les deux.
+     *
+     * @return array{email: ?string, phone: ?string}
+     */
+    public static function contactKeys(string $email, string $phone): array
+    {
+        $email = strtolower(trim($email));
+        $normalizedPhone = NormalizedPhone::fromString($phone)?->value();
+
+        return [
+            'email' => '' !== $email ? self::hash('email:' . $email) : null,
+            'phone' => null !== $normalizedPhone ? self::hash('phone:' . $normalizedPhone) : null,
+        ];
+    }
+
+    /**
      * Hache une clé d'identité brute (`email:…` ou `phone:…`). Exposé pour le
      * golden test et pour rejouer la logique du projecteur si nécessaire.
      */

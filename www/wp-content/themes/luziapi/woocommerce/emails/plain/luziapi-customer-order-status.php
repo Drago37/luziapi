@@ -22,7 +22,7 @@
  * @var string                      $mediator_url
  * @var string                      $tracking_url
  * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
- * @var array{reward_threshold:int, next:int, lifetime_years:int}|null $loyalty_reminder
+ * @var array{reward_threshold:int, next:int}|null $loyalty_reminder
  */
 
 defined('ABSPATH') || exit;
@@ -78,7 +78,7 @@ if (null !== $loyalty_reminder) {
     echo "----------------\n";
     echo 'Vous cumulez des pots à chaque achat : ' . $loyalty_reminder['reward_threshold'] . ' pots achetés, le '
         . $loyalty_reminder['next'] . 'e offert. Les pots de cette commande seront comptés dès qu\'elle sera terminée. '
-        . 'Vos pots sont valables ' . $loyalty_reminder['lifetime_years'] . ' ans.' . "\n";
+        . 'Vos pots se cumulent sans limite de validité.' . "\n";
 }
 
 if ('' !== $tracking_url) {

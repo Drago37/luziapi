@@ -73,4 +73,28 @@ final class LoyaltyIdentityTest extends TestCase
         self::assertNull(LoyaltyIdentity::fromContact('', ''));
         self::assertNull(LoyaltyIdentity::fromContact('   ', '123'));
     }
+
+    public function testContactKeysReturnsBothTypedKeys(): void
+    {
+        $keys = LoyaltyIdentity::contactKeys('Client@Example.com ', '06 12 34 56 78');
+
+        // Mêmes valeurs que les clés priorisées ci-dessus, mais séparées par type.
+        self::assertSame('d1173945094101863f2b', $keys['email']);
+        self::assertSame('32e9754687a92215d39e', $keys['phone']);
+    }
+
+    public function testContactKeysNullsOutMissingSides(): void
+    {
+        $emailOnly = LoyaltyIdentity::contactKeys('client@example.com', '');
+        self::assertSame(LoyaltyIdentity::hash('email:client@example.com'), $emailOnly['email']);
+        self::assertNull($emailOnly['phone']);
+
+        $phoneOnly = LoyaltyIdentity::contactKeys('', '0612345678');
+        self::assertNull($phoneOnly['email']);
+        self::assertNotNull($phoneOnly['phone']);
+
+        $neither = LoyaltyIdentity::contactKeys('  ', 'not-a-phone');
+        self::assertNull($neither['email']);
+        self::assertNull($neither['phone']);
+    }
 }

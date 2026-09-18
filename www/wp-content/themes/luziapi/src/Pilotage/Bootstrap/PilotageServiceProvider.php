@@ -38,6 +38,7 @@ use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
 use LuziApi\Pilotage\Infrastructure\Http\BanAddressLookup;
+use LuziApi\Pilotage\Infrastructure\Loyalty\LoyaltyModuleRewardsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
@@ -211,12 +212,18 @@ final class PilotageServiceProvider
             $subscribers,
             new SaveCustomerProfileHandler($customerProfiles, $clock),
             $updateSubscription,
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::mergeIdentitiesHandler(),
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::identityLinks(),
         );
+        $loyaltyRewardsHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
             new CustomerHistoryProjector(),
             new WooCommerceLoyaltyEconomicsReader(new WooCommerceEligiblePotCounter()),
             $clock,
+            null !== $loyaltyRewardsHandler
+                ? new LoyaltyModuleRewardsReader($loyaltyRewardsHandler)
+                : null,
         ));
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),

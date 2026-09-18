@@ -6,6 +6,9 @@ namespace LuziApi\Pilotage\UserInterface\Admin;
 
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsCommand;
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
+use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesCommand;
+use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesHandler;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
@@ -59,6 +62,8 @@ final readonly class CustomersController
         private ?SubscriberDirectory $subscribers = null,
         private ?SaveCustomerProfileHandler $saveProfile = null,
         private ?UpdateSubscriptionHandler $subscriptions = null,
+        private ?MergeLoyaltyIdentitiesHandler $mergeIdentities = null,
+        private ?LoyaltyIdentityLinks $identityLinks = null,
     ) {
     }
 
@@ -69,6 +74,8 @@ final readonly class CustomersController
         add_action('admin_post_luziapi_adjust_loyalty_pots', [$this, 'adjustLoyaltyPots']);
         add_action('admin_post_luziapi_save_customer_profile', [$this, 'saveCustomerProfile']);
         add_action('admin_post_luziapi_update_subscription', [$this, 'updateSubscription']);
+        add_action('admin_post_luziapi_merge_loyalty_customers', [$this, 'mergeLoyaltyCustomers']);
+        add_action('admin_post_luziapi_unlink_loyalty_customer', [$this, 'unlinkLoyaltyCustomer']);
     }
 
     public function updateSubscription(): void
@@ -244,6 +251,163 @@ final readonly class CustomersController
         }
     }
 
+    /**
+     * Fusionne le client de la fiche avec un autre : leurs clés d'identité rejoignent
+     * un même groupe, pour le cas « même personne, deux e-mails sans téléphone commun »
+     * que l'auto-alimentation ne peut pas relier seule. La fusion agrège la fidélité ;
+     * elle n'écrit rien sur les commandes.
+     */
+    public function mergeLoyaltyCustomers(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_merge_loyalty_customers');
+        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+
+        try {
+            $targetId = sanitize_key(wp_unslash((string) ($_POST['merge_target'] ?? '')));
+            $this->performMerge($customerId, $targetId);
+            $this->redirectAfterCategory($customerId, 'customers_merged');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'loyalty_merge_failed',
+                'customer',
+                null,
+                'Fusion de clients fidélité échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'merge_error');
+        }
+    }
+
+    /**
+     * Cœur de la fusion (sans redirection, pour être pilotable en test) : résout les
+     * `identityIds` des deux clients et fusionne. Lève une exception si la requête est
+     * invalide ou un client introuvable.
+     *
+     * @throws \RuntimeException|\InvalidArgumentException
+     */
+    public function performMerge(string $customerId, string $targetId): void
+    {
+        if (! $this->mergeIdentities instanceof MergeLoyaltyIdentitiesHandler) {
+            throw new \RuntimeException('Identity merge is not available.');
+        }
+        if ('' === $targetId || $targetId === $customerId) {
+            throw new \InvalidArgumentException('Invalid merge request.');
+        }
+        $keysA = $this->identityIdsFor($customerId);
+        $keysB = $this->identityIdsFor($targetId);
+        if ([] === $keysA || [] === $keysB) {
+            throw new \InvalidArgumentException('Unknown customer(s) to merge.');
+        }
+        $this->mergeIdentities->handle(new MergeLoyaltyIdentitiesCommand($keysA, $keysB));
+    }
+
+    /**
+     * Cœur de la défusion (sans redirection, pour être pilotable en test) : détache les
+     * clés du client de son groupe. Lève une exception si le client est introuvable.
+     *
+     * @throws \RuntimeException|\InvalidArgumentException
+     */
+    public function performUnlink(string $customerId): void
+    {
+        if (! $this->identityLinks instanceof LoyaltyIdentityLinks) {
+            throw new \RuntimeException('Identity links are not available.');
+        }
+        $keys = $this->identityIdsFor($customerId);
+        if ([] === $keys) {
+            throw new \InvalidArgumentException('Unknown customer to unlink.');
+        }
+        $this->identityLinks->unlink($keys);
+    }
+
+    /**
+     * Clés d'identité (`identityIds`) d'un client à partir de son identifiant de profil.
+     *
+     * @return list<string>
+     */
+    private function identityIdsFor(string $customerId): array
+    {
+        $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
+
+        return $directory->selectedCustomer instanceof CustomerProfile ? $directory->selectedCustomer->identityIds : [];
+    }
+
+    /**
+     * Autres clients de la page courante proposés à la fusion (le client affiché exclu).
+     * Vide tant qu'aucune fiche n'est ouverte.
+     *
+     * @param list<CustomerProfile> $customers
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    private function mergeCandidates(array $customers, ?CustomerProfile $selected): array
+    {
+        if (! $selected instanceof CustomerProfile) {
+            return [];
+        }
+
+        $candidates = [];
+        foreach ($customers as $customer) {
+            if ($customer->id === $selected->id) {
+                continue;
+            }
+            $name = '' !== $customer->name
+                ? $customer->name
+                : ($customer->primaryEmail() ?: $customer->primaryPhone() ?: 'Client de passage');
+            $candidates[] = ['id' => $customer->id, 'name' => $name];
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * Détache le client de la fiche d'un regroupement d'identités (défusion), pour
+     * corriger une fusion manuelle erronée. Ses clés reforment un groupe à part.
+     */
+    public function unlinkLoyaltyCustomer(): void
+    {
+        $this->assertPermission();
+        check_admin_referer('luziapi_unlink_loyalty_customer');
+        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+
+        try {
+            $this->performUnlink($customerId);
+            $this->redirectAfterCategory($customerId, 'customer_unlinked');
+        } catch (Throwable $exception) {
+            $this->rememberErrorDetail('customers', $exception);
+            $this->activity->record(
+                ActivityCategory::Error,
+                'loyalty_unlink_failed',
+                'customer',
+                null,
+                'Défusion de client fidélité échouée',
+                [],
+                get_current_user_id(),
+            );
+            $this->redirectAfterCategory($customerId, 'unlink_error');
+        }
+    }
+
+    /**
+     * Vrai si le client de la fiche est regroupé avec des clés au-delà des siennes
+     * (fusion) — auquel cas on propose la défusion.
+     */
+    private function customerIsLinked(?CustomerProfile $selected): bool
+    {
+        if (! $selected instanceof CustomerProfile || ! $this->identityLinks instanceof LoyaltyIdentityLinks) {
+            return false;
+        }
+        $ids = array_values(array_unique($selected->identityIds));
+        if ([] === $ids) {
+            return false;
+        }
+
+        return count($this->identityLinks->expand($ids)) > count($ids);
+    }
+
     public function applyThankYouDiscount(): void
     {
         $this->assertPermission();
@@ -328,6 +492,10 @@ final readonly class CustomersController
             'profile_nonce'     => wp_create_nonce('luziapi_save_customer_profile'),
             'address_nonce'     => wp_create_nonce('luziapi_address_search'),
             'subscription_nonce' => wp_create_nonce('luziapi_update_subscription'),
+            'merge_nonce'       => wp_create_nonce('luziapi_merge_loyalty_customers'),
+            'merge_candidates'  => $this->mergeCandidates($directory->customers, $directory->selectedCustomer),
+            'unlink_nonce'      => wp_create_nonce('luziapi_unlink_loyalty_customer'),
+            'customer_is_linked' => $this->customerIsLinked($directory->selectedCustomer),
             'search'            => $search,
             'selected_category' => $category instanceof CustomerCategory ? $category->value : '',
             'categories'        => array_map(
