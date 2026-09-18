@@ -213,6 +213,7 @@ final class PilotageServiceProvider
             new SaveCustomerProfileHandler($customerProfiles, $clock),
             $updateSubscription,
             \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::mergeIdentitiesHandler(),
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::identityLinks(),
         );
         $loyaltyRewardsHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(

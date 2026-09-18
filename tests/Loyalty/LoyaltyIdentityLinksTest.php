@@ -84,6 +84,39 @@ final class LoyaltyIdentityLinksTest extends TestCase
         self::assertSame(18, $linked->netPots);
     }
 
+    public function testAutoLinkAttachesSuccessivePhonesToTheSameEmail(): void
+    {
+        // Changement de numéro : deux téléphones libres rejoignent le même e-mail.
+        $links = new InMemoryLoyaltyIdentityLinks();
+        $links->autoLink('email-a', 'phone-1');
+        $links->autoLink('email-a', 'phone-2');
+
+        self::assertEqualsCanonicalizing(['email-a', 'phone-1', 'phone-2'], $links->expand(['email-a']));
+    }
+
+    public function testAutoLinkRefusesToAbsorbASecondEmailViaASharedPhone(): void
+    {
+        // Téléphone déjà rattaché à A : un 2ᵉ e-mail B (foyer / partagé) n'est PAS
+        // auto-fusionné — ce cas ambigu relève de la fusion manuelle.
+        $links = new InMemoryLoyaltyIdentityLinks();
+        $links->autoLink('email-a', 'phone-x');
+        $links->autoLink('email-b', 'phone-x');
+
+        self::assertSame(['email-b'], $links->expand(['email-b']));
+        self::assertEqualsCanonicalizing(['email-a', 'phone-x'], $links->expand(['email-a']));
+    }
+
+    public function testUnlinkDetachesKeysIntoTheirOwnGroup(): void
+    {
+        // Défusion : on sort {c,d} d'un groupe fusionné à tort ; {a,b} reste groupé.
+        $links = new InMemoryLoyaltyIdentityLinks();
+        $links->union(['a', 'b', 'c', 'd']);
+        $links->unlink(['c', 'd']);
+
+        self::assertEqualsCanonicalizing(['a', 'b'], $links->expand(['a']));
+        self::assertEqualsCanonicalizing(['c', 'd'], $links->expand(['c']));
+    }
+
     public function testMergeHandlerUnionsBothCustomersKeys(): void
     {
         $links = new InMemoryLoyaltyIdentityLinks();

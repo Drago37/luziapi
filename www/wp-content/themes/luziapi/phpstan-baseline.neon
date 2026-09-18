@@ -387,19 +387,19 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 3
+			count: 5
 			path: src/Loyalty/Infrastructure/WordPress/WordPressLoyaltyIdentityLinks.php
 
 		-
 			message: '#^Parameter \#1 \$query of method wpdb\:\:prepare\(\) expects literal\-string, non\-falsy\-string given\.$#'
 			identifier: argument.type
-			count: 5
+			count: 10
 			path: src/Loyalty/Infrastructure/WordPress/WordPressLoyaltyIdentityLinks.php
 
 		-
 			message: '#^Parameter \#1 \$query of method wpdb\:\:query\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 4
 			path: src/Loyalty/Infrastructure/WordPress/WordPressLoyaltyIdentityLinks.php
 
 		-
@@ -831,7 +831,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 15
+			count: 16
 			path: src/Pilotage/UserInterface/Admin/CustomersController.php
 
 		-

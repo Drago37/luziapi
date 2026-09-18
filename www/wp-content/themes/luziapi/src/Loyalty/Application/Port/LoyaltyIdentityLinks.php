@@ -26,9 +26,28 @@ interface LoyaltyIdentityLinks
 
     /**
      * Rattache toutes ces clés au même client (fusion de leurs groupes respectifs).
+     * **Inconditionnel** : réservé à la fusion **manuelle** décidée par un opérateur.
      * Idempotent ; sans effet si moins de deux clés distinctes sont fournies.
      *
      * @param list<string> $keys
      */
     public function union(array $keys): void;
+
+    /**
+     * Auto-liaison **prudente** e-mail ↔ téléphone d'une même commande : ne relie que si
+     * le téléphone n'est **pas déjà** rattaché à un client. Ainsi plusieurs téléphones
+     * s'attachent à un même e-mail (changement de numéro), mais un téléphone déjà pris
+     * n'absorbe jamais automatiquement un 2ᵉ e-mail (téléphone de foyer / partagé) — ce
+     * cas ambigu relève de la fusion manuelle. Sans effet si une clé manque.
+     */
+    public function autoLink(string $emailKey, string $phoneKey): void;
+
+    /**
+     * Détache ces clés de tout groupe : elles reforment un groupe à part (les autres clés
+     * de l'ancien groupe restent regroupées entre elles). Sert de « défusion » pour
+     * corriger une fusion manuelle erronée. Sans effet si aucune clé valide.
+     *
+     * @param list<string> $keys
+     */
+    public function unlink(array $keys): void;
 }

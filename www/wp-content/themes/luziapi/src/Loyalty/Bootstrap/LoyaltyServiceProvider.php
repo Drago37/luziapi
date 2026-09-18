@@ -7,6 +7,7 @@ namespace LuziApi\Loyalty\Bootstrap;
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
 use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesHandler;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
@@ -31,6 +32,7 @@ final class LoyaltyServiceProvider
     private static ?GetLoyaltyForOrdersHandler $loyaltyForOrdersHandler = null;
     private static ?AdjustLoyaltyPotsHandler $adjustmentHandler = null;
     private static ?MergeLoyaltyIdentitiesHandler $mergeHandler = null;
+    private static ?LoyaltyIdentityLinks $identityLinks = null;
 
     public static function boot(): void
     {
@@ -58,6 +60,7 @@ final class LoyaltyServiceProvider
         $ids = new WordPressIdGenerator();
         self::$adjustmentHandler = new AdjustLoyaltyPotsHandler($ledger, $clock, $ids);
         self::$mergeHandler = new MergeLoyaltyIdentitiesHandler($links);
+        self::$identityLinks = $links;
 
         add_action('init', [$schema, 'migrate'], 1);
         (new WooCommerceLoyaltyEarningSubscriber(
@@ -103,5 +106,14 @@ final class LoyaltyServiceProvider
     public static function mergeIdentitiesHandler(): ?MergeLoyaltyIdentitiesHandler
     {
         return self::$mergeHandler;
+    }
+
+    /**
+     * Service de liens d'identité, partagé avec la fiche client (indicateur « regroupé »
+     * et défusion). `null` avant `boot()`.
+     */
+    public static function identityLinks(): ?LoyaltyIdentityLinks
+    {
+        return self::$identityLinks;
     }
 }

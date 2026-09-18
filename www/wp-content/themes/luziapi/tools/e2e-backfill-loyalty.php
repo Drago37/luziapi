@@ -57,7 +57,9 @@ $phoneKey = '';
 $completedOn = '2025-03-01';
 $testSuffix = strtolower(wp_generate_password(10, false, false));
 $customerEmail = 'backfill-' . $testSuffix . '@example.test';
-$customerPhone = '0600000000';
+// Téléphone aléatoire (vrai mobile FR) : hermétique entre exécutions, sinon un lien
+// d'identité résiduel sur un numéro fixe ferait refuser l'auto-liaison prudente.
+$customerPhone = '0699' . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
 try {
     $pot = new WC_Product_Simple();

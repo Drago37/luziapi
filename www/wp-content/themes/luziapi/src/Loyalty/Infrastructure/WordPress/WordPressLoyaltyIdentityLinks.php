@@ -96,6 +96,104 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
         }
     }
 
+    public function autoLink(string $emailKey, string $phoneKey): void
+    {
+        if (! $this->isValidKey($emailKey) || ! $this->isValidKey($phoneKey)) {
+            return;
+        }
+        // Téléphone déjà rattaché : on ne l'utilise pas pour absorber un 2ᵉ e-mail
+        // (téléphone de foyer / partagé). Le cas ambigu relève de la fusion manuelle.
+        if ($this->isLinked($phoneKey)) {
+            return;
+        }
+
+        $this->union([$emailKey, $phoneKey]);
+    }
+
+    public function unlink(array $keys): void
+    {
+        $detach = $this->sanitize($keys);
+        if ([] === $detach) {
+            return;
+        }
+
+        $table = $this->schema->identityLinksTableName();
+        $placeholders = implode(', ', array_fill(0, count($detach), '%s'));
+        $canonicals = $this->database->get_col($this->database->prepare(
+            "SELECT DISTINCT canonical_key FROM {$table} WHERE identity_key IN ({$placeholders})",
+            ...$detach,
+        ));
+        $canonicals = array_map(static fn ($value): string => (string) $value, is_array($canonicals) ? $canonicals : []);
+        if ([] === $canonicals) {
+            return; // aucune de ces clés n'est liée
+        }
+
+        $canonicalPlaceholders = implode(', ', array_fill(0, count($canonicals), '%s'));
+        $all = $this->database->get_col($this->database->prepare(
+            "SELECT identity_key FROM {$table} WHERE canonical_key IN ({$canonicalPlaceholders})",
+            ...$canonicals,
+        ));
+        $all = array_map(static fn ($value): string => (string) $value, is_array($all) ? $all : []);
+
+        $detachSet = array_fill_keys($detach, true);
+        $remaining = array_values(array_filter($all, static fn (string $key): bool => ! isset($detachSet[$key])));
+
+        // Deux groupes séparés : les clés détachées d'un côté, le reste de l'autre.
+        $this->repoint($detach);
+        $this->repoint($remaining);
+    }
+
+    /**
+     * Reforme un groupe isolé à partir de ces clés (canonique = la plus petite). Un
+     * singleton redevient une clé libre (aucune ligne). Casse d'abord tout ancien lien.
+     *
+     * @param list<string> $keys
+     */
+    private function repoint(array $keys): void
+    {
+        if ([] === $keys) {
+            return;
+        }
+
+        $table = $this->schema->identityLinksTableName();
+        $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
+        $this->database->query($this->database->prepare(
+            "DELETE FROM {$table} WHERE identity_key IN ({$placeholders})",
+            ...$keys,
+        ));
+        if (count($keys) < 2) {
+            return; // une clé seule n'a pas besoin de ligne : elle redevient libre
+        }
+
+        sort($keys);
+        $merged = $keys[0];
+        $now = current_time('mysql');
+        foreach ($keys as $key) {
+            $this->database->query($this->database->prepare(
+                "INSERT INTO {$table} (identity_key, canonical_key, linked_at) VALUES (%s, %s, %s)"
+                . ' ON DUPLICATE KEY UPDATE canonical_key = VALUES(canonical_key)',
+                $key,
+                $merged,
+                $now,
+            ));
+        }
+    }
+
+    private function isValidKey(string $key): bool
+    {
+        return 1 === preg_match('/^[0-9a-f]{20}$/', $key);
+    }
+
+    private function isLinked(string $key): bool
+    {
+        $table = $this->schema->identityLinksTableName();
+
+        return null !== $this->database->get_var($this->database->prepare(
+            "SELECT identity_key FROM {$table} WHERE identity_key = %s LIMIT 1",
+            $key,
+        ));
+    }
+
     /**
      * @param list<string> $keys
      *
@@ -105,7 +203,7 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
     {
         $clean = [];
         foreach ($keys as $key) {
-            if (1 === preg_match('/^[0-9a-f]{20}$/', $key)) {
+            if ($this->isValidKey($key)) {
                 $clean[$key] = true;
             }
         }

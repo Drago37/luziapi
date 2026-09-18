@@ -1,17 +1,18 @@
 <?php
 
 /**
- * Test d'intégration local des LIENS D'IDENTITÉ de fidélité.
+ * Test d'intégration local des LIENS D'IDENTITÉ de fidélité (auto-liaison PRUDENTE,
+ * fusion manuelle, défusion).
  *
  * Exécution : make e2e-identity-links-local
  *
  * Sur les vraies classes et la vraie base :
- *  - AUTO-ALIMENTATION : deux commandes du même client avec un e-mail différent mais
- *    le MÊME téléphone (cas « 2ᵉ e-mail » / « changement de numéro ») sont reliées via
- *    le téléphone par le subscriber live ; la lecture de fidélité agrège alors les pots
- *    des deux, alors qu'une clé seule n'en verrait qu'une partie.
- *  - FUSION MANUELLE : deux clients sans aucun contact commun, fusionnés via le handler,
- *    voient ensuite leurs pots agrégés.
+ *  - AUTO-LIAISON PRUDENTE : une commande e-mail+téléphone relie ces deux clés ; une
+ *    commande téléphone-seul (même téléphone) crédite sous la clé téléphone ; la lecture
+ *    agrège alors les deux — ce qu'une clé seule ne voit pas.
+ *  - PRUDENCE : un 2ᵉ e-mail sur un téléphone DÉJÀ rattaché n'est PAS auto-fusionné.
+ *  - FUSION MANUELLE : deux clients fusionnés à la main agrègent leur fidélité.
+ *  - DÉFUSION : `unlink` détache un client d'un groupe fusionné à tort.
  * Nettoie toutes les données créées, même en cas d'échec.
  */
 
@@ -51,7 +52,7 @@ $assert = static function (string $label, bool $success, string $detail = '') us
     $results[] = ['label' => $label, 'success' => $success, 'detail' => $detail];
 };
 
-$netPots = static fn (GetCustomerLoyaltyHandler $handler, string $key): int => $handler
+$net = static fn (GetCustomerLoyaltyHandler $handler, string $key): int => $handler
     ->handle(new GetCustomerLoyaltyQuery([$key]))->netPots;
 
 $productId = 0;
@@ -69,8 +70,8 @@ try {
     $pot->update_meta_data(WooCommerceEligiblePotCounter::PRODUCT_ELIGIBLE_META, 'yes');
     $productId = (int) $pot->save();
 
-    // Passe la commande à « Terminée » : le subscriber live crédite ET auto-alimente
-    // les liens (e-mail + téléphone présents).
+    // Passe la commande à « Terminée » : le subscriber live crédite ET auto-lie
+    // (prudemment) e-mail↔téléphone quand les deux sont présents.
     $makeOrder = static function (string $email, string $phone, int $qty) use ($productId, &$orderIds): void {
         $order = wc_create_order(['status' => 'pending']);
         if (! $order instanceof WC_Order) {
@@ -87,36 +88,35 @@ try {
         $orderIds[] = (int) $order->get_id();
     };
 
-    // === Auto-alimentation : 2ᵉ e-mail, même téléphone ===
-    // Vrai mobile FR (chiffres uniquement) : sinon NormalizedPhone le rejette.
+    // Vrais mobiles FR (chiffres uniquement).
     $phone = '0699' . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    $emailA1 = 'link-a1-' . $suffix . '@example.test';
-    $emailA2 = 'link-a2-' . $suffix . '@example.test';
-    $makeOrder($emailA1, $phone, 4);
-    $makeOrder($emailA2, $phone, 6);
-    $keyA1 = LoyaltyIdentity::fromContact($emailA1, $phone)?->key ?? '';
-    $keyA2 = LoyaltyIdentity::fromContact($emailA2, $phone)?->key ?? '';
-    $keyPhone = LoyaltyIdentity::keysForContact('', $phone)[0] ?? '';
-    $allKeys = array_merge($allKeys, [$keyA1, $keyA2, $keyPhone]);
-
-    $assert('Auto : sans liens, une clé seule ne voit que ses 4 pots', 4 === $netPots($plainHandler, $keyA1));
-    $assert('Auto : avec liens, le 1er e-mail agrège les 2 commandes (10 pots)', 10 === $netPots($linkedHandler, $keyA1), 'net=' . $netPots($linkedHandler, $keyA1));
-    $assert('Auto : le 2ᵉ e-mail agrège aussi les 2 commandes (10 pots)', 10 === $netPots($linkedHandler, $keyA2));
-    $assert('Auto : la clé téléphone agrège aussi (10 pots)', 10 === $netPots($linkedHandler, $keyPhone));
-
-    // === Fusion manuelle : deux clients sans contact commun ===
-    $emailB = 'link-b-' . $suffix . '@example.test';
+    $emailA = 'link-a-' . $suffix . '@example.test';
     $emailC = 'link-c-' . $suffix . '@example.test';
-    $makeOrder($emailB, '', 5);
-    $makeOrder($emailC, '', 3);
-    $keyB = LoyaltyIdentity::fromContact($emailB, '')?->key ?? '';
-    $keyC = LoyaltyIdentity::fromContact($emailC, '')?->key ?? '';
-    $allKeys = array_merge($allKeys, [$keyB, $keyC]);
+    $keyEmailA = LoyaltyIdentity::contactKeys($emailA, '')['email'] ?? '';
+    $keyPhone = LoyaltyIdentity::contactKeys('', $phone)['phone'] ?? '';
+    $keyEmailC = LoyaltyIdentity::contactKeys($emailC, '')['email'] ?? '';
+    $allKeys = [$keyEmailA, $keyPhone, $keyEmailC];
 
-    $assert('Fusion : avant fusion, B ne voit que ses 5 pots', 5 === $netPots($linkedHandler, $keyB));
-    (new MergeLoyaltyIdentitiesHandler($links))->handle(new MergeLoyaltyIdentitiesCommand([$keyB], [$keyC]));
-    $assert('Fusion : après fusion, B agrège B+C (8 pots)', 8 === $netPots($linkedHandler, $keyB), 'net=' . $netPots($linkedHandler, $keyB));
-    $assert('Fusion : après fusion, C agrège aussi (8 pots)', 8 === $netPots($linkedHandler, $keyC));
+    // === Auto-liaison : commande e-mail+téléphone, puis commande téléphone-seul ===
+    $makeOrder($emailA, $phone, 4);   // crédité sous l'e-mail ; auto-lie e-mail↔téléphone
+    $makeOrder('', $phone, 6);        // crédité sous le téléphone (pas d'e-mail → pas d'auto-lien)
+
+    $assert('Auto : sans liens, l\'e-mail ne voit que ses 4 pots', 4 === $net($plainHandler, $keyEmailA));
+    $assert('Auto : avec liens, l\'e-mail agrège la commande téléphone-seul (10)', 10 === $net($linkedHandler, $keyEmailA), 'net=' . $net($linkedHandler, $keyEmailA));
+    $assert('Auto : la clé téléphone agrège aussi (10)', 10 === $net($linkedHandler, $keyPhone));
+
+    // === Prudence : 2ᵉ e-mail sur un téléphone DÉJÀ rattaché → refusé ===
+    $makeOrder($emailC, $phone, 3);   // auto-lien refusé (téléphone déjà pris)
+    $assert('Prudence : le 2ᵉ e-mail n\'est PAS auto-fusionné (3 pots, pas 13)', 3 === $net($linkedHandler, $keyEmailC), 'net=' . $net($linkedHandler, $keyEmailC));
+
+    // === Fusion manuelle : l'opérateur confirme que C est la même personne que A ===
+    (new MergeLoyaltyIdentitiesHandler($links))->handle(new MergeLoyaltyIdentitiesCommand([$keyEmailC], [$keyEmailA]));
+    $assert('Fusion : après fusion manuelle, C agrège tout le groupe (13)', 13 === $net($linkedHandler, $keyEmailC), 'net=' . $net($linkedHandler, $keyEmailC));
+
+    // === Défusion : on détache C ; le reste du groupe (A + téléphone) reste groupé ===
+    $links->unlink([$keyEmailC]);
+    $assert('Défusion : C se sépare (3 pots)', 3 === $net($linkedHandler, $keyEmailC), 'net=' . $net($linkedHandler, $keyEmailC));
+    $assert('Défusion : A + téléphone restent groupés (10 pots)', 10 === $net($linkedHandler, $keyEmailA), 'net=' . $net($linkedHandler, $keyEmailA));
 } catch (Throwable $exception) {
     $assert('Le scénario des liens d\'identité se termine sans exception', false, $exception->getMessage());
 } finally {

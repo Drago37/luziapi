@@ -17,10 +17,10 @@ interface OrderIdentityResolver
     public function resolve(WC_Order $order): ?string;
 
     /**
-     * Toutes les clés d'identité de la commande (e-mail ET téléphone présents), pour
-     * relier ces identifiants comme appartenant au même client. `[]` si aucun contact.
+     * Clés d'identité **typées** de la commande (e-mail et téléphone séparément, `null`
+     * si absent), pour l'auto-liaison prudente qui doit les distinguer.
      *
-     * @return list<string>
+     * @return array{email: ?string, phone: ?string}
      */
-    public function keysFor(WC_Order $order): array;
+    public function contactKeys(WC_Order $order): array;
 }

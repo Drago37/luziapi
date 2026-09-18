@@ -141,12 +141,16 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
 
         $completed = $order->has_status('completed');
 
-        // Auto-alimentation des liens d'identité : uniquement sur une commande RÉELLE et
-        // honorée (« Terminée », non exclue). On évite ainsi de relier des identités sur
-        // une commande abandonnée, impayée, remboursée ou exclue — où un contact erroné
-        // (faute de frappe, téléphone placeholder) ne doit pas fusionner des clients.
+        // Auto-alimentation PRUDENTE des liens d'identité : uniquement sur une commande
+        // RÉELLE et honorée (« Terminée », non exclue), et via `autoLink` qui ne relie
+        // e-mail↔téléphone que si le téléphone n'est pas déjà rattaché — un téléphone de
+        // foyer / placeholder ne fusionne donc pas deux clients (cas ambigu → fusion
+        // manuelle depuis la fiche).
         if ($completed && ! $excluded && $this->links instanceof LoyaltyIdentityLinks) {
-            $this->links->union($this->identityResolver->keysFor($order));
+            $contactKeys = $this->identityResolver->contactKeys($order);
+            if (null !== $contactKeys['email'] && null !== $contactKeys['phone']) {
+                $this->links->autoLink($contactKeys['email'], $contactKeys['phone']);
+            }
         }
         $this->reconcile->handle(new ReconcileOrderLoyaltyCommand(
             orderId: $orderId,

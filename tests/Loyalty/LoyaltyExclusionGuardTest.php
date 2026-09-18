@@ -150,9 +150,9 @@ final class LoyaltyExclusionGuardTest extends TestCase
                 throw new RuntimeException('resolver down');
             }
 
-            public function keysFor(WC_Order $order): array
+            public function contactKeys(WC_Order $order): array
             {
-                return [];
+                return ['email' => null, 'phone' => null];
             }
         };
 
@@ -190,9 +190,9 @@ final class LoyaltyExclusionGuardTest extends TestCase
                 return $this->contactKey;
             }
 
-            public function keysFor(WC_Order $order): array
+            public function contactKeys(WC_Order $order): array
             {
-                return null !== $this->contactKey ? [$this->contactKey] : [];
+                return ['email' => $this->contactKey, 'phone' => null];
             }
         };
 
