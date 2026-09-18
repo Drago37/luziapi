@@ -264,19 +264,8 @@ final readonly class CustomersController
         $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
 
         try {
-            if (! $this->mergeIdentities instanceof MergeLoyaltyIdentitiesHandler) {
-                throw new \RuntimeException('Identity merge is not available.');
-            }
             $targetId = sanitize_key(wp_unslash((string) ($_POST['merge_target'] ?? '')));
-            if ('' === $targetId || $targetId === $customerId) {
-                throw new \InvalidArgumentException('Invalid merge request.');
-            }
-            $keysA = $this->identityIdsFor($customerId);
-            $keysB = $this->identityIdsFor($targetId);
-            if ([] === $keysA || [] === $keysB) {
-                throw new \InvalidArgumentException('Unknown customer(s) to merge.');
-            }
-            $this->mergeIdentities->handle(new MergeLoyaltyIdentitiesCommand($keysA, $keysB));
+            $this->performMerge($customerId, $targetId);
             $this->redirectAfterCategory($customerId, 'customers_merged');
         } catch (Throwable $exception) {
             $this->rememberErrorDetail('customers', $exception);
@@ -291,6 +280,47 @@ final readonly class CustomersController
             );
             $this->redirectAfterCategory($customerId, 'merge_error');
         }
+    }
+
+    /**
+     * Cœur de la fusion (sans redirection, pour être pilotable en test) : résout les
+     * `identityIds` des deux clients et fusionne. Lève une exception si la requête est
+     * invalide ou un client introuvable.
+     *
+     * @throws \RuntimeException|\InvalidArgumentException
+     */
+    public function performMerge(string $customerId, string $targetId): void
+    {
+        if (! $this->mergeIdentities instanceof MergeLoyaltyIdentitiesHandler) {
+            throw new \RuntimeException('Identity merge is not available.');
+        }
+        if ('' === $targetId || $targetId === $customerId) {
+            throw new \InvalidArgumentException('Invalid merge request.');
+        }
+        $keysA = $this->identityIdsFor($customerId);
+        $keysB = $this->identityIdsFor($targetId);
+        if ([] === $keysA || [] === $keysB) {
+            throw new \InvalidArgumentException('Unknown customer(s) to merge.');
+        }
+        $this->mergeIdentities->handle(new MergeLoyaltyIdentitiesCommand($keysA, $keysB));
+    }
+
+    /**
+     * Cœur de la défusion (sans redirection, pour être pilotable en test) : détache les
+     * clés du client de son groupe. Lève une exception si le client est introuvable.
+     *
+     * @throws \RuntimeException|\InvalidArgumentException
+     */
+    public function performUnlink(string $customerId): void
+    {
+        if (! $this->identityLinks instanceof LoyaltyIdentityLinks) {
+            throw new \RuntimeException('Identity links are not available.');
+        }
+        $keys = $this->identityIdsFor($customerId);
+        if ([] === $keys) {
+            throw new \InvalidArgumentException('Unknown customer to unlink.');
+        }
+        $this->identityLinks->unlink($keys);
     }
 
     /**
@@ -344,14 +374,7 @@ final readonly class CustomersController
         $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
 
         try {
-            if (! $this->identityLinks instanceof LoyaltyIdentityLinks) {
-                throw new \RuntimeException('Identity links are not available.');
-            }
-            $keys = $this->identityIdsFor($customerId);
-            if ([] === $keys) {
-                throw new \InvalidArgumentException('Unknown customer to unlink.');
-            }
-            $this->identityLinks->unlink($keys);
+            $this->performUnlink($customerId);
             $this->redirectAfterCategory($customerId, 'customer_unlinked');
         } catch (Throwable $exception) {
             $this->rememberErrorDetail('customers', $exception);
