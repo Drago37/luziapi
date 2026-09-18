@@ -229,7 +229,16 @@ rendue dans les deux variantes (HTML + texte).
   `luziapi_unlink_loyalty_customer`). Les lectures **mono-client** (`handle` /
   `availableRewards`) étendent les clés au groupe ; la **somme multi-clients** (passif)
   ne l'étend PAS (anti double-comptage). Tests : `LoyaltyIdentityLinksTest` + e2e
-  `make e2e-identity-links-local` (auto prudent, refus du 2ᵉ e-mail partagé, fusion, défusion).
+  `make e2e-identity-links-local` (auto prudent, refus du 2ᵉ e-mail partagé, fusion, défusion)
+  et `make e2e-merge-admin-local` (vrai chemin admin fusion/défusion).
+  _Risque résiduel assumé (axe e-mail)_ : la prudence ne porte que sur le téléphone (e-mail =
+  ancre stable pour le changement de numéro). Un **e-mail partagé / placeholder** (ex. l'adresse
+  de la boutique saisie en Vente pour des passages, ou une adresse de couple) avec deux
+  téléphones différents regrouperait deux personnes. C'est **largement pré-existant** — deux
+  personnes sous le même e-mail ont déjà leurs pots poolés par la clé de crédit (e-mail
+  prioritaire), indépendamment des liens ; l'auto-lien n'y ajoute que d'éventuelles commandes
+  téléphone-seul. Parade : la **défusion** corrige a posteriori ; si un e-mail placeholder connu
+  pose problème, l'exclure de l'auto-lien (denylist) côté subscriber/backfill est une option.
 - **Audit de dérive** (lecture seule, comme les recettes) : `make audit-loyalty-local`
   / `make audit-loyalty-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent deux
   anomalies — **trou de crédit** (commande admissible « Terminée » jamais créditée →
