@@ -223,10 +223,11 @@ add_action('woocommerce_cart_calculate_fees', static function (\WC_Cart $cart): 
     }
 
     $qty = (int) $cart->get_cart_contents_count();
-    if ($qty >= 2) {
+    $cents = \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::cents($qty);
+    if ($cents > 0) {
         $cart->add_fee(
-            sprintf(__('Remise (−1 € par pot dès 2 pots) × %d', 'luziapi'), $qty),
-            -1 * $qty
+            \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::label($qty),
+            -1 * ($cents / 100),
         );
     }
 });

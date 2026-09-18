@@ -115,8 +115,17 @@ try {
         }
     }
     $assert('La commande a bien 3 lignes (payée, offerte, fidélité)', 1 === $paid && 1 === $gift && 1 === $reward);
-    $assert('Le total encaissé est remisé (21,60 €)', 2_160 === $created->totalCents);
-    $assert('La remise apparaît en discount_total (2,40 €)', 240 === $cents($order->get_discount_total()));
+    // 2 pots payés à 12 € = 24 € ; remise remerciement −10 % (discount_total 2,40 € → ligne 21,60 €)
+    // PUIS remise de volume −1 €/pot × 2 = −2 € (fee), soit un total encaissé de 19,60 €.
+    $volumeFee = 0;
+    foreach ($order->get_fees() as $fee) {
+        if (str_contains((string) $fee->get_name(), 'par pot')) {
+            $volumeFee = $cents($fee->get_total());
+        }
+    }
+    $assert('La remise de volume (−2 €) est appliquée', -200 === $volumeFee, 'fee=' . $volumeFee);
+    $assert('Le total encaissé cumule remerciement + volume (19,60 €)', 1_960 === $created->totalCents, 'total=' . $created->totalCents);
+    $assert('La remise remerciement apparaît en discount_total (2,40 €)', 240 === $cents($order->get_discount_total()));
     $assert('La commande est « Terminée »', 'completed' === $order->get_status());
     $assert('Le stock est décompté des 4 pots (20 → 16)', 16 === (int) wc_get_product($productId)->get_stock_quantity());
 
