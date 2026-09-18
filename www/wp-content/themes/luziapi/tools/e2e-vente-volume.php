@@ -8,9 +8,10 @@
  *
  * Exécution : make e2e-vente-volume-local
  *
- * Contre le vrai `WooCommerceQuickSaleOrderWriter`, avec DEUX miels distincts (3 + 2),
- * vérifie que la commande porte bien une remise de −5 € (total 47 € pour 52 € de pots),
- * et qu'un seul pot ne déclenche aucune remise. Tout est nettoyé, même en cas d'échec.
+ * Pilote le CHEMIN COMPLET `CreateQuickSaleHandler` (writer + enregistrement de la
+ * recette), avec DEUX miels distincts (3 + 2) : vérifie la remise −5 €, le total
+ * encaissé 47 € ET que la **recette au registre** vaut bien 47 € ; un seul pot ne
+ * déclenche aucune remise. Tout est nettoyé, même en cas d'échec.
  */
 
 declare(strict_types=1);
@@ -18,8 +19,13 @@ declare(strict_types=1);
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
+use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLine;
+use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
+use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;
@@ -31,10 +37,16 @@ if (! function_exists('wc_create_order')) {
 add_filter('pre_wp_mail', '__return_false', 999);
 
 global $wpdb;
-$schema = new LoyaltySchemaManager($wpdb);
-$schema->migrate();
-$cents = static fn ($value): int => (int) round((float) $value * 100);
+$loyaltySchema = new LoyaltySchemaManager($wpdb);
+$loyaltySchema->migrate();
+$pilotageSchema = new PilotageSchemaManager($wpdb);
+$pilotageSchema->migrate();
+$clock = new WordPressClock();
+// Dépôt de recettes NON audité (pas d'écriture au journal d'activité pour un test).
+$receipts = new WordPressReceiptRepository($wpdb, $pilotageSchema, $clock->timezone());
+$handler = new CreateQuickSaleHandler(new WooCommerceQuickSaleOrderWriter(), new RecordReceiptHandler($receipts, $clock), $clock);
 
+$cents = static fn ($value): int => (int) round((float) $value * 100);
 $results = [];
 $assert = static function (string $label, bool $success, string $detail = '') use (&$results): void {
     $results[] = ['label' => $label, 'success' => $success, 'detail' => $detail];
@@ -87,7 +99,7 @@ try {
     };
 
     // Cas prod : 2 miels différents, 3 + 2 = 5 pots payés (30 € + 22 € = 52 €).
-    $created = (new WooCommerceQuickSaleOrderWriter())->create($makeSale([
+    $created = $handler->handle($makeSale([
         new QuickSaleLine($printemps, 3),
         new QuickSaleLine($tournesol, 2),
     ]));
@@ -103,9 +115,11 @@ try {
     $assert('Multi-miels : une remise de volume est présente', 0 !== $volumeFee);
     $assert('Multi-miels : remise = −5 € (5 pots)', -500 === $volumeFee, 'fee=' . $volumeFee);
     $assert('Multi-miels : total encaissé remisé = 47 € (52 − 5)', 4_700 === $created->totalCents, 'total=' . $created->totalCents);
+    $recorded = $receipts->netTotalsByOrderIds([$created->orderId])[$created->orderId] ?? 0;
+    $assert('Multi-miels : la recette au registre vaut le total remisé (47 €)', 4_700 === $recorded, 'recette=' . $recorded);
 
     // Contrôle : un seul pot ne déclenche aucune remise.
-    $single = (new WooCommerceQuickSaleOrderWriter())->create($makeSale([new QuickSaleLine($printemps, 1)]));
+    $single = $handler->handle($makeSale([new QuickSaleLine($printemps, 1)]));
     $orderIds[] = $single->orderId;
     $hasFee = false;
     foreach ((wc_get_order($single->orderId))->get_fees() as $fee) {
@@ -118,16 +132,17 @@ try {
 } catch (Throwable $exception) {
     $assert('Le scénario de remise volume se termine sans exception', false, $exception->getMessage());
 } finally {
-    foreach ([$customerKey, $phoneKey] as $key) {
-        if ('' !== $key) {
-            $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $key], ['%s']);
-            $wpdb->delete($schema->identityLinksTableName(), ['identity_key' => $key], ['%s']);
-        }
-    }
     foreach ($orderIds as $orderId) {
+        $wpdb->delete($pilotageSchema->tableName(), ['order_id' => $orderId], ['%d']);
         $order = wc_get_order($orderId);
         if ($order instanceof WC_Order) {
             $order->delete(true);
+        }
+    }
+    foreach ([$customerKey, $phoneKey] as $key) {
+        if ('' !== $key) {
+            $wpdb->delete($loyaltySchema->ledgerTableName(), ['customer_key' => $key], ['%s']);
+            $wpdb->delete($loyaltySchema->identityLinksTableName(), ['identity_key' => $key], ['%s']);
         }
     }
     foreach ($productIds as $pid) {
