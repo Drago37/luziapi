@@ -23,7 +23,7 @@
  * @var string                      $mediator_url
  * @var string                      $tracking_url
  * @var array{net_pots:int, rewards_available:int, pots_toward_next:int, pots_until_next:int, pots_per_reward:int}|null $loyalty
- * @var array{reward_threshold:int, next:int, lifetime_years:int}|null $loyalty_reminder
+ * @var array{reward_threshold:int, next:int}|null $loyalty_reminder
  */
 
 defined('ABSPATH') || exit;
@@ -122,7 +122,7 @@ $loyalty_reminder = isset($loyalty_reminder) && is_array($loyalty_reminder) ? $l
                     <tr>
                         <td class="luziapi-email-loyalty">
                             <p class="luziapi-email-eyebrow">Fidélité LuziApi</p>
-                            <p>Vous cumulez des pots à chaque achat : <strong><?php echo esc_html((string) $loyalty_reminder['reward_threshold']); ?> pots achetés, le <?php echo esc_html((string) $loyalty_reminder['next']); ?>e offert.</strong> Les pots de cette commande seront comptés dès qu’elle sera terminée. Vos pots sont valables <?php echo esc_html((string) $loyalty_reminder['lifetime_years']); ?> ans.</p>
+                            <p>Vous cumulez des pots à chaque achat : <strong><?php echo esc_html((string) $loyalty_reminder['reward_threshold']); ?> pots achetés, le <?php echo esc_html((string) $loyalty_reminder['next']); ?>e offert.</strong> Les pots de cette commande seront comptés dès qu’elle sera terminée. Vos pots se cumulent sans limite de validité.</p>
                         </td>
                     </tr>
                 <?php endif; ?>

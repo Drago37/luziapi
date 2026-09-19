@@ -15,4 +15,12 @@ use WC_Order;
 interface OrderIdentityResolver
 {
     public function resolve(WC_Order $order): ?string;
+
+    /**
+     * Clés d'identité **typées** de la commande (e-mail et téléphone séparément, `null`
+     * si absent), pour l'auto-liaison prudente qui doit les distinguer.
+     *
+     * @return array{email: ?string, phone: ?string}
+     */
+    public function contactKeys(WC_Order $order): array;
 }

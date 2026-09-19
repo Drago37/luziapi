@@ -10,8 +10,8 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const LUZIAPI_CGV_VERSION = '2026-09-08-v3';
-const LUZIAPI_CGV_LABEL   = 'Version du 8 septembre 2026 — révision 3';
+const LUZIAPI_CGV_VERSION = '2026-09-16-v5';
+const LUZIAPI_CGV_LABEL   = 'Version du 16 septembre 2026 — révision 5';
 const LUZIAPI_CGV_PDF     = 'LuziApi-CGV-' . LUZIAPI_CGV_VERSION . '.pdf';
 
 /**
@@ -51,7 +51,13 @@ function luziapi_cgv_pdf_path(?\WC_Order $order = null): string
 
 function luziapi_cgv_pdf_url(): string
 {
-    return LUZIAPI_URI . '/assets/docs/' . LUZIAPI_CGV_PDF;
+    $path = LUZIAPI_DIR . '/assets/docs/' . LUZIAPI_CGV_PDF;
+
+    // Masque le bouton de téléchargement tant que le PDF de la version courante
+    // n'a pas été déposé, plutôt que de servir un lien 404.
+    return is_readable($path)
+        ? LUZIAPI_URI . '/assets/docs/' . LUZIAPI_CGV_PDF
+        : '';
 }
 
 // Le dernier geste du checkout doit annoncer sans ambiguïté l'obligation de payer.

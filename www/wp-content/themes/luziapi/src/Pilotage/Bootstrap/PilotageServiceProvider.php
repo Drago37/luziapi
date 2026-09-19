@@ -11,6 +11,7 @@ use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberDirectory;
 use LuziApi\Newsletter\Infrastructure\Brevo\BrevoSubscriberWriter;
 use LuziApi\Newsletter\Infrastructure\NullSubscriberDirectory;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
+use LuziApi\Pilotage\Application\Command\ApplyMissingVolumeDiscount\ApplyMissingVolumeDiscountHandler;
 use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
 use LuziApi\Pilotage\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
@@ -38,6 +39,7 @@ use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Pilotage\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Pilotage\Domain\Tax\MicroBaCalculator;
 use LuziApi\Pilotage\Infrastructure\Http\BanAddressLookup;
+use LuziApi\Pilotage\Infrastructure\Loyalty\LoyaltyModuleRewardsReader;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceActivitySubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
@@ -45,11 +47,13 @@ use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderLotSelector;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderStockSubscriber;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrphanReceiptSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceProductCatalog;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceStockLevelGateway;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedInventoryRepository;
 use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
@@ -211,12 +215,18 @@ final class PilotageServiceProvider
             $subscribers,
             new SaveCustomerProfileHandler($customerProfiles, $clock),
             $updateSubscription,
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::mergeIdentitiesHandler(),
+            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::identityLinks(),
         );
+        $loyaltyRewardsHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
             new CustomerHistoryProjector(),
             new WooCommerceLoyaltyEconomicsReader(new WooCommerceEligiblePotCounter()),
             $clock,
+            null !== $loyaltyRewardsHandler
+                ? new LoyaltyModuleRewardsReader($loyaltyRewardsHandler)
+                : null,
         ));
         $controller = new PilotageController(
             new DashboardController($handler, new GetActivityLogHandler($activityRepository), $clock),
@@ -244,6 +254,16 @@ final class PilotageServiceProvider
         (new WooCommerceActivitySubscriber($activity))->register();
         (new WooCommerceReceiptSubscriber(new RecordOrderReceiptHandler($receipts, $recordReceipt), $clock))->register();
         (new WooCommerceOrphanReceiptSubscriber($receipts, luziapi_logger()))->register();
+        (new WooCommerceVolumeDiscountFixSubscriber(
+            new ApplyMissingVolumeDiscountHandler(
+                new WooCommerceOrderVolumeDiscountWriter(),
+                $recordReceipt,
+                $receipts,
+                $activity,
+                $clock,
+            ),
+            luziapi_logger(),
+        ))->register();
         (new AdminMenu($controller))->register();
         (new AssetLoader($themeDirectory, $themeUri))->register();
     }

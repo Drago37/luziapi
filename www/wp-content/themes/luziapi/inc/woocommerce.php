@@ -414,7 +414,7 @@ function luziapi_offer_html(): string
             . '<span class="product-offer__badge">Fidélité</span>'
             . '<span><b>' . esc_html((string) $threshold) . ' pots achetés, le ' . esc_html((string) ($threshold + 1)) . 'e offert.</b> '
             . 'Comptés automatiquement, sans carte ni inscription — solde sur la '
-            . '<a href="' . esc_url(home_url('/suivi-commande/')) . '">page de suivi</a>, pots valables 2&nbsp;ans.</span>'
+            . '<a href="' . esc_url(home_url('/suivi-commande/')) . '">page de suivi</a>. Les pots se cumulent sans limite de validité.</span>'
             . '</div>';
     }
 

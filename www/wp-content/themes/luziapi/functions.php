@@ -15,7 +15,7 @@ if (! defined('ABSPATH')) {
 
 define('LUZIAPI_DIR', get_template_directory());
 define('LUZIAPI_URI', get_template_directory_uri());
-define('LUZIAPI_VERSION', '1.2.0');
+define('LUZIAPI_VERSION', '1.3.0');
 
 // Autoload Composer (Timber). Lancer `composer install` à la racine du thème.
 $autoload = LUZIAPI_DIR . '/vendor/autoload.php';
@@ -48,6 +48,7 @@ require_once LUZIAPI_DIR . '/inc/seo.php';
 require_once LUZIAPI_DIR . '/inc/shop.php';
 require_once LUZIAPI_DIR . '/inc/woocommerce.php';
 require_once LUZIAPI_DIR . '/inc/commerce-legal.php';
+require_once LUZIAPI_DIR . '/inc/loyalty-legal.php';
 require_once LUZIAPI_DIR . '/inc/order-workflow.php';
 require_once LUZIAPI_DIR . '/inc/customer-emails.php';
 require_once LUZIAPI_DIR . '/inc/admin-emails.php';

@@ -2,8 +2,8 @@
 
 > Suivi de l'implémentation de l'issue #4 : acquisition des pots, utilisation d'un
 > avantage, remise remerciement, affichage client et page de pilotage — tout en
-> place. Les évolutions (seuil 15, expiration, réconciliation…) sont résumées en
-> fin de document.
+> place. Les évolutions (seuil 15, cumul sans expiration, réconciliation…) sont
+> résumées en fin de document.
 
 ## Règle métier
 
@@ -11,8 +11,8 @@
 contient passe **« Terminée »** (= encaissée, cohérent avec l'auto-encaissement
 de la recette). Chaque tranche de 15 pots nets ouvre **un avantage** (un pot
 offert). Exemple : 33 pots = 2 avantages acquis + 3/15 sur la tranche en cours.
-Un pot **expire au bout de 2 ans** : passé ce délai, il ne compte plus dans le
-solde courant (les avantages déjà utilisés, eux, restent définitifs).
+**Les pots n'expirent pas** : ils se cumulent sans limite de validité, et les
+avantages acquis (utilisés ou non) restent définitifs. Règle unique : 15 = 1.
 
 Un client est identifié comme dans le tableau de pilotage : **e-mail prioritaire,
 sinon téléphone normalisé**. Un même client peut avoir plusieurs e-mails /
@@ -166,7 +166,7 @@ les valeurs pour l'empêcher.
   et une ceinture `pre_wp_mail` bloque tout envoi. Couvre le cycle complet sur les
   vraies classes et la vraie base : résolution d'identité, compteur (offerts
   exclus, pot offert fidélité), réconciliation à « Terminée », lecture fiche
-  client **et** suivi sans compte (expiration active), **remboursement partiel**
+  client **et** suivi sans compte, **remboursement partiel**
   (net = 2), annulation (retour à zéro, avantage rendu), et absence de ligne de
   journal résiduelle. À rejouer après tout déploiement touchant `src/Loyalty/`.
   Le runner vit sous `tools/` (exclu du déploiement) et est **uploadé au runtime**
@@ -199,10 +199,10 @@ rendue dans les deux variantes (HTML + texte).
 
 - **Seuil porté à 15** (le 16e offert) : `LoyaltyProgress::POTS_PER_REWARD`. Les
   textes client suivent la variable ; les libellés en dur ont été mis à jour.
-- **Expiration 2 ans** (`LoyaltyProgress::POT_LIFETIME_YEARS`) : le solde courant
-  ne compte que les pots crédités depuis moins de 2 ans — fenêtre glissante
-  calculée à la lecture (`GetCustomerLoyaltyHandler` reçoit une horloge ; le port
-  du journal borne les pots par date). La page **par année** n'est pas concernée.
+- **Pas d'expiration (cumul illimité)** : les pots n'expirent jamais et se cumulent
+  (15 = 1, 30 = 2…). L'ancienne fenêtre glissante de 2 ans a été **retirée**
+  (constante `POT_LIFETIME_YEARS`, paramètre `potsSince` du journal et horloge de
+  lecture supprimés). Le backfill rattrape donc **tout** l'historique « Terminée ».
 - **Moteur en réconciliation** : le couple crédit / contre-passation est remplacé
   par une réconciliation (`ReconcileOrderLoyalty`) qui porte le journal de chaque
   commande à son état cible et n'écrit que l'écart. Couvre uniformément le
@@ -211,6 +211,45 @@ rendue dans les deux variantes (HTML + texte).
   le journal en est la base.
 - **Ajustement manuel** des pots depuis la fiche client (`AdjustLoyaltyPots`,
   écriture `ManualAdjustment`).
+- **Passif sur le dashboard** : l'encart de synthèse affiche « Avantages dus
+  (passif) » = total des avantages disponibles non réclamés, tous clients (les
+  pots offerts que la boutique devra honorer). Port `LoyaltyRewardsReader` +
+  adaptateur `LoyaltyModuleRewardsReader`.
+- **Liens d'identité** (pots qui n'expirent pas = il faut regrouper un client connu
+  sous plusieurs identités) : port `LoyaltyIdentityLinks` (table `…_identity_links`,
+  schéma v2) qui rattache les clés d'un même client à une **canonique**. **Auto-liaison
+  PRUDENTE** (`autoLink`) par le subscriber de crédit **et** le backfill, uniquement sur
+  une commande **Terminée non exclue** portant e-mail **et** téléphone, et seulement si
+  le téléphone **n'est pas déjà rattaché** : ainsi plusieurs téléphones s'attachent à un
+  même e-mail (changement de numéro) et une commande téléphone-seul se rejoint, mais un
+  **téléphone de foyer / partagé n'absorbe jamais un 2ᵉ e-mail** (cas ambigu). Ce cas
+  ambigu et les « 2 e-mails sans téléphone commun » relèvent de la **fusion manuelle**
+  depuis la fiche (`MergeLoyaltyIdentities`, admin-post `luziapi_merge_loyalty_customers`),
+  réversible par **défusion** (`unlink`, bouton « Détacher ce client », admin-post
+  `luziapi_unlink_loyalty_customer`). Les lectures **mono-client** (`handle` /
+  `availableRewards`) étendent les clés au groupe ; la **somme multi-clients** (passif)
+  ne l'étend PAS (anti double-comptage). Tests : `LoyaltyIdentityLinksTest` + e2e
+  `make e2e-identity-links-local` (auto prudent, refus du 2ᵉ e-mail partagé, fusion, défusion)
+  et `make e2e-merge-admin-local` (vrai chemin admin fusion/défusion).
+  _Risque résiduel assumé (axe e-mail)_ : la prudence ne porte que sur le téléphone (e-mail =
+  ancre stable pour le changement de numéro). Un **e-mail partagé / placeholder** (ex. l'adresse
+  de la boutique saisie en Vente pour des passages, ou une adresse de couple) avec deux
+  téléphones différents regrouperait deux personnes. C'est **largement pré-existant** — deux
+  personnes sous le même e-mail ont déjà leurs pots poolés par la clé de crédit (e-mail
+  prioritaire), indépendamment des liens ; l'auto-lien n'y ajoute que d'éventuelles commandes
+  téléphone-seul. Parades en place : (1) une **denylist** exclut de l'auto-lien les e-mails
+  fourre-tout (adresse admin/boutique par défaut, extensible via le filtre
+  `luziapi_loyalty_placeholder_emails` — `LoyaltyPlaceholderEmails`) ; (2) la **défusion**
+  corrige a posteriori. La défusion (`unlink`) s'exécute en **transaction** (pas de groupe
+  scindé à moitié).
+- **Audit de dérive** (lecture seule, comme les recettes) : `make audit-loyalty-local`
+  / `make audit-loyalty-prod` (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent deux
+  anomalies — **trou de crédit** (commande admissible « Terminée » jamais créditée →
+  produit non coché « admissible » ou backfill à lancer) et **crédit orphelin**
+  (commande disparue encore positive au journal). Cœur `AuditLoyaltyDriftHandler` +
+  `LoyaltyDriftReport` ; ports `EligiblePotReader` / `LoyaltyLedgerReader` ; tests
+  `AuditLoyaltyDriftHandlerTest` et e2e `make e2e-audit-loyalty-local`. À lancer
+  **avant** un backfill prod pour voir les trous.
 - **Surfaces client** : rappel du programme dans l'**e-mail de confirmation**
   (on-hold / processing, `luziapi_email_loyalty_reminder()`), bloc fidélité sur la
   **boutique / fiche produit / panier** (`luziapi_offer_html`), sur l'**accueil**
@@ -225,6 +264,30 @@ rendue dans les deux variantes (HTML + texte).
   (avantage consommé, borné au disponible). Tests `make e2e-offered-pot-local` /
   `e2e-offered-pot-prod`.
 
+## Lot 4 — page publique, légal et backfill rétroactif (PR #35)
+
+- **Page publique « Programme de fidélité »** (`templates/page-programme-de-fidelite.twig`, slug
+  `programme-de-fidelite`, routée par `page.php`) : intro conviviale + **règles complètes**
+  (13 sections), imprimable en PDF durable. Les chiffres (seuil, validité) sont lus du domaine via
+  `luziapi_loyalty_program_numbers()` (`inc/loyalty-legal.php`), jamais codés en dur. Lien au footer
+  (FR + EN). **Le règlement versionné** vit dans cette page (source unique) + un PDF immuable
+  `assets/docs/LuziApi-Reglement-Fidelite-<version>.pdf` (constante `LUZIAPI_LOYALTY_REGLEMENT_*`).
+- **CGV** : nouvelle version `2026-09-14-v4` + section « 14. Programme de fidélité » renvoyant au
+  règlement ; `luziapi_cgv_pdf_url()` masque le bouton si le PDF n'est pas déposé (plus de 404).
+  **Politique de confidentialité** : finalité fidélisation, base légale (intérêt légitime, ≠
+  consentement newsletter), conservation.
+- **Backfill rétroactif durci** (`tools/backfill-loyalty.php`) : il ignore désormais toute commande
+  ayant **déjà la moindre écriture** au journal (`LoyaltyLedger::hasEntryForOrder`), et non plus la
+  seule clé `credit:{orderId}` — le moteur live créditant par réconciliation (`reconcile-*`), l'ancien
+  test aurait **doublé** les pots d'une commande récente. Ciblable par IDs (isolation / rollout).
+  Runner **PROD** à jeton `scripts/backfill-loyalty-prod.sh` (`make backfill-loyalty-prod`) :
+  **simulation par défaut**, écrit seulement avec `APPLY=1`. e2e `make e2e-backfill-loyalty-local`
+  (dont non-régression du double comptage).
+
 ## Reste à faire
 
-- **Communication de lancement** (action non-code, à préparer et valider ensemble).
+- **Déploiement** (checklist PR #35) : créer la page WP de slug `programme-de-fidelite` en prod ;
+  vérifier que les pots au catalogue sont cochés « admissibles » ; lancer le backfill en 2 temps
+  (simulation puis `APPLY=1`) après déploiement + feu vert.
+- **Communication de lancement** (action non-code, à préparer et valider ensemble ; brouillons
+  gardés hors dépôt). Rappel : la 1ʳᵉ publication d'un article déclenche l'auto-envoi newsletter.

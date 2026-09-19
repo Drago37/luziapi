@@ -244,7 +244,16 @@ try {
     $mailBody = (string) ($mailCapture['message'] ?? '');
     $assert('L’e-mail du lien magique est intercepté sans envoi réel', [] !== $mailCapture);
     $assert('L’e-mail annonce la durée et le caractère unique du lien', str_contains($mailBody, 'une seule fois') && str_contains($mailBody, '2 heures'));
-    $assert('L’e-mail ne divulgue aucune commande', ! str_contains($mailBody, (string) $firstOrder->get_order_number()));
+    // L'e-mail de lien magique est volontairement agnostique de toute commande : on
+    // vérifie son TEXTE visible (balises retirées) avec des limites de mot, sinon un
+    // petit numéro de commande peut entrer en collision avec une valeur CSS (600, 24px…)
+    // ou une couleur hex (#7d6038) du HTML — faux positif observé en CI sur des IDs bas.
+    $mailText = wp_strip_all_tags($mailBody);
+    $orderNumber = (string) $firstOrder->get_order_number();
+    $assert(
+        'L’e-mail ne divulgue aucune commande',
+        0 === preg_match('/\b' . preg_quote($orderNumber, '/') . '\b/', $mailText),
+    );
 
     // #1 : un échec d'envoi du lien magique doit être tracé (réponse inchangée).
     $mailFailLog = new \Monolog\Handler\TestHandler();

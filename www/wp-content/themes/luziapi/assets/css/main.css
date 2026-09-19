@@ -335,6 +335,13 @@ article.page{padding:28px 0 56px}
 .legal-version{display:inline-block;padding:.35em .75em;border-radius:999px;background:var(--cream-2);color:var(--bark);font-size:.82rem;font-weight:700}
 .legal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.4rem}
 .legal-actions .btn-ghost,.withdrawal-confirm .btn-ghost{color:var(--bark);border-color:var(--line)}
+.loyalty-steps{margin:0 0 2.4rem}
+.loyalty-steps-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.loyalty-steps-list li{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--honey);border-radius:14px;padding:20px 22px}
+.loyalty-steps-list strong{display:block;font-family:var(--serif);font-size:1.12rem;color:var(--bark);margin:.7rem 0 .3rem}
+.loyalty-steps-list p{margin:0;color:var(--muted);font-size:.95rem}
+.loyalty-step-num{display:inline-flex;align-items:center;justify-content:center;width:2.1rem;height:2.1rem;border-radius:999px;background:var(--honey);color:#fff;font-weight:800;font-family:var(--serif)}
+@media(max-width:720px){.loyalty-steps-list{grid-template-columns:1fr}}
 .legal-summary{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--honey);border-radius:14px;padding:20px 24px;margin-bottom:2rem}
 .legal-summary strong{font-family:var(--serif);font-size:1.15rem;color:var(--bark)}
 .legal-summary ol{columns:2;column-gap:40px;margin:.7rem 0 0;padding-left:1.4rem}
