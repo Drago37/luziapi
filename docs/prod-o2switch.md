@@ -583,7 +583,8 @@ Déployée avec le **nouveau flux release** : depuis la branche `release/1.2.0` 
 `776b13c → 57a2283`, **34 fichiers**, aucune suppression, aucune nouvelle dépendance Composer.
 Bascule atomique `.ht-*`, **OPcache vidé**, **34/34 SHA-256 identiques** prod↔repo, contrôle
 post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`. Merge dans `main`
-+ tag `1.2.0` + back-merge `develop` faits **après** ce déploiement, sur feu vert explicite.
+
+- tag `1.2.0` + back-merge `develop` faits **après** ce déploiement, sur feu vert explicite.
 
 Changements en prod :
 
@@ -676,6 +677,63 @@ de l'édition client :_
   requête (appels BAN interceptés).
 - Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
   toujours ouverte).
+
+## Mise en production 1.3.0 — le 19 septembre 2026
+
+Déployée avec le **flux release** : depuis la branche `release/1.3.0` **encore ouverte** (PR #38
+vers `main` non mergée pendant le déploiement), `deploy-files.sh --yes`, delta
+`f1f5d4c → 5dfc1733`, **64 fichiers**, aucune suppression, aucune nouvelle dépendance Composer.
+Bascule atomique `.ht-*`, **OPcache vidé**, **64/64 SHA-256 identiques** prod↔repo, contrôle
+post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/` (« Production saine »).
+Merge dans `main` + tag `1.3.0` + back-merge `develop` **à faire après** ce déploiement, sur feu
+vert explicite.
+
+Changements en prod :
+
+- **Programme de fidélité — lancement public** : page publique « Programme de fidélité » (règlement
+  versionné, PDF imprimable), référencée dans les **CGV `2026-09-16-v5`** et la **politique de
+  confidentialité** ; règlement fidélité **`2026-09-16-v2`**.
+- **Fidélité — les pots n'expirent plus** : suppression de la validité 2 ans, les pots se cumulent
+  (15 = 1 offert, 30 = 2, etc.).
+- **Fidélité — liaison d'identités** : agrège les pots d'un même client sur plusieurs clés de
+  contact (auto-liaison prudente, **fusion** et **défusion** manuelles depuis la fiche client),
+  **passif** (avantages dus) au tableau de bord, **audit de dérive** lecture seule
+  (`make audit-loyalty-prod`), et **backfill** rétroactif sûr (`scripts/backfill-loyalty-prod.sh`).
+- **Remise de volume** : corrigée sur les ventes du pilotage (règle partagée `VolumeDiscount`) +
+  **rattrapage self-service** sur la fiche commande (réconcilie la recette) + audit
+  `make audit-vente-volume-prod`.
+- Version du thème `1.2.0 → 1.3.0`.
+
+**Migration de schéma** : la table des liens d'identité fidélité se crée automatiquement au premier
+chargement admin après déploiement (`LoyaltySchemaManager`, `dbDelta` idempotent).
+
+**À FAIRE côté prod (activation, hors code) :** ① créer la page WordPress de slug
+`programme-de-fidelite` (le routeur ne s'active que si la page existe) ; ② vérifier que les pots du
+catalogue sont **« admissibles à la fidélité »** avant tout backfill ; ③ backfill en 2 temps
+(`make backfill-loyalty-prod` en simulation, puis `APPLY=1`) ; ④ vérifier que les PDF CGV v5 et
+règlement v2 sont servis et joints au 1ᵉʳ e-mail ; ⑤ `make audit-vente-volume-prod` puis corriger
+les commandes Vente listées depuis la fiche (dont #305 Mme DEBOUT).
+
+_Activation réalisée le 19 septembre 2026 :_ page `programme-de-fidelite` créée, admissibilités
+vérifiées, **backfill fidélité appliqué** (`APPLY=1`) — **66 commandes créditées, 173 pots** (10
+déjà au journal ignorées, 43 sans contact, 0 sans pot admissible), vérifié client par client
+(`make loyalty-customer-inspect-prod Q="…"`, ex. DEBOUT 35 pots → 2 avantages, GAULTIER 19 → 1).
+Rattrapage de la **remise de volume sur #305** (Mme DEBOUT) fait depuis la fiche
+(`make audit-vente-volume-prod` repasse au vert). Outillage lecture seule ajouté : détail par
+client du backfill (`DETAIL=1`) et inspection client.
+
+_Correctif de suivi le 20 septembre 2026 (commit `514d735`, `inc/order-workflow.php`, 1/1 SHA,
+OPcache vidé, prod saine) :_ WooCommerce applique `.form-field input { width: 50% }` (100 % en
+`form-field-wide`) à **tous** les inputs, ce qui étirait les **cases à cocher et boutons radio** de
+la métabox workflow (fiche commande) en grosses barres/pilules à mi-colonne. Réinitialisé à leur
+taille naturelle dans `.luziapi-order-workflow` (selects et champs texte inchangés).
+
+_Suite de QA de release le 20 septembre 2026 (déploiements FTPS ciblés successifs `inc/order-workflow.php`, `resources/views/admin/pilotage/quick-sale.twig`, `assets/js/admin-pilotage.js`, `src/Pilotage/UserInterface/Admin/QuickSaleController.php`, `src/Pilotage/…/GetLoyaltyDashboard/*`, `LoyaltyController.php` ; à chaque fois SHA identiques, OPcache vidé, prod saine, CI verte) :_
+
+- **Cases/radios de la fiche commande** : le premier correctif (classe seule) perdait face à `#order_data … p.form-field input` (spécificité par ID) ; re-scopé sous `#order_data` en `!important` (commit `ae1bc52`).
+- **Écran commande rééquilibré** (`6f7cda9`) : les champs workflow sont rendus dans la 1ʳᵉ colonne « Général » (32 %) via `woocommerce_admin_order_data_after_order_details`, d'où une colonne interminable et déséquilibrée. Le conteneur passe en grille : Facturation + Expédition en haut, **« Général » pleine largeur en dessous, sur 2 colonnes** (repli 1 colonne sous 1100 px).
+- **Pots offerts multiples** : la fiche commande (`68be29a`→) et la Vente (`8d35ff2`) acceptent plusieurs miels différents en un enregistrement ; la Vente borne le **total** des pots fidélité aux avantages disponibles côté client avec avertissement (`d7f648d`), le serveur bornant déjà (`assertRewardsAffordable`).
+- **Onglet Fidélité** (`32d8e82`) : nouvelle section **« Avantages en cours »** (qui a des pots offerts à réclamer) ; le sélecteur de période perd « 2 dernières années » (plus d'expiration) au profit d'un défaut **« Total (toutes années) »**.
 
 ---
 

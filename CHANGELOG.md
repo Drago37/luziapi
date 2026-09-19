@@ -16,6 +16,51 @@ stays empty on `develop`.
 
 _Nothing yet._
 
+## [1.3.0] - 2026-09-19
+
+### Added
+
+- **Loyalty programme — public launch.** Public "Programme de fidélité" page carrying the complete,
+  versioned rules (routed by slug, printable to a durable PDF); the figures are read from the domain
+  so the copy always follows the engine. The programme is referenced in the CGV and the privacy
+  policy (loyalty added to the collected data, its purpose and legal basis — legitimate interest,
+  **not** newsletter consent — and its retention).
+- **Loyalty — customer identity linking.** A customer known under several contact keys (e-mail,
+  phone) now aggregates their jars across them. Auto-linking is conservative (it only links a phone
+  that is not already attached to another identity); a customer's identities can also be **merged**
+  manually from the client fiche and **unlinked** (défusionner) if a merge was wrong, with a
+  placeholder-email denylist and an atomic unlink guarding against bad links.
+- **Loyalty — outstanding rewards liability** shown on the loyalty dashboard (jars owed but not yet
+  redeemed).
+- **Loyalty — read-only drift audit** `make audit-loyalty-local` / `audit-loyalty-prod`, listing
+  ledger anomalies without writing anything.
+- **Loyalty — safe retroactive backfill.** Token-protected prod runner
+  (`scripts/backfill-loyalty-prod.sh`), dry-run by default (writes only with `APPLY=1`), targetable
+  by order ids and dating each entry at the real completion date; it seeds the identity links as it
+  goes.
+- **Volume discount — self-service catch-up.** An order-sheet checkbox "Corriger la remise de
+  volume" applies a missing "−1 € per jar (from 2 jars)" discount to an existing order and
+  reconciles the receipt register to the corrected total (idempotent, self-healing, never
+  double-refunds). A read-only audit `make audit-vente-volume-local` / `-prod` lists dashboard-sale
+  orders still missing the discount.
+
+### Changed
+
+- **Loyalty — jars no longer expire.** Dropped the 2-year pot validity: jars never expire and stack
+  (15 jars = 1 free, 30 = 2, and so on, cumulatively). CGV bumped to `2026-09-16-v5` and the loyalty
+  rules to `2026-09-16-v2` with the no-expiry wording; previous versions kept as immutable PDFs.
+
+### Fixed
+
+- **Volume discount missing on dashboard sales.** The "−1 € per jar (from 2 jars)" discount existed
+  only as a WooCommerce cart fee, which never fires for an admin-created order, so a **Vente**
+  (dashboard sale) never applied it (seen on order #305: 52 € instead of 47 €). A single shared
+  `VolumeDiscount` rule now backs both the site cart and the Vente so they cannot diverge again.
+- **Loyalty backfill double-count.** The retroactive backfill only skipped orders credited under the
+  legacy key; the live engine credits by reconciliation, so a recently credited order would have
+  been credited again (doubling a customer's jars). The backfill now skips any order that already
+  has a ledger entry.
+
 ## [1.2.0] - 2026-09-13
 
 ### Added
@@ -30,8 +75,8 @@ _Nothing yet._
   state is shown in the notice. A customer **not yet in Brevo** gets an **"Ajouter dans Brevo"**
   button that creates the contact from the fiche (e-mail, mobile, and name via the `PRENOM` / `NOM`
   attributes — best-effort, with a silent fallback if the account lacks those attributes). Unit tests
-  + integration e2e (`make e2e-subscription-write-local` / `-prod`, Brevo calls intercepted — no
-  contact touched).
+  - integration e2e (`make e2e-subscription-write-local` / `-prod`, Brevo calls intercepted — no
+    contact touched).
 - Integration e2e for the Brevo subscriber directory (`make e2e-subscribers-local` / `-prod`),
   Brevo calls intercepted — validates the adapter parsing and blacklist handling.
 - Loyalty social visual (`docs/fidelite/fidelite.png`).

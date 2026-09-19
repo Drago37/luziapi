@@ -90,7 +90,7 @@ backfill-loyalty-local: ## Rétro-crédite les pots des commandes déjà termin�
 
 .PHONY: backfill-loyalty-prod
 backfill-loyalty-prod: ## Rétro-crédite les pots des commandes terminées sur la PROD (SIMULATION par défaut ; APPLY=1 pour écrire)
-	@LUZIAPI_BACKFILL_APPLY=$(APPLY) bash scripts/backfill-loyalty-prod.sh
+	@LUZIAPI_BACKFILL_APPLY=$(APPLY) LUZIAPI_BACKFILL_DETAIL=$(DETAIL) bash scripts/backfill-loyalty-prod.sh
 
 .PHONY: audit-receipts-local
 audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
@@ -119,6 +119,14 @@ audit-vente-volume-prod: ## Audite les commandes Vente sans remise de volume sur
 .PHONY: loyalty-inspect-prod
 loyalty-inspect-prod: ## Inspecte une commande côté fidélité sur la PROD (lecture seule) — ex : make loyalty-inspect-prod ORDER=106
 	@LUZIAPI_ORDER=$(ORDER) bash scripts/loyalty-inspect-prod.sh
+
+.PHONY: loyalty-customer-inspect-local
+loyalty-customer-inspect-local: ## Inspecte la fidélité d'un client en local (lecture seule) — ex : make loyalty-customer-inspect-local Q="gaultier"
+	$(DC) run --rm -e LUZIAPI_INSPECT_QUERY="$(Q)" wpcli wp eval "require ABSPATH . '$(THEME)/tools/loyalty-customer-inspect.php';" --user=admin
+
+.PHONY: loyalty-customer-inspect-prod
+loyalty-customer-inspect-prod: ## Inspecte la fidélité d'un client sur la PROD (lecture seule) — ex : make loyalty-customer-inspect-prod Q="gaultier"
+	@LUZIAPI_INSPECT_QUERY="$(Q)" bash scripts/loyalty-customer-inspect-prod.sh
 
 .PHONY: directory-inspect-prod
 directory-inspect-prod: ## Inspecte les listes Brevo + les groupes du répertoire client sur la PROD (lecture seule)

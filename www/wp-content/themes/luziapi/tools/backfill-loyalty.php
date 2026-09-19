@@ -40,10 +40,14 @@ if (! defined('ABSPATH')) {
  * @param list<int> $onlyOrderIds Restreint le backfill à ces commandes (vide = toutes
  *                                les commandes terminées). Sert aux tests isolés et à
  *                                un déploiement prudent par sous-ensemble.
+ * @param bool      $collectDetail Ajoute au rapport un détail PAR CLIENT (libellé,
+ *                                 pots, nombre de commandes) des pots qui seraient
+ *                                 crédités — pour un contrôle avant application.
+ *                                 Lecture seule, sans effet sur l'écriture.
  *
- * @return array{orders:int, credited:int, pots:int, already:int, no_contact:int, no_pots:int, dry:bool}
+ * @return array{orders:int, credited:int, pots:int, already:int, no_contact:int, no_pots:int, dry:bool, detail?: list<array{label:string, pots:int, orders:int}>}
  */
-function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
+function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = [], bool $collectDetail = false): array
 {
     global $wpdb;
 
@@ -73,6 +77,8 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
     }
 
     $report = ['orders' => 0, 'credited' => 0, 'pots' => 0, 'already' => 0, 'no_contact' => 0, 'no_pots' => 0, 'dry' => $dry];
+    /** @var array<string, array{label:string, pots:int, orders:int}> $detail */
+    $detail = [];
 
     foreach ($orders as $order) {
         if (! $order instanceof WC_Order) {
@@ -114,6 +120,21 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
         }
 
         $report['pots'] += $pots;
+
+        if ($collectDetail) {
+            if (! isset($detail[$key])) {
+                $name = trim((string) $order->get_formatted_billing_full_name());
+                $email = trim((string) $order->get_billing_email());
+                $phone = trim((string) $order->get_billing_phone());
+                $label = ('' !== $name ? $name : 'Client')
+                    . ('' !== $email ? ' — ' . $email : '')
+                    . ('' !== $phone ? ' / ' . $phone : '');
+                $detail[$key] = ['label' => $label, 'pots' => 0, 'orders' => 0];
+            }
+            $detail[$key]['pots'] += $pots;
+            ++$detail[$key]['orders'];
+        }
+
         if ($dry) {
             continue;
         }
@@ -142,6 +163,13 @@ function luziapi_backfill_loyalty(bool $dry, array $onlyOrderIds = []): array
         } else {
             ++$report['already'];
         }
+    }
+
+    if ($collectDetail) {
+        // Tri décroissant par pots pour lire d'abord les plus gros crédits.
+        $rows = array_values($detail);
+        usort($rows, static fn (array $a, array $b): int => $b['pots'] <=> $a['pots']);
+        $report['detail'] = $rows;
     }
 
     return $report;

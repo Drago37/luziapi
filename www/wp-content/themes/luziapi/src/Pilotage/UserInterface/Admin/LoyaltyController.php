@@ -7,6 +7,7 @@ namespace LuziApi\Pilotage\UserInterface\Admin;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyCustomerRow;
+use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyRewardHolder;
 use Timber\Timber;
 
 final readonly class LoyaltyController
@@ -49,6 +50,7 @@ final readonly class LoyaltyController
                 ['label' => 'Pots offerts', 'value' => (string) $dashboard->totalOfferedPots],
                 ['label' => 'Remises remerciement', 'value' => $this->formatMoney($dashboard->totalDiscountCents)],
             ],
+            'rewards_outstanding' => array_map($this->formatRewardHolder(...), $dashboard->rewardsOutstanding),
             'top_buyers'          => array_map($this->formatRow(...), $dashboard->topBuyers),
             'top_benefited'       => array_map($this->formatRow(...), $dashboard->topBenefited),
             'top_discounts'       => array_map($this->formatRow(...), $dashboard->topDiscounts),
@@ -57,13 +59,13 @@ final readonly class LoyaltyController
     }
 
     /**
-     * Options du sélecteur de période : 2 dernières années, chaque année, puis tout.
+     * Options du sélecteur de période : chaque année, puis le total toutes années.
      *
      * @return list<array{key: string, label: string, url: string, active: bool}>
      */
     private function periods(\LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyDashboardView $dashboard): array
     {
-        $options = [['key' => 'last2', 'label' => '2 dernières années']];
+        $options = [];
         foreach ($dashboard->availableYears as $year) {
             $options[] = ['key' => (string) $year, 'label' => (string) $year];
         }
@@ -99,6 +101,22 @@ final readonly class LoyaltyController
             'details_url'  => add_query_arg(
                 'customer',
                 $row->customerId,
+                admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers'),
+            ),
+        ];
+    }
+
+    /**
+     * @return array{name: string, rewards: string, details_url: string}
+     */
+    private function formatRewardHolder(LoyaltyRewardHolder $holder): array
+    {
+        return [
+            'name'        => $holder->name,
+            'rewards'     => (string) $holder->rewards,
+            'details_url' => add_query_arg(
+                'customer',
+                $holder->customerId,
                 admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers'),
             ),
         ];
