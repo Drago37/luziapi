@@ -62,9 +62,13 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
         );
 
         $productId = 0;
+        $product2Id = 0;
         $orderId = 0;
+        $order2Id = 0;
         $key = '';
+        $key2 = '';
         $email = 'e2e-offered-' . bin2hex(random_bytes(5)) . '@example.test';
+        $email2 = 'e2e-offered-multi-' . bin2hex(random_bytes(5)) . '@example.test';
 
         $grantCap = static function (array $allcaps): array {
             $allcaps['edit_shop_orders'] = true;
@@ -105,6 +109,19 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             $pot->set_stock_quantity(100);
             $pot->update_meta_data(WooCommerceEligiblePotCounter::PRODUCT_ELIGIBLE_META, 'yes');
             $productId = (int) $pot->save();
+
+            // Second miel, pour tester l'offre de PLUSIEURS miels différents en un
+            // seul enregistrement (forme tableau).
+            $pot2 = new WC_Product_Simple();
+            $pot2->set_name('E2E — pot offert #2 (test, à supprimer)');
+            $pot2->set_status('publish');
+            $pot2->set_catalog_visibility('hidden');
+            $pot2->set_regular_price('12');
+            $pot2->set_price('12');
+            $pot2->set_manage_stock(true);
+            $pot2->set_stock_quantity(100);
+            $pot2->update_meta_data(WooCommerceEligiblePotCounter::PRODUCT_ELIGIBLE_META, 'yes');
+            $product2Id = (int) $pot2->save();
 
             // Commande de base : assez de pots pour acquérir 1 avantage fidélité.
             $order = wc_create_order(['status' => 'pending']);
@@ -175,26 +192,83 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             ];
             luziapi_save_admin_order_workflow($orderId, wc_get_order($orderId));
             $assert('Fidélité sans avantage : refusée (aucune ligne ajoutée)', $rewardsBefore === $countMarked($orderId, WooCommerceEligiblePotCounter::REWARD_LINE_META));
+
+            // 4) MULTI-MIELS en un seul enregistrement (forme tableau) : commande à
+            //    2 avantages, on offre 2 miels DIFFÉRENTS au titre de la fidélité +
+            //    une 3ᵉ ligne fidélité qui dépasse le budget (doit être refusée).
+            $order2 = wc_create_order(['status' => 'pending']);
+            $order2->set_billing_first_name('E2E Multi');
+            $order2->set_billing_email($email2);
+            $order2->set_billing_phone('0600000001');
+            $order2->add_product(wc_get_product($productId), $potsForOneReward * 2); // 30 pots => 2 avantages
+            $order2->calculate_totals();
+            $order2->set_status('completed');
+            $order2->save();
+            $order2Id = (int) $order2->get_id();
+            $key2 = LoyaltyIdentity::fromContact($email2, '0600000001')?->key ?? '';
+            $subscriber->reconcile($order2Id, wc_get_order($order2Id));
+            $assert('Multi : 2 avantages disponibles au départ', 2 === luziapi_order_available_rewards(wc_get_order($order2Id)));
+
+            $total2Ref = $orderTotal($order2Id);
+            $stock1Before = $stockOf($productId);
+            $stock2Before = $stockOf($product2Id);
+            $_POST = [
+                'luziapi_order_workflow_nonce' => $nonce,
+                'luziapi_offer_product'        => [(string) $productId, (string) $product2Id, (string) $productId],
+                'luziapi_offer_qty'            => ['1', '1', '1'],
+                'luziapi_offer_type'           => ['loyalty', 'loyalty', 'loyalty'],
+            ];
+            luziapi_save_admin_order_workflow($order2Id, wc_get_order($order2Id));
+            $assert('Multi : 2 lignes fidélité ajoutées (2 miels différents)', 2 === $countMarked($order2Id, WooCommerceEligiblePotCounter::REWARD_LINE_META));
+            $assert('Multi : montant inchangé', abs($orderTotal($order2Id) - $total2Ref) < 0.0001);
+            $assert('Multi : stock miel #1 décompté (-1)', $stock1Before - 1 === $stockOf($productId));
+            $assert('Multi : stock miel #2 décompté (-1)', $stock2Before - 1 === $stockOf($product2Id));
+            $assert('Multi : les 2 avantages sont consommés (0 restant)', 0 === luziapi_order_available_rewards(wc_get_order($order2Id)));
+
+            // 5) Rejeu (forme tableau) : plus aucun avantage => la ligne fidélité est
+            //    refusée, mais une ligne « geste » du même envoi est bien ajoutée.
+            $giftBefore = $countMarked($order2Id, WooCommerceEligiblePotCounter::OFFERT_LINE_META) - $countMarked($order2Id, WooCommerceEligiblePotCounter::REWARD_LINE_META);
+            $rewardBefore2 = $countMarked($order2Id, WooCommerceEligiblePotCounter::REWARD_LINE_META);
+            $_POST = [
+                'luziapi_order_workflow_nonce' => $nonce,
+                'luziapi_offer_product'        => [(string) $product2Id, (string) $productId],
+                'luziapi_offer_qty'            => ['1', '1'],
+                'luziapi_offer_type'           => ['loyalty', 'gift'],
+            ];
+            luziapi_save_admin_order_workflow($order2Id, wc_get_order($order2Id));
+            $rewardAfter2 = $countMarked($order2Id, WooCommerceEligiblePotCounter::REWARD_LINE_META);
+            $giftAfter = $countMarked($order2Id, WooCommerceEligiblePotCounter::OFFERT_LINE_META) - $rewardAfter2;
+            $assert('Multi : ligne fidélité hors budget refusée (aucune fidélité en plus)', $rewardBefore2 === $rewardAfter2);
+            $assert('Multi : ligne geste du même envoi bien ajoutée (+1)', $giftBefore + 1 === $giftAfter);
         } catch (\Throwable $exception) {
             $fatal = $exception->getMessage();
         } finally {
             remove_filter('user_has_cap', $grantCap);
             $_POST = [];
-            if ('' !== $key) {
-                $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $key], ['%s']);
-            }
-            if ($orderId > 0) {
-                $order = wc_get_order($orderId);
-                if ($order instanceof WC_Order) {
-                    $order->delete(true);
+            foreach ([$key, $key2] as $customerKey) {
+                if ('' !== $customerKey) {
+                    $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $customerKey], ['%s']);
                 }
             }
-            if ($productId > 0) {
-                wp_delete_post($productId, true);
+            foreach ([$orderId, $order2Id] as $oid) {
+                if ($oid > 0) {
+                    $order = wc_get_order($oid);
+                    if ($order instanceof WC_Order) {
+                        $order->delete(true);
+                    }
+                }
             }
-            $left = '' !== $key
-                ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . ' WHERE customer_key = %s', $key))
-                : 0;
+            foreach ([$productId, $product2Id] as $pid) {
+                if ($pid > 0) {
+                    wp_delete_post($pid, true);
+                }
+            }
+            $left = 0;
+            foreach ([$key, $key2] as $customerKey) {
+                if ('' !== $customerKey) {
+                    $left += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . ' WHERE customer_key = %s', $customerKey));
+                }
+            }
             $cleanup = 0 === $left ? 'ok (aucune ligne résiduelle)' : ($left . ' ligne(s) résiduelle(s) !');
             $assert('Nettoyage : aucune ligne de journal résiduelle', 0 === $left);
         }
