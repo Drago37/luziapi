@@ -36,8 +36,7 @@ function setupQuickSale(quickSale) {
     const cityField = quickSale.querySelector('[name="city"]');
     const loyaltyPanel = quickSale.querySelector('[data-loyalty-panel]');
     const loyaltyAvailable = quickSale.querySelector('[data-loyalty-available]');
-    const rewardProduct = quickSale.querySelector('[data-reward-product]');
-    const rewardQty = quickSale.querySelector('[data-reward-qty]');
+    const rewardQtys = () => quickSale.querySelectorAll('[data-reward-qty]');
     const updateEmail = () => {
         sendEmail.disabled = !email.value.trim();
         if (sendEmail.disabled) sendEmail.checked = false;
@@ -47,14 +46,11 @@ function setupQuickSale(quickSale) {
         const available = Math.max(0, parseInt(rewards, 10) || 0);
         loyaltyPanel.hidden = available <= 0;
         if (loyaltyAvailable) loyaltyAvailable.textContent = String(available);
-        if (rewardQty) {
-            rewardQty.max = String(available);
-            if ((parseInt(rewardQty.value, 10) || 0) > available) rewardQty.value = String(available);
-        }
-        if (available <= 0) {
-            if (rewardProduct) rewardProduct.value = '';
-            if (rewardQty) rewardQty.value = '0';
-        }
+        rewardQtys().forEach((qty) => {
+            qty.max = String(available);
+            if ((parseInt(qty.value, 10) || 0) > available) qty.value = String(available);
+            if (available <= 0) qty.value = '0';
+        });
     };
     const updateDelivery = () => {
         const delivery = fulfillment.value === 'delivery';

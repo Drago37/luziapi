@@ -149,11 +149,12 @@ final readonly class QuickSaleController
             );
             $lines = $split['paid'];
             $giftLines = $split['gifts'];
+            // Pots offerts au titre de la fidélité, un par miel (reward_qty[productId]),
+            // comme les gestes commerciaux : plusieurs miels différents en une vente.
+            // Le total est borné aux avantages disponibles par le handler.
             $rewardLines = [];
-            $rewardProduct = absint($_POST['reward_product'] ?? 0);
-            $rewardQty = absint($_POST['reward_qty'] ?? 0);
-            if ($rewardProduct > 0 && $rewardQty > 0) {
-                $rewardLines[] = new QuickSaleLine($rewardProduct, $rewardQty);
+            foreach ($this->readQuantities((array) ($_POST['reward_qty'] ?? [])) as $rewardProductId => $rewardQuantity) {
+                $rewardLines[] = new QuickSaleLine($rewardProductId, $rewardQuantity);
             }
             $discount = $this->readDiscount();
             $created = $this->createQuickSale->handle(new CreateQuickSaleCommand(
