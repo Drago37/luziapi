@@ -628,6 +628,22 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
             gap: 16px;
             margin: 6px 0 2px;
         }
+        /* WooCommerce applique .form-field input { width: 50% } (voire 100% en
+           form-field-wide) à TOUS les inputs, ce qui étire les cases à cocher et
+           boutons radio en grosses barres. On leur rend leur taille naturelle. */
+        .luziapi-order-workflow input[type="checkbox"],
+        .luziapi-order-workflow input[type="radio"] {
+            width: auto;
+            max-width: none;
+            flex: 0 0 auto;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .luziapi-order-workflow .luziapi-offer-pot__types label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
         #order_data .order_data_column .form-field .luziapi-order-datetime {
             display: grid;
             grid-template-columns: 132px 76px;
