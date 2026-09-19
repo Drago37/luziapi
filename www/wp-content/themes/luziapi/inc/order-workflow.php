@@ -601,7 +601,7 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
                 <input type="checkbox" id="luziapi_fix_volume_discount" name="luziapi_fix_volume_discount" value="yes">
                 <strong>Corriger la remise de volume (−<?php echo esc_html(number_format($volumeMissingCents / 100, 2, ',', ' ')); ?> €)</strong>
             </label>
-            <span class="description">Cette commande a été créée sans la remise « −1 € par pot dès 2 pots » (bug corrigé). Cocher applique la remise manquante et, si la commande a déjà été encaissée, corrige la recette au registre en conséquence. Sans effet si la remise est déjà correcte.</span>
+            <span class="description">Cette commande a été créée sans la remise « −1 € par pot dès 2 pots » (bug corrigé). Cocher applique la remise manquante et, si la commande a déjà été encaissée, aligne la recette au registre sur le montant corrigé (jamais de double correction : une recette déjà juste n’est pas retouchée). Sans effet si tout est déjà correct.</span>
         </p>
         <?php endif; ?>
         <p class="form-field form-field-wide">

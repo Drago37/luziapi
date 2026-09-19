@@ -53,6 +53,7 @@ final class WooCommerceOrderVolumeDiscountWriter implements OrderVolumeDiscountW
             $appliedEuros * 100,
             'bacs' === $order->get_payment_method() ? 'bank_transfer' : 'cash',
             $paidJars,
+            (int) round((float) $order->get_total() * 100),
         );
     }
 

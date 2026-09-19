@@ -215,6 +215,37 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
             $receiptCount3 = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $order3));
             $assert('S3 : aucune ligne de recette écrite', 0 === $receiptCount3, 'lignes=' . $receiptCount3);
 
+            // ===== Scénario 5 : REPRISE après échec — le fee est déjà posé (rien à
+            // appliquer) mais le registre est resté à 52 €. Rejouer doit RÉCONCILIER
+            // la recette à 47 € (auto-réparation du cas #1). =====
+            $order5 = $makeSaleOrder('completed', static function (WC_Order $o): void {
+                $fee = new WC_Order_Item_Fee();
+                $fee->set_name(VolumeDiscount::label(5));
+                $fee->set_total('-5'); // remise déjà complète côté commande
+                $o->add_item($fee);
+            });
+            $assert('S5 : remise déjà complète (rien à appliquer)', 0 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($order5)));
+            $recordReceipt->handle(new RecordReceiptCommand($order5, $clock->now(), 5_200, 'cash', ReceiptEntryType::Collection, 'Encaissement E2E rattrapage S5 (recette non corrigée)', (int) $adminIds[0]));
+            $assert('S5 : registre non corrigé au départ (52 €)', 5_200 === $orderNet($order5), 'net=' . $orderNet($order5));
+
+            $fix($order5);
+            $assert('S5 : fee inchangé (−5 €)', -500 === $volumeFeeCents($order5), 'fee=' . $volumeFeeCents($order5));
+            $assert('S5 : registre réconcilié à 47 € (reprise réussie)', 4_700 === $orderNet($order5), 'net=' . $orderNet($order5));
+
+            // ===== Scénario 6 : recette DÉJÀ juste (47 €) mais fee manquant côté
+            // commande. On pose le fee SANS re-rembourser (pas de sur-remboursement, #2). =====
+            $order6 = $makeSaleOrder('completed', static function (WC_Order $o): void {
+            });
+            $recordReceipt->handle(new RecordReceiptCommand($order6, $clock->now(), 4_700, 'cash', ReceiptEntryType::Collection, 'Encaissement E2E rattrapage S6 (déjà corrigé)', (int) $adminIds[0]));
+            $receiptRowsBefore6 = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $order6));
+
+            $fix($order6);
+            $assert('S6 : fee de volume −5 € posé', -500 === $volumeFeeCents($order6), 'fee=' . $volumeFeeCents($order6));
+            $assert('S6 : commande à 47 €', 4_700 === $cents(wc_get_order($order6)->get_total()), 'total=' . $cents(wc_get_order($order6)->get_total()));
+            $assert('S6 : registre inchangé à 47 € (aucun sur-remboursement)', 4_700 === $orderNet($order6), 'net=' . $orderNet($order6));
+            $receiptRowsAfter6 = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $order6));
+            $assert('S6 : aucune contre-passe écrite (une seule ligne de recette)', $receiptRowsBefore6 === $receiptRowsAfter6 && 1 === $receiptRowsAfter6, 'avant=' . $receiptRowsBefore6 . ' après=' . $receiptRowsAfter6);
+
             // ===== Scénario 4 : commande ANNULÉE — non rattrapable. Même critère
             // (isCorrectable) pour la métabox (bouton masqué) et l'audit (non listée). =====
             $order4 = $makeSaleOrder('cancelled', static function (WC_Order $o): void {

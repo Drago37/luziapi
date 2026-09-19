@@ -37,18 +37,29 @@ final readonly class ApplyMissingVolumeDiscountHandler
             throw new InvalidArgumentException('A valid order is required.');
         }
 
+        // Idempotent : pose la part de remise manquante (rien si déjà correcte).
         $applied = $this->orders->applyMissing($command->orderId);
-        if ($applied->appliedCents <= 0) {
-            return $applied; // remise déjà correcte : rien à faire
+
+        // Réconcilie le registre sur le total CORRIGÉ de la commande plutôt que de
+        // contre-passer un montant fixe. Deux bénéfices décisifs :
+        //  - auto-réparant : si un rattrapage précédent a posé le fee mais échoué
+        //    avant d'écrire la recette, rejouer termine la correction (même si la
+        //    remise n'a plus rien à appliquer, `appliedCents` valant alors 0) ;
+        //  - jamais de sur-remboursement : une recette déjà juste (encaissé == total)
+        //    donne un delta nul, donc aucune contre-passe.
+        // On ne corrige que si la commande a été encaissée (une recette existe).
+        $collected = $this->receipts->netTotalsByOrderIds([$command->orderId])[$command->orderId] ?? 0;
+        $overCollected = $collected > 0 ? max(0, $collected - $applied->orderTotalCents) : 0;
+
+        if ($applied->appliedCents <= 0 && $overCollected <= 0) {
+            return $applied; // remise correcte ET registre déjà aligné : rien à faire
         }
 
-        // Corrige la recette seulement si la commande avait déjà été encaissée.
-        $collected = $this->receipts->netTotalsByOrderIds([$command->orderId])[$command->orderId] ?? 0;
-        if ($collected > 0) {
+        if ($overCollected > 0) {
             $this->recordReceipt->handle(new RecordReceiptCommand(
                 $command->orderId,
                 $this->clock->now(),
-                $applied->appliedCents,
+                $overCollected,
                 $applied->paymentMethod,
                 ReceiptEntryType::Refund,
                 sprintf('Rattrapage remise de volume — commande n°%s', $applied->orderNumber),
@@ -56,13 +67,14 @@ final readonly class ApplyMissingVolumeDiscountHandler
             ));
         }
 
+        $reportedCents = $applied->appliedCents > 0 ? $applied->appliedCents : $overCollected;
         $this->activity->record(
             ActivityCategory::Receipt,
             'volume_discount_backfilled',
             'order',
             $command->orderId,
-            sprintf('Rattrapage remise de volume de %s sur la commande n°%s', $this->euros($applied->appliedCents), $applied->orderNumber),
-            ['applied_cents' => (string) $applied->appliedCents, 'receipt_corrected' => $collected > 0 ? 'yes' : 'no'],
+            sprintf('Rattrapage remise de volume de %s sur la commande n°%s', $this->euros($reportedCents), $applied->orderNumber),
+            ['applied_cents' => (string) $applied->appliedCents, 'receipt_corrected_cents' => (string) $overCollected],
             $command->actorId,
         );
 
