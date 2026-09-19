@@ -226,6 +226,23 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
         } finally {
             remove_filter('user_has_cap', $grantCap);
             $_POST = [];
+            // Le vrai chemin admin + le dépôt de recettes AUDITÉ écrivent au journal
+            // d'activité (création/édition/note de commande, backfill, contre-passe).
+            // On les retire par référence — sur la commande (object_type=order) et sur
+            // la recette (object_type=receipt) — pour ne laisser AUCUN orphelin en prod.
+            $activityTable = $pilotageSchema->activityTableName();
+            $receiptIds = [];
+            foreach ($orderIds as $oid) {
+                foreach ($wpdb->get_col($wpdb->prepare('SELECT id FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $oid)) as $rid) {
+                    $receiptIds[] = (int) $rid;
+                }
+            }
+            foreach ($orderIds as $oid) {
+                $wpdb->delete($activityTable, ['object_type' => 'order', 'object_id' => $oid], ['%s', '%d']);
+            }
+            foreach ($receiptIds as $rid) {
+                $wpdb->delete($activityTable, ['object_type' => 'receipt', 'object_id' => $rid], ['%s', '%d']);
+            }
             foreach ($orderIds as $oid) {
                 $wpdb->delete($pilotageSchema->tableName(), ['order_id' => $oid], ['%d']);
                 $order = wc_get_order($oid);
@@ -236,12 +253,20 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
             foreach ($productIds as $pid) {
                 wp_delete_post($pid, true);
             }
-            $left = 0;
+            $receiptsLeft = 0;
+            $activityLeft = 0;
             foreach ($orderIds as $oid) {
-                $left += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $oid));
+                $receiptsLeft += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $oid));
+                $activityLeft += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $activityTable . ' WHERE object_type = %s AND object_id = %d', 'order', $oid));
             }
-            $cleanup = 0 === $left ? 'ok (aucune recette résiduelle)' : ($left . ' recette(s) résiduelle(s) !');
-            $assert('Nettoyage : aucune recette résiduelle', 0 === $left);
+            foreach ($receiptIds as $rid) {
+                $activityLeft += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $activityTable . ' WHERE object_type = %s AND object_id = %d', 'receipt', $rid));
+            }
+            $cleanup = (0 === $receiptsLeft && 0 === $activityLeft)
+                ? 'ok (aucune recette ni activité résiduelle)'
+                : ($receiptsLeft . ' recette(s) / ' . $activityLeft . ' activité(s) résiduelle(s) !');
+            $assert('Nettoyage : aucune recette résiduelle', 0 === $receiptsLeft);
+            $assert('Nettoyage : aucune activité résiduelle (journal propre)', 0 === $activityLeft);
         }
 
         return ['results' => $results, 'cleanup' => $cleanup, 'fatal' => $fatal];
