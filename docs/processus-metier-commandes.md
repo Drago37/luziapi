@@ -148,6 +148,17 @@ Règles d'affichage et de vente :
   (`WooCommerceQuickSaleOrderWriter`) — les deux chemins ne peuvent donc pas diverger. _Historique :_
   la Vente ne l'appliquait pas (le fee de panier ne se déclenche que sur le checkout du site, pas sur
   une commande créée en admin) ; corrigé + couvert par `make e2e-vente-volume-local`.
+- **Rattrapage a posteriori** : une commande Vente créée avant ce correctif garde un montant trop
+  élevé (remise absente). La fiche commande affiche alors une case **« Corriger la remise de volume
+  (−X €) »** ; la cocher ajoute le fee manquant à la commande et, si elle a déjà été encaissée,
+  corrige la recette au registre d'autant (ex. 52 € affiché → 47 € réellement encaissé). L'opération
+  est idempotente (rejouer ne fait rien) et tracée au journal d'activité. Cœur
+  `ApplyMissingVolumeDiscountHandler` + adaptateur `WooCommerceOrderVolumeDiscountWriter`, branché par
+  `WooCommerceVolumeDiscountFixSubscriber` sur l'action `luziapi_fix_volume_discount`. Couvert par
+  `make e2e-vente-volume-rattrapage-local` / `-prod`.
+- **Suivi (lecture seule)** : `make audit-vente-volume-local` / `audit-vente-volume-prod`
+  (`LUZIAPI_AUDIT_YEAR=2026` pour une année) listent les commandes Vente à ≥ 2 pots payés dont la
+  remise de volume est absente ou incomplète, avec le montant à rattraper — aucune écriture.
 - Les codes promo sont autorisés dans WooCommerce, mais aucun coupon n'est actuellement publié.
 - La remise LuziApi est une ligne de frais négative, pas un coupon. Si un coupon est créé plus tard,
   il pourra se cumuler avec elle sauf règle supplémentaire.
@@ -461,11 +472,11 @@ flowchart LR
 
 Ces points restent ouverts après la mise en place du workflow de remise.
 
-| Priorité | Constat                                              | Risque / conséquence                                                 | Décision possible                                           |
-| -------- | ---------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Moyenne  | Choix du statut de remise manuel                     | Risque résiduel de sélectionner une étape incohérente                 | Les options incompatibles sont désactivées selon le mode    |
-| Faible   | Coupons autorisés mais inutilisés                    | Champ promo visible sans campagne                                    | Conserver en prévision ou désactiver après décision         |
-| Faible   | Page Mon compte sans inscription publique            | Utilité limitée pour les nouveaux clients                            | Assumer le parcours invité ou revoir la politique de compte |
+| Priorité | Constat                                   | Risque / conséquence                                  | Décision possible                                           |
+| -------- | ----------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
+| Moyenne  | Choix du statut de remise manuel          | Risque résiduel de sélectionner une étape incohérente | Les options incompatibles sont désactivées selon le mode    |
+| Faible   | Coupons autorisés mais inutilisés         | Champ promo visible sans campagne                     | Conserver en prévision ou désactiver après décision         |
+| Faible   | Page Mon compte sans inscription publique | Utilité limitée pour les nouveaux clients             | Assumer le parcours invité ou revoir la politique de compte |
 
 ## 14. Mise en production et contrôles du workflow
 

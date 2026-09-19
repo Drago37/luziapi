@@ -533,6 +533,8 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
 
     $offerProducts        = luziapi_offerable_products();
     $offerRewardsAvailable = luziapi_order_available_rewards($order);
+    $volumeWriter         = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
+    $volumeMissingCents   = $volumeWriter::isCorrectable($order) ? $volumeWriter::missingCents($order) : 0;
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
     ?>
@@ -592,6 +594,15 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
             </p>
             <span class="description">Ajoute une ligne à 0 € (sortie du stock) sans changer le montant ni la recette. « Fidélité » consomme un avantage du client (borné au disponible).</span>
         </div>
+        <?php endif; ?>
+        <?php if ($volumeMissingCents > 0) : ?>
+        <p class="form-field form-field-wide luziapi-volume-fix">
+            <label for="luziapi_fix_volume_discount" style="display:flex;gap:7px;align-items:flex-start;">
+                <input type="checkbox" id="luziapi_fix_volume_discount" name="luziapi_fix_volume_discount" value="yes">
+                <strong>Corriger la remise de volume (−<?php echo esc_html(number_format($volumeMissingCents / 100, 2, ',', ' ')); ?> €)</strong>
+            </label>
+            <span class="description">Cette commande a été créée sans la remise « −1 € par pot dès 2 pots » (bug corrigé). Cocher applique la remise manquante et, si la commande a déjà été encaissée, aligne la recette au registre sur le montant corrigé (jamais de double correction : une recette déjà juste n’est pas retouchée). Sans effet si tout est déjà correct.</span>
+        </p>
         <?php endif; ?>
         <p class="form-field form-field-wide">
             <label for="luziapi_cancellation_reason"><strong>Motif d’annulation communiqué au client</strong></label>
@@ -1040,6 +1051,14 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
     }
 
     luziapi_maybe_add_offered_pot($order);
+
+    // Rattrapage de la remise de volume manquante (case cochée sur la fiche). Émet
+    // une action dédiée, consommée par le subscriber Pilotage qui applique le fee
+    // manquant et corrige la recette : on ne recalcule PAS à chaque édition.
+    if (isset($_POST['luziapi_fix_volume_discount'])
+        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_fix_volume_discount']))) {
+        do_action('luziapi_fix_volume_discount', $orderId, $order);
+    }
 }
 add_action('woocommerce_process_shop_order_meta', 'luziapi_save_admin_order_workflow', 20, 2);
 
@@ -1168,6 +1187,24 @@ function luziapi_maybe_add_offered_pot(\WC_Order $order): void
  */
 add_action('admin_notices', static function (): void {
     $key = 'luziapi_offer_pot_notice_' . get_current_user_id();
+    $notice = get_transient($key);
+    if (! is_array($notice) || ! isset($notice['message'])) {
+        return;
+    }
+    delete_transient($key);
+    printf(
+        '<div class="notice %s is-dismissible"><p>%s</p></div>',
+        ! empty($notice['error']) ? 'notice-error' : 'notice-success',
+        esc_html((string) $notice['message']),
+    );
+});
+
+/**
+ * Affiche l'issue d'un rattrapage de remise de volume déposé par le subscriber
+ * {@see \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
+ */
+add_action('admin_notices', static function (): void {
+    $key = 'luziapi_volume_fix_notice_' . get_current_user_id();
     $notice = get_transient($key);
     if (! is_array($notice) || ! isset($notice['message'])) {
         return;
