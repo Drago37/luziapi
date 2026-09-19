@@ -628,11 +628,13 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
             gap: 16px;
             margin: 6px 0 2px;
         }
-        /* WooCommerce applique .form-field input { width: 50% } (voire 100% en
-           form-field-wide) à TOUS les inputs, ce qui étire les cases à cocher et
-           boutons radio en grosses barres. On leur rend leur taille naturelle. */
-        .luziapi-order-workflow input[type="checkbox"],
-        .luziapi-order-workflow input[type="radio"] {
+        /* WooCommerce applique, avec l'ID #order_data, une largeur (50 % / 100 % en
+           form-field-wide) à TOUS les inputs — ce qui étire les cases à cocher et
+           boutons radio en grosses barres. Il faut donc re-scoper sous #order_data
+           (l'ID, sinon la spécificité WooCommerce l'emporte) pour leur rendre leur
+           taille naturelle. */
+        #order_data .luziapi-order-workflow input[type="checkbox"],
+        #order_data .luziapi-order-workflow input[type="radio"] {
             width: auto;
             max-width: none;
             flex: 0 0 auto;
