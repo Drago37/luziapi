@@ -37,21 +37,42 @@ function setupQuickSale(quickSale) {
     const loyaltyPanel = quickSale.querySelector('[data-loyalty-panel]');
     const loyaltyAvailable = quickSale.querySelector('[data-loyalty-available]');
     const rewardQtys = () => quickSale.querySelectorAll('[data-reward-qty]');
+    const rewardWarning = quickSale.querySelector('[data-reward-warning]');
+    let rewardsAvailable = 0;
+    const rewardTotal = () => Array.from(rewardQtys()).reduce((sum, qty) => sum + (parseInt(qty.value, 10) || 0), 0);
     const updateEmail = () => {
         sendEmail.disabled = !email.value.trim();
         if (sendEmail.disabled) sendEmail.checked = false;
     };
     const updateLoyalty = (rewards) => {
         if (!loyaltyPanel) return;
-        const available = Math.max(0, parseInt(rewards, 10) || 0);
-        loyaltyPanel.hidden = available <= 0;
-        if (loyaltyAvailable) loyaltyAvailable.textContent = String(available);
+        rewardsAvailable = Math.max(0, parseInt(rewards, 10) || 0);
+        loyaltyPanel.hidden = rewardsAvailable <= 0;
+        if (loyaltyAvailable) loyaltyAvailable.textContent = String(rewardsAvailable);
+        // Changement de client : on repart d'une sélection vierge (bornée au nouveau
+        // disponible), et on masque l'avertissement.
         rewardQtys().forEach((qty) => {
-            qty.max = String(available);
-            if ((parseInt(qty.value, 10) || 0) > available) qty.value = String(available);
-            if (available <= 0) qty.value = '0';
+            qty.max = String(rewardsAvailable);
+            qty.value = '0';
         });
+        if (rewardWarning) rewardWarning.hidden = true;
     };
+    // Contrôle du TOTAL cumulé sur tous les miels : la somme des pots offerts en
+    // fidélité ne peut pas dépasser les avantages disponibles. On borne le champ en
+    // cours de saisie et on affiche un avertissement quand l'utilisateur tente plus.
+    const clampReward = (changed) => {
+        const others = rewardTotal() - (parseInt(changed.value, 10) || 0);
+        const allowed = Math.max(0, rewardsAvailable - others);
+        if ((parseInt(changed.value, 10) || 0) > allowed) {
+            changed.value = String(allowed);
+            if (rewardWarning) rewardWarning.hidden = false;
+        } else if (rewardWarning) {
+            rewardWarning.hidden = true;
+        }
+    };
+    rewardQtys().forEach((qty) => {
+        qty.addEventListener('input', () => clampReward(qty));
+    });
     const updateDelivery = () => {
         const delivery = fulfillment.value === 'delivery';
         deliveryAddress.hidden = !delivery;
