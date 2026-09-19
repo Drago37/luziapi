@@ -714,6 +714,20 @@ catalogue sont **« admissibles à la fidélité »** avant tout backfill ; ③ 
 règlement v2 sont servis et joints au 1ᵉʳ e-mail ; ⑤ `make audit-vente-volume-prod` puis corriger
 les commandes Vente listées depuis la fiche (dont #305 Mme DEBOUT).
 
+_Activation réalisée le 19 septembre 2026 :_ page `programme-de-fidelite` créée, admissibilités
+vérifiées, **backfill fidélité appliqué** (`APPLY=1`) — **66 commandes créditées, 173 pots** (10
+déjà au journal ignorées, 43 sans contact, 0 sans pot admissible), vérifié client par client
+(`make loyalty-customer-inspect-prod Q="…"`, ex. DEBOUT 35 pots → 2 avantages, GAULTIER 19 → 1).
+Rattrapage de la **remise de volume sur #305** (Mme DEBOUT) fait depuis la fiche
+(`make audit-vente-volume-prod` repasse au vert). Outillage lecture seule ajouté : détail par
+client du backfill (`DETAIL=1`) et inspection client.
+
+_Correctif de suivi le 20 septembre 2026 (commit `514d735`, `inc/order-workflow.php`, 1/1 SHA,
+OPcache vidé, prod saine) :_ WooCommerce applique `.form-field input { width: 50% }` (100 % en
+`form-field-wide`) à **tous** les inputs, ce qui étirait les **cases à cocher et boutons radio** de
+la métabox workflow (fiche commande) en grosses barres/pilules à mi-colonne. Réinitialisé à leur
+taille naturelle dans `.luziapi-order-workflow` (selects et champs texte inchangés).
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
