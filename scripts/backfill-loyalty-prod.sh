@@ -85,6 +85,7 @@ uploaded=1
 
 QUERY="k=${TOKEN}"
 [[ "${apply}" == "1" ]] && QUERY="${QUERY}&apply=1"
+[[ "${LUZIAPI_BACKFILL_DETAIL:-0}" == "1" ]] && QUERY="${QUERY}&detail=1"
 echo "→  Exécution sur la prod…"
 RESULT="$(curl -sS "${RUNNER_URL}?${QUERY}")"
 
@@ -99,6 +100,16 @@ mode = "SIMULATION" if d.get("dry") else "APPLIQUÉ"
 print(f"[{mode}] commandes terminées : {d.get('orders')} ; créditées : {d.get('credited')} "
       f"({d.get('pots')} pots) ; déjà au journal : {d.get('already')} ; "
       f"sans contact : {d.get('no_contact')} ; sans pot admissible : {d.get('no_pots')}.")
+detail = d.get("detail")
+if detail:
+    print(f"\nDétail par client ({len(detail)} client(s), pots décroissants) :")
+    total = 0
+    for r in detail:
+        total += r.get("pots", 0)
+        cmds = r.get("orders", 0)
+        print(f"  {r.get('pots'):>4} pot(s)  ({cmds} cmde{'s' if cmds > 1 else ''})  {r.get('label')}")
+    print(f"  {'-'*4}")
+    print(f"  {total:>4} pot(s) au total sur {len(detail)} client(s).")
 sys.exit(0)
 PY
 then

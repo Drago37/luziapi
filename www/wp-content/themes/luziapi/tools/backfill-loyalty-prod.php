@@ -39,6 +39,7 @@ if (! function_exists('luziapi_backfill_loyalty')) {
 }
 
 $dry = ! (isset($_GET['apply']) && '1' === (string) $_GET['apply']);
-$report = luziapi_backfill_loyalty($dry);
+$detail = isset($_GET['detail']) && '1' === (string) $_GET['detail'];
+$report = luziapi_backfill_loyalty($dry, [], $detail);
 
 echo json_encode(['mode' => 'prod'] + $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
