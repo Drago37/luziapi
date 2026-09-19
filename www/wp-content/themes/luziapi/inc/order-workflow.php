@@ -628,23 +628,73 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
             gap: 16px;
             margin: 6px 0 2px;
         }
-        /* WooCommerce applique, avec l'ID #order_data, une largeur (50 % / 100 % en
-           form-field-wide) à TOUS les inputs — ce qui étire les cases à cocher et
-           boutons radio en grosses barres. Il faut donc re-scoper sous #order_data
-           (l'ID, sinon la spécificité WooCommerce l'emporte) pour leur rendre leur
-           taille naturelle. */
+        /* Rééquilibrage de l'écran commande. WooCommerce empile les 3 colonnes
+           (Général / Facturation / Expédition) en flottants de 32 %, or « Général »
+           porte TOUS nos champs workflow → colonne interminable et déséquilibrée,
+           avec un grand vide à droite. On passe le conteneur en grille : Facturation
+           et Expédition sur la ligne du haut, « Général » PLEINE LARGEUR en dessous,
+           et son bloc workflow réparti sur 2 colonnes. */
+        #order_data .order_data_column_container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 24px;
+            align-items: start;
+        }
+        #order_data .order_data_column {
+            float: none !important;
+            width: auto !important;
+            box-sizing: border-box;
+        }
+        #order_data .order_data_column:nth-child(2) { grid-column: 1; grid-row: 1; } /* Facturation */
+        #order_data .order_data_column:nth-child(3) { grid-column: 2; grid-row: 1; } /* Expédition */
+        #order_data .order_data_column:nth-child(1) { /* Général, pleine largeur dessous */
+            grid-column: 1 / -1;
+            grid-row: 2;
+            margin-top: 8px;
+            border-top: 1px solid #e2ddd4;
+            padding-top: 10px;
+        }
+        /* Le bloc workflow (nos nombreux champs) sur 2 colonnes. */
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow {
+            columns: 2;
+            column-gap: 32px;
+        }
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow > .form-field {
+            break-inside: avoid;
+            margin-top: 0;
+        }
+        /* Champs simples de « Général » : largeur raisonnable une fois la colonne large. */
+        #order_data .order_data_column:nth-child(1) > p.form-field select,
+        #order_data .order_data_column:nth-child(1) > p.form-field > input,
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow select,
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow textarea {
+            max-width: 340px;
+        }
+        /* Cases à cocher et boutons radio à leur taille naturelle : bat la largeur
+           imposée par WooCommerce (sélecteur #order_data … p.form-field input, plus
+           spécifique que la classe seule) via !important, ciblé aux seuls check/radio. */
         #order_data .luziapi-order-workflow input[type="checkbox"],
         #order_data .luziapi-order-workflow input[type="radio"] {
-            width: auto;
-            max-width: none;
+            width: auto !important;
+            max-width: none !important;
             flex: 0 0 auto;
             margin: 0;
             box-sizing: border-box;
         }
-        .luziapi-order-workflow .luziapi-offer-pot__types label {
+        #order_data .luziapi-order-workflow .luziapi-offer-pot__types label {
             display: inline-flex;
             align-items: center;
             gap: 6px;
+        }
+        @media only screen and (max-width: 1100px) {
+            #order_data .order_data_column_container { grid-template-columns: 1fr; }
+            #order_data .order_data_column:nth-child(1),
+            #order_data .order_data_column:nth-child(2),
+            #order_data .order_data_column:nth-child(3) {
+                grid-column: 1;
+                grid-row: auto;
+            }
+            #order_data .order_data_column:nth-child(1) .luziapi-order-workflow { columns: 1; }
         }
         #order_data .order_data_column .form-field .luziapi-order-datetime {
             display: grid;
