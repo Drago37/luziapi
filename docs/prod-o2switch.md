@@ -583,7 +583,8 @@ Déployée avec le **nouveau flux release** : depuis la branche `release/1.2.0` 
 `776b13c → 57a2283`, **34 fichiers**, aucune suppression, aucune nouvelle dépendance Composer.
 Bascule atomique `.ht-*`, **OPcache vidé**, **34/34 SHA-256 identiques** prod↔repo, contrôle
 post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`. Merge dans `main`
-+ tag `1.2.0` + back-merge `develop` faits **après** ce déploiement, sur feu vert explicite.
+
+- tag `1.2.0` + back-merge `develop` faits **après** ce déploiement, sur feu vert explicite.
 
 Changements en prod :
 
@@ -676,6 +677,42 @@ de l'édition client :_
   requête (appels BAN interceptés).
 - Merge `main` + tag `1.2.0` + back-merge `develop` **à faire après** feu vert explicite (release
   toujours ouverte).
+
+## Mise en production 1.3.0 — le 19 septembre 2026
+
+Déployée avec le **flux release** : depuis la branche `release/1.3.0` **encore ouverte** (PR #38
+vers `main` non mergée pendant le déploiement), `deploy-files.sh --yes`, delta
+`f1f5d4c → 5dfc1733`, **64 fichiers**, aucune suppression, aucune nouvelle dépendance Composer.
+Bascule atomique `.ht-*`, **OPcache vidé**, **64/64 SHA-256 identiques** prod↔repo, contrôle
+post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/` (« Production saine »).
+Merge dans `main` + tag `1.3.0` + back-merge `develop` **à faire après** ce déploiement, sur feu
+vert explicite.
+
+Changements en prod :
+
+- **Programme de fidélité — lancement public** : page publique « Programme de fidélité » (règlement
+  versionné, PDF imprimable), référencée dans les **CGV `2026-09-16-v5`** et la **politique de
+  confidentialité** ; règlement fidélité **`2026-09-16-v2`**.
+- **Fidélité — les pots n'expirent plus** : suppression de la validité 2 ans, les pots se cumulent
+  (15 = 1 offert, 30 = 2, etc.).
+- **Fidélité — liaison d'identités** : agrège les pots d'un même client sur plusieurs clés de
+  contact (auto-liaison prudente, **fusion** et **défusion** manuelles depuis la fiche client),
+  **passif** (avantages dus) au tableau de bord, **audit de dérive** lecture seule
+  (`make audit-loyalty-prod`), et **backfill** rétroactif sûr (`scripts/backfill-loyalty-prod.sh`).
+- **Remise de volume** : corrigée sur les ventes du pilotage (règle partagée `VolumeDiscount`) +
+  **rattrapage self-service** sur la fiche commande (réconcilie la recette) + audit
+  `make audit-vente-volume-prod`.
+- Version du thème `1.2.0 → 1.3.0`.
+
+**Migration de schéma** : la table des liens d'identité fidélité se crée automatiquement au premier
+chargement admin après déploiement (`LoyaltySchemaManager`, `dbDelta` idempotent).
+
+**À FAIRE côté prod (activation, hors code) :** ① créer la page WordPress de slug
+`programme-de-fidelite` (le routeur ne s'active que si la page existe) ; ② vérifier que les pots du
+catalogue sont **« admissibles à la fidélité »** avant tout backfill ; ③ backfill en 2 temps
+(`make backfill-loyalty-prod` en simulation, puis `APPLY=1`) ; ④ vérifier que les PDF CGV v5 et
+règlement v2 sont servis et joints au 1ᵉʳ e-mail ; ⑤ `make audit-vente-volume-prod` puis corriger
+les commandes Vente listées depuis la fiche (dont #305 Mme DEBOUT).
 
 ---
 
