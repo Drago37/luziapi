@@ -728,6 +728,13 @@ OPcache vidé, prod saine) :_ WooCommerce applique `.form-field input { width: 5
 la métabox workflow (fiche commande) en grosses barres/pilules à mi-colonne. Réinitialisé à leur
 taille naturelle dans `.luziapi-order-workflow` (selects et champs texte inchangés).
 
+_Suite de QA de release le 20 septembre 2026 (déploiements FTPS ciblés successifs `inc/order-workflow.php`, `resources/views/admin/pilotage/quick-sale.twig`, `assets/js/admin-pilotage.js`, `src/Pilotage/UserInterface/Admin/QuickSaleController.php`, `src/Pilotage/…/GetLoyaltyDashboard/*`, `LoyaltyController.php` ; à chaque fois SHA identiques, OPcache vidé, prod saine, CI verte) :_
+
+- **Cases/radios de la fiche commande** : le premier correctif (classe seule) perdait face à `#order_data … p.form-field input` (spécificité par ID) ; re-scopé sous `#order_data` en `!important` (commit `ae1bc52`).
+- **Écran commande rééquilibré** (`6f7cda9`) : les champs workflow sont rendus dans la 1ʳᵉ colonne « Général » (32 %) via `woocommerce_admin_order_data_after_order_details`, d'où une colonne interminable et déséquilibrée. Le conteneur passe en grille : Facturation + Expédition en haut, **« Général » pleine largeur en dessous, sur 2 colonnes** (repli 1 colonne sous 1100 px).
+- **Pots offerts multiples** : la fiche commande (`68be29a`→) et la Vente (`8d35ff2`) acceptent plusieurs miels différents en un enregistrement ; la Vente borne le **total** des pots fidélité aux avantages disponibles côté client avec avertissement (`d7f648d`), le serveur bornant déjà (`assertRewardsAffordable`).
+- **Onglet Fidélité** (`32d8e82`) : nouvelle section **« Avantages en cours »** (qui a des pots offerts à réclamer) ; le sélecteur de période perd « 2 dernières années » (plus d'expiration) au profit d'un défaut **« Total (toutes années) »**.
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
