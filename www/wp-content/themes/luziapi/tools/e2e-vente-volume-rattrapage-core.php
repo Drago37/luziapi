@@ -28,6 +28,8 @@ declare(strict_types=1);
 use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
+use LuziApi\Pilotage\Domain\Sales\VolumeDiscount;
+use LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem;
 use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
 use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
@@ -84,7 +86,7 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
         };
 
         $productIds = [];
-        $orderId = 0;
+        $orderIds = [];
 
         $grantCap = static function (array $allcaps): array {
             $allcaps['edit_shop_orders'] = true;
@@ -118,37 +120,38 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
             $printemps = $makeProduct('E2E — Miel Printemps rattrapage (test, à supprimer)', '10');
             $tournesol = $makeProduct('E2E — Miel Tournesol rattrapage (test, à supprimer)', '11');
 
-            // Commande Vente créée SANS remise de volume (état d'avant le correctif).
-            $order = wc_create_order(['status' => 'pending']);
-            $order->set_billing_first_name('E2E Rattrapage');
-            $order->set_billing_email('e2e-rattrapage-' . bin2hex(random_bytes(5)) . '@example.test');
-            $order->set_billing_phone('0600000000');
-            $order->add_product(wc_get_product($printemps), 3);
-            $order->add_product(wc_get_product($tournesol), 2);
-            $order->update_meta_data('_luziapi_quick_sale', 'yes');
-            $order->set_payment_method('cod');
-            $order->calculate_totals();
-            $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
-            $order->save();
-            $orderId = (int) $order->get_id();
+            // Fabrique une commande Vente à 5 pots PAYÉS (52 €), décorée avant calcul
+            // (lignes offertes, fee de remise partiel…), puis figée au statut voulu
+            // (set_status ne déclenche PAS les hooks).
+            $makeSaleOrder = static function (string $status, callable $decorate) use (&$orderIds, $printemps, $tournesol): int {
+                $order = wc_create_order(['status' => 'pending']);
+                $order->set_billing_first_name('E2E Rattrapage');
+                $order->set_billing_email('e2e-rattrapage-' . bin2hex(random_bytes(5)) . '@example.test');
+                $order->set_billing_phone('0600000000');
+                $order->add_product(wc_get_product($printemps), 3);
+                $order->add_product(wc_get_product($tournesol), 2);
+                $order->update_meta_data('_luziapi_quick_sale', 'yes');
+                $order->set_payment_method('cod');
+                $decorate($order);
+                $order->calculate_totals();
+                $order->set_status($status);
+                $order->save();
+                $id = (int) $order->get_id();
+                $orderIds[] = $id;
 
-            $assert('Base : commande à 52 € (5 pots, sans remise)', 5_200 === $cents($order->get_total()), 'total=' . $cents($order->get_total()));
-            $assert('Base : 5 pots payés décomptés', 5 === WooCommerceOrderVolumeDiscountWriter::paidJars(wc_get_order($orderId)));
-            $assert('Base : 5 € de remise manquante', 500 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($orderId)));
+                return $id;
+            };
+            $nonce = wp_create_nonce('luziapi_save_order_workflow');
+            $fix = static function (int $orderId) use ($nonce): void {
+                $_POST = [
+                    'luziapi_order_workflow_nonce' => $nonce,
+                    'luziapi_fix_volume_discount'  => 'yes',
+                ];
+                luziapi_save_admin_order_workflow($orderId, wc_get_order($orderId));
+                $_POST = [];
+            };
 
-            // Recette de départ : la commande a été encaissée à 52 € (le tort à corriger).
-            $recordReceipt->handle(new RecordReceiptCommand(
-                $orderId,
-                $clock->now(),
-                5_200,
-                'cash',
-                ReceiptEntryType::Collection,
-                'Encaissement E2E rattrapage',
-                (int) $adminIds[0],
-            ));
-            $assert('Base : recette de départ = 52 €', 5_200 === $orderNet($orderId), 'net=' . $orderNet($orderId));
-
-            // Câblage réel.
+            // Câblage réel (une fois).
             $assert(
                 'Câblage : save handler branché (woocommerce_process_shop_order_meta, prio 20)',
                 20 === has_action('woocommerce_process_shop_order_meta', 'luziapi_save_admin_order_workflow'),
@@ -158,42 +161,74 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
                 false !== has_action('luziapi_fix_volume_discount'),
             );
 
-            // Audit : la commande figure bien dans la liste à rattraper.
-            $assert('Audit : commande listée avant rattrapage', $auditLists($orderId));
+            // ===== Scénario 1 : cas prod complet, AVEC lignes offertes/fidélité mêlées
+            // (forme normale d'une commande Vente), encaissée à 52 €. =====
+            $order1 = $makeSaleOrder('completed', static function (WC_Order $o) use ($printemps): void {
+                OfferedOrderItem::addTo($o, wc_get_product($printemps), 1, false); // geste
+                OfferedOrderItem::addTo($o, wc_get_product($printemps), 1, true);  // fidélité
+            });
+            $assert('S1 : total à 52 € (offerts à 0 €, sans remise)', 5_200 === $cents(wc_get_order($order1)->get_total()), 'total=' . $cents(wc_get_order($order1)->get_total()));
+            $assert('S1 : 5 pots payés (offert + fidélité IGNORÉS)', 5 === WooCommerceOrderVolumeDiscountWriter::paidJars(wc_get_order($order1)), 'paid=' . WooCommerceOrderVolumeDiscountWriter::paidJars(wc_get_order($order1)));
+            $assert('S1 : 5 € de remise manquante', 500 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($order1)));
+            $recordReceipt->handle(new RecordReceiptCommand($order1, $clock->now(), 5_200, 'cash', ReceiptEntryType::Collection, 'Encaissement E2E rattrapage S1', (int) $adminIds[0]));
+            $assert('S1 : recette de départ = 52 €', 5_200 === $orderNet($order1), 'net=' . $orderNet($order1));
+            $assert('S1 : commande listée à l’audit avant rattrapage', $auditLists($order1));
 
-            $nonce = wp_create_nonce('luziapi_save_order_workflow');
+            $fix($order1);
+            $assert('S1 : fee de volume −5 € présent', -500 === $volumeFeeCents($order1), 'fee=' . $volumeFeeCents($order1));
+            $assert('S1 : commande ramenée à 47 €', 4_700 === $cents(wc_get_order($order1)->get_total()), 'total=' . $cents(wc_get_order($order1)->get_total()));
+            $assert('S1 : recette corrigée à 47 €', 4_700 === $orderNet($order1), 'net=' . $orderNet($order1));
+            $assert('S1 : plus de remise manquante', 0 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($order1)));
 
-            // 1) Rattrapage via le VRAI chemin admin (case cochée).
-            $_POST = [
-                'luziapi_order_workflow_nonce' => $nonce,
-                'luziapi_fix_volume_discount'  => 'yes',
-            ];
-            luziapi_save_admin_order_workflow($orderId, wc_get_order($orderId));
+            $fix($order1); // idempotence
+            $assert('S1 : idempotence — fee toujours −5 €', -500 === $volumeFeeCents($order1), 'fee=' . $volumeFeeCents($order1));
+            $assert('S1 : idempotence — recette toujours 47 € (pas de double contre-passe)', 4_700 === $orderNet($order1), 'net=' . $orderNet($order1));
+            $assert('S1 : commande absente de l’audit après rattrapage', ! $auditLists($order1));
 
-            $assert('Rattrapage : fee de volume −5 € présent', -500 === $volumeFeeCents($orderId), 'fee=' . $volumeFeeCents($orderId));
-            $assert('Rattrapage : commande ramenée à 47 €', 4_700 === $cents(wc_get_order($orderId)->get_total()), 'total=' . $cents(wc_get_order($orderId)->get_total()));
-            $assert('Rattrapage : recette corrigée à 47 €', 4_700 === $orderNet($orderId), 'net=' . $orderNet($orderId));
-            $assert('Rattrapage : plus de remise manquante', 0 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($orderId)));
+            // ===== Scénario 2 : remise PARTIELLE déjà présente (−2 €), encaissée à 50 € :
+            // seul le delta manquant (3 €) doit être appliqué et contre-passé. =====
+            $order2 = $makeSaleOrder('completed', static function (WC_Order $o): void {
+                $fee = new WC_Order_Item_Fee();
+                $fee->set_name(VolumeDiscount::label(5)); // libellé « … par pot … »
+                $fee->set_total('-2');
+                $o->add_item($fee);
+            });
+            $assert('S2 : remise partielle en place (−2 €)', -200 === $volumeFeeCents($order2), 'fee=' . $volumeFeeCents($order2));
+            $assert('S2 : delta manquant = 3 €', 300 === WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($order2)), 'missing=' . WooCommerceOrderVolumeDiscountWriter::missingCents(wc_get_order($order2)));
+            $recordReceipt->handle(new RecordReceiptCommand($order2, $clock->now(), 5_000, 'cash', ReceiptEntryType::Collection, 'Encaissement E2E rattrapage S2', (int) $adminIds[0]));
 
-            // 2) Idempotence : rejouer le rattrapage ne change plus rien.
-            $_POST = [
-                'luziapi_order_workflow_nonce' => $nonce,
-                'luziapi_fix_volume_discount'  => 'yes',
-            ];
-            luziapi_save_admin_order_workflow($orderId, wc_get_order($orderId));
-            $assert('Idempotence : fee toujours unique −5 €', -500 === $volumeFeeCents($orderId), 'fee=' . $volumeFeeCents($orderId));
-            $assert('Idempotence : recette toujours 47 € (pas de double contre-passe)', 4_700 === $orderNet($orderId), 'net=' . $orderNet($orderId));
+            $fix($order2);
+            $assert('S2 : remise totale −5 € après delta', -500 === $volumeFeeCents($order2), 'fee=' . $volumeFeeCents($order2));
+            $assert('S2 : commande ramenée à 47 €', 4_700 === $cents(wc_get_order($order2)->get_total()), 'total=' . $cents(wc_get_order($order2)->get_total()));
+            $assert('S2 : recette corrigée du seul delta (50 € → 47 €)', 4_700 === $orderNet($order2), 'net=' . $orderNet($order2));
 
-            // 3) Audit : la commande corrigée n'est plus listée.
-            $assert('Audit : commande absente après rattrapage', ! $auditLists($orderId));
+            // ===== Scénario 3 : commande PAS encore encaissée (aucune recette) :
+            // le fee est posé mais AUCUNE contre-passe ne doit être créée. =====
+            $order3 = $makeSaleOrder('on-hold', static function (WC_Order $o): void {
+            });
+            $assert('S3 : aucune recette au départ', 0 === $orderNet($order3), 'net=' . $orderNet($order3));
+
+            $fix($order3);
+            $assert('S3 : fee de volume −5 € présent', -500 === $volumeFeeCents($order3), 'fee=' . $volumeFeeCents($order3));
+            $assert('S3 : commande ramenée à 47 €', 4_700 === $cents(wc_get_order($order3)->get_total()), 'total=' . $cents(wc_get_order($order3)->get_total()));
+            $assert('S3 : toujours aucune recette (pas de contre-passe à tort)', 0 === $orderNet($order3), 'net=' . $orderNet($order3));
+            $receiptCount3 = (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $order3));
+            $assert('S3 : aucune ligne de recette écrite', 0 === $receiptCount3, 'lignes=' . $receiptCount3);
+
+            // ===== Scénario 4 : commande ANNULÉE — non rattrapable. Même critère
+            // (isCorrectable) pour la métabox (bouton masqué) et l'audit (non listée). =====
+            $order4 = $makeSaleOrder('cancelled', static function (WC_Order $o): void {
+            });
+            $assert('S4 : commande annulée déclarée non-corrigeable', ! WooCommerceOrderVolumeDiscountWriter::isCorrectable(wc_get_order($order4)));
+            $assert('S4 : commande annulée absente de l’audit', ! $auditLists($order4));
         } catch (\Throwable $exception) {
             $fatal = $exception->getMessage();
         } finally {
             remove_filter('user_has_cap', $grantCap);
             $_POST = [];
-            if ($orderId > 0) {
-                $wpdb->delete($pilotageSchema->tableName(), ['order_id' => $orderId], ['%d']);
-                $order = wc_get_order($orderId);
+            foreach ($orderIds as $oid) {
+                $wpdb->delete($pilotageSchema->tableName(), ['order_id' => $oid], ['%d']);
+                $order = wc_get_order($oid);
                 if ($order instanceof WC_Order) {
                     $order->delete(true);
                 }
@@ -201,9 +236,10 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
             foreach ($productIds as $pid) {
                 wp_delete_post($pid, true);
             }
-            $left = $orderId > 0
-                ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $orderId))
-                : 0;
+            $left = 0;
+            foreach ($orderIds as $oid) {
+                $left += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $pilotageSchema->tableName() . ' WHERE order_id = %d', $oid));
+            }
             $cleanup = 0 === $left ? 'ok (aucune recette résiduelle)' : ($left . ' recette(s) résiduelle(s) !');
             $assert('Nettoyage : aucune recette résiduelle', 0 === $left);
         }

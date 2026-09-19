@@ -533,7 +533,8 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
 
     $offerProducts        = luziapi_offerable_products();
     $offerRewardsAvailable = luziapi_order_available_rewards($order);
-    $volumeMissingCents   = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::missingCents($order);
+    $volumeWriter         = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
+    $volumeMissingCents   = $volumeWriter::isCorrectable($order) ? $volumeWriter::missingCents($order) : 0;
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
     ?>

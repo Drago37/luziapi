@@ -51,8 +51,9 @@ if (! function_exists('luziapi_audit_vente_volume_data')) {
             if (! $order instanceof WC_Order) {
                 continue;
             }
-            // Les commandes annulées/remboursées ne sont plus des encaissements.
-            if (in_array($order->get_status(), ['cancelled', 'refunded', 'trash'], true)) {
+            // Les commandes annulées/remboursées ne sont plus des encaissements
+            // (même critère que le rattrapage : source unique isCorrectable()).
+            if (! WooCommerceOrderVolumeDiscountWriter::isCorrectable($order)) {
                 continue;
             }
             $paidJars = WooCommerceOrderVolumeDiscountWriter::paidJars($order);

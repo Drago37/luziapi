@@ -18,13 +18,16 @@ use WC_Order_Item_Fee;
  */
 final class WooCommerceOrderVolumeDiscountWriter implements OrderVolumeDiscountWriter
 {
+    /** Statuts pour lesquels un rattrapage n'a pas de sens (plus un encaissement). */
+    private const UNCORRECTABLE_STATUSES = ['cancelled', 'refunded', 'trash'];
+
     public function applyMissing(int $orderId): AppliedVolumeDiscount
     {
         $order = wc_get_order($orderId);
         if (! $order instanceof WC_Order) {
             throw new RuntimeException('Order not found for volume discount catch-up.');
         }
-        if (in_array($order->get_status(), ['cancelled', 'refunded', 'trash'], true)) {
+        if (! self::isCorrectable($order)) {
             throw new RuntimeException('A volume discount cannot be applied to this order.');
         }
 
@@ -51,6 +54,16 @@ final class WooCommerceOrderVolumeDiscountWriter implements OrderVolumeDiscountW
             'bacs' === $order->get_payment_method() ? 'bank_transfer' : 'cash',
             $paidJars,
         );
+    }
+
+    /**
+     * Une commande est rattrapable tant qu'elle n'est pas annulée / remboursée /
+     * corbeille. Source unique du critère, réutilisée par la métabox (affichage du
+     * bouton) et l'audit, pour qu'ils ne divergent jamais de {@see applyMissing()}.
+     */
+    public static function isCorrectable(WC_Order $order): bool
+    {
+        return ! in_array($order->get_status(), self::UNCORRECTABLE_STATUSES, true);
     }
 
     /**

@@ -48,6 +48,30 @@ final class ApplyMissingVolumeDiscountHandlerTest extends TestCase
         self::assertSame(4_700, $receipts->netTotalsByOrderIds([42])[42]);
     }
 
+    public function testPartialCatchUpOnlyCorrectsTheMissingDelta(): void
+    {
+        $receipts = new DiscountReceiptRepository();
+        $clock = new DiscountClock();
+        // La commande 42 portait déjà −2 € de remise et fut encaissée à 50,00 €.
+        (new RecordReceiptHandler($receipts, $clock))->handle(new RecordReceiptCommand(
+            42,
+            new DateTimeImmutable('2026-09-08 10:00:00', new DateTimeZone('Europe/Paris')),
+            5_000,
+            'cash',
+            ReceiptEntryType::Collection,
+            'Encaissement',
+            7,
+        ));
+
+        // Seul le delta manquant (3,00 €) est appliqué et contre-passé.
+        $this->handler(new VolumeDiscountWriterStub(300), $receipts, $clock)
+            ->handle(new ApplyMissingVolumeDiscountCommand(42, 7));
+
+        self::assertCount(2, $receipts->entries);
+        self::assertSame(-300, $receipts->entries[1]->amount->cents());
+        self::assertSame(4_700, $receipts->netTotalsByOrderIds([42])[42]);
+    }
+
     public function testCatchUpOnANotYetCollectedOrderDoesNotTouchTheRegister(): void
     {
         $receipts = new DiscountReceiptRepository();
