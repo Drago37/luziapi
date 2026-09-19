@@ -22,6 +22,24 @@
         {% endfor %}
     </div>
 
+    {% if rewards_outstanding is not empty %}
+        <section class="luziapi-pilotage__panel">
+            <div class="luziapi-pilotage__panel-header">
+                <div><p class="luziapi-pilotage__eyebrow">🎟️ Avantages en cours</p><h2>{{ rewards_outstanding|length }} client{{ rewards_outstanding|length > 1 ? 's' : '' }} avec des pots offerts à réclamer</h2><p>Pots offerts acquis mais pas encore utilisés (toutes années, sans expiration).</p></div>
+            </div>
+            <div class="luziapi-pilotage__table-wrap">
+                <table class="widefat striped">
+                    <thead><tr><th>Client</th><th>Pots offerts en cours</th></tr></thead>
+                    <tbody>
+                    {% for row in rewards_outstanding %}
+                        <tr><td><a href="{{ row.details_url|e('html_attr') }}"><strong>{{ row.name|e }}</strong></a></td><td><strong>{{ row.rewards }}</strong></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
     {% if customers is empty %}
         <section class="luziapi-pilotage__panel">
             <p>Aucune activité de fidélité sur la période « {{ period_label|e }} ». Les pots se comptent dès qu’une commande « Terminée » contient des produits cochés « Pot admissible à la fidélité ».</p>
@@ -78,7 +96,7 @@
         <div class="luziapi-pilotage__panel-header">
             <div><p class="luziapi-pilotage__eyebrow">Synthèse</p><h2>Total depuis le début (toutes années)</h2><p>Indépendant de la période sélectionnée ci-dessus.</p></div>
         </div>
-        <div class="luziapi-pilotage__metrics luziapi-pilotage__metrics--four">
+        <div class="luziapi-pilotage__metrics luziapi-pilotage__metrics--five">
             {% for metric in grand_total %}
                 <div class="luziapi-pilotage__metric"><span>{{ metric.label|e }}</span><strong>{{ metric.value|e }}</strong></div>
             {% endfor %}

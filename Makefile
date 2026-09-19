@@ -88,6 +88,10 @@ backfill-receipts-local: ## Porte au registre l'encaissement des commandes déj�
 backfill-loyalty-local: ## Rétro-crédite les pots des commandes déjà terminées (LUZIAPI_BACKFILL_DRY=1 pour simuler)
 	$(DC) run --rm -e LUZIAPI_BACKFILL_DRY wpcli wp eval "require ABSPATH . '$(THEME)/tools/backfill-loyalty.php';" --user=admin
 
+.PHONY: backfill-loyalty-prod
+backfill-loyalty-prod: ## Rétro-crédite les pots des commandes terminées sur la PROD (SIMULATION par défaut ; APPLY=1 pour écrire)
+	@LUZIAPI_BACKFILL_APPLY=$(APPLY) LUZIAPI_BACKFILL_DETAIL=$(DETAIL) bash scripts/backfill-loyalty-prod.sh
+
 .PHONY: audit-receipts-local
 audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-receipt-drift.php';" --user=admin
@@ -96,9 +100,33 @@ audit-receipts-local: ## Audite la dérive recette↔commandes en local (LUZIAPI
 audit-receipts-prod: ## Audite la dérive recette↔commandes sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
 	@bash scripts/audit-receipts-prod.sh
 
+.PHONY: audit-loyalty-local
+audit-loyalty-local: ## Audite la dérive fidélité en local (trous de crédit + orphelins ; LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-loyalty-drift.php';" --user=admin
+
+.PHONY: audit-loyalty-prod
+audit-loyalty-prod: ## Audite la dérive fidélité sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	@bash scripts/audit-loyalty-prod.sh
+
+.PHONY: audit-vente-volume-local
+audit-vente-volume-local: ## Audite les commandes Vente sans remise de volume en local (LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	$(DC) run --rm -e LUZIAPI_AUDIT_YEAR wpcli wp eval "require ABSPATH . '$(THEME)/tools/audit-vente-volume.php';" --user=admin
+
+.PHONY: audit-vente-volume-prod
+audit-vente-volume-prod: ## Audite les commandes Vente sans remise de volume sur la PROD (lecture seule, LUZIAPI_AUDIT_YEAR=2026 pour une année)
+	@bash scripts/audit-vente-volume-prod.sh
+
 .PHONY: loyalty-inspect-prod
 loyalty-inspect-prod: ## Inspecte une commande côté fidélité sur la PROD (lecture seule) — ex : make loyalty-inspect-prod ORDER=106
 	@LUZIAPI_ORDER=$(ORDER) bash scripts/loyalty-inspect-prod.sh
+
+.PHONY: loyalty-customer-inspect-local
+loyalty-customer-inspect-local: ## Inspecte la fidélité d'un client en local (lecture seule) — ex : make loyalty-customer-inspect-local Q="gaultier"
+	$(DC) run --rm -e LUZIAPI_INSPECT_QUERY="$(Q)" wpcli wp eval "require ABSPATH . '$(THEME)/tools/loyalty-customer-inspect.php';" --user=admin
+
+.PHONY: loyalty-customer-inspect-prod
+loyalty-customer-inspect-prod: ## Inspecte la fidélité d'un client sur la PROD (lecture seule) — ex : make loyalty-customer-inspect-prod Q="gaultier"
+	@LUZIAPI_INSPECT_QUERY="$(Q)" bash scripts/loyalty-customer-inspect-prod.sh
 
 .PHONY: directory-inspect-prod
 directory-inspect-prod: ## Inspecte les listes Brevo + les groupes du répertoire client sur la PROD (lecture seule)
@@ -111,6 +139,34 @@ e2e-receipt-local: ## Teste l'enregistrement auto de la recette au passage « Te
 .PHONY: e2e-loyalty-local
 e2e-loyalty-local: ## Teste l'acquisition de fidélité (crédit/contre-passation des pots) au passage « Terminée »
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-loyalty-on-complete.php';" --user=admin
+
+.PHONY: e2e-backfill-loyalty-local
+e2e-backfill-loyalty-local: ## Teste le backfill de fidélité (rétro-crédit des commandes déjà terminées, simulation puis réel, idempotence)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-backfill-loyalty.php';" --user=admin
+
+.PHONY: e2e-audit-loyalty-local
+e2e-audit-loyalty-local: ## Teste l'audit de dérive fidélité (trou de crédit détecté, commande créditée saine, orphelin après suppression)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-audit-loyalty.php';" --user=admin
+
+.PHONY: e2e-identity-links-local
+e2e-identity-links-local: ## Teste les liens d'identité fidélité (auto-lien e-mail/téléphone, fusion manuelle, agrégation)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-identity-links.php';" --user=admin
+
+.PHONY: e2e-merge-admin-local
+e2e-merge-admin-local: ## Teste le chemin admin de fusion/défusion de clients fidélité (vrai CustomersController)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-merge-admin.php';" --user=admin
+
+.PHONY: e2e-vente-volume-local
+e2e-vente-volume-local: ## Teste la remise de volume (−1 €/pot dès 2 pots) dans la Vente (plusieurs miels)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente-volume.php';" --user=admin
+
+.PHONY: e2e-cart-volume-local
+e2e-cart-volume-local: ## Teste la remise de volume au PANIER du site (fee woocommerce_cart_calculate_fees)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-cart-volume.php';" --user=admin
+
+.PHONY: e2e-vente-volume-rattrapage-local
+e2e-vente-volume-rattrapage-local: ## Teste le rattrapage de la remise de volume sur une commande (vrai chemin admin + recette + audit)
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-vente-volume-rattrapage.php';" --user=admin
 
 .PHONY: e2e-exclusion-local
 e2e-exclusion-local: ## Teste la case « Exclure de la fidélité » (vrai chemin admin : save → action → recalcul)
@@ -192,6 +248,10 @@ e2e-exclusion-prod: ## Test e2e de la case « Exclure de la fidélité » sur la
 .PHONY: e2e-offered-pot-prod
 e2e-offered-pot-prod: ## Test e2e de l'ajout d'un pot offert à une commande existante sur la PROD (isolé, aucun e-mail, tout nettoyé)
 	@bash scripts/e2e-offered-pot-prod.sh
+
+.PHONY: e2e-vente-volume-rattrapage-prod
+e2e-vente-volume-rattrapage-prod: ## Test e2e du rattrapage de la remise de volume sur la PROD (isolé, aucun e-mail, tout nettoyé)
+	@bash scripts/e2e-vente-volume-rattrapage-prod.sh
 
 .PHONY: e2e-orphan-receipt-prod
 e2e-orphan-receipt-prod: ## Test e2e du retrait des recettes orphelines sur la PROD (isolé, aucun e-mail, tout nettoyé)

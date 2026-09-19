@@ -7,8 +7,10 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreatedQuickSale;
 use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Pilotage\Application\Port\QuickSaleOrderWriter;
+use LuziApi\Pilotage\Domain\Sales\VolumeDiscount;
 use RuntimeException;
 use WC_Order;
+use WC_Order_Item_Fee;
 use WC_Order_Item_Shipping;
 use WC_Product;
 
@@ -79,14 +81,26 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
         if (! $order instanceof WC_Order) {
             throw new RuntimeException('Unable to create WooCommerce order.');
         }
+        $paidJars = 0;
         foreach ($command->lines as $line) {
             $order->add_product($resolved[$line->productId], $line->quantity);
+            $paidJars += $line->quantity;
         }
         foreach ($command->giftLines as $line) {
             $this->addOfferedItem($order, $resolved[$line->productId], $line->quantity, false);
         }
         foreach ($command->rewardLines as $line) {
             $this->addOfferedItem($order, $resolved[$line->productId], $line->quantity, true);
+        }
+        // Remise de volume « −1 € par pot dès 2 pots », même règle que le panier du site
+        // (le fee de panier ne se déclenche pas sur une commande admin). Portée aux pots
+        // PAYÉS : les lignes offertes/fidélité sont déjà à 0 €.
+        $volumeEuros = VolumeDiscount::euros($paidJars);
+        if ($volumeEuros > 0) {
+            $fee = new WC_Order_Item_Fee();
+            $fee->set_name(VolumeDiscount::label($paidJars));
+            $fee->set_total((string) (-1 * $volumeEuros));
+            $order->add_item($fee);
         }
         if (null !== $command->discount) {
             WooCommerceThankYouDiscount::applyTo($order, $command->discount);

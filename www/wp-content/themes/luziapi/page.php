@@ -28,6 +28,8 @@ if ($post && $post->post_name === 'conditions-generales-de-vente') {
     $context['cgv_label']          = defined('LUZIAPI_CGV_LABEL') ? LUZIAPI_CGV_LABEL : '';
     $context['cgv_pdf_url']        = function_exists('luziapi_cgv_pdf_url') ? luziapi_cgv_pdf_url() : '';
     $context['withdrawal_url']     = function_exists('luziapi_withdrawal_url') ? luziapi_withdrawal_url() : '';
+    $context['loyalty_program_url'] = function_exists('luziapi_loyalty_page_url') ? luziapi_loyalty_page_url() : '';
+    $context['loyalty']            = function_exists('luziapi_loyalty_program_numbers') ? luziapi_loyalty_program_numbers() : [];
 }
 
 if ($post && $post->post_name === 'retractation') {
@@ -39,6 +41,14 @@ if ($post && $post->post_name === 'retractation') {
 
 if ($post && $post->post_name === 'politique-de-confidentialite') {
     array_unshift($templates, 'page-politique-de-confidentialite.twig');
+}
+
+// Page publique du programme de fidélité (règles complètes + règlement versionné).
+if ($post && $post->post_name === 'programme-de-fidelite') {
+    array_unshift($templates, 'page-programme-de-fidelite.twig');
+    $context['loyalty']                 = function_exists('luziapi_loyalty_program_numbers') ? luziapi_loyalty_program_numbers() : [];
+    $context['loyalty_reglement_pdf']   = function_exists('luziapi_loyalty_reglement_pdf_url') ? luziapi_loyalty_reglement_pdf_url() : '';
+    $context['cgv_url']                 = function_exists('luziapi_cgv_url') ? luziapi_cgv_url() : '';
 }
 
 if ($post && $post->post_name === 'suivi-commande') {

@@ -152,7 +152,7 @@ function luziapi_email_loyalty_summary(?\WC_Order $order): ?array
  * « Terminée » : les pots ne sont pas encore crédités). `null` si le programme
  * n'est pas actif.
  *
- * @return array{reward_threshold:int, next:int, lifetime_years:int}|null
+ * @return array{reward_threshold:int, next:int}|null
  */
 function luziapi_email_loyalty_reminder(): ?array
 {
@@ -166,7 +166,6 @@ function luziapi_email_loyalty_reminder(): ?array
     return [
         'reward_threshold' => $threshold,
         'next'             => $threshold + 1,
-        'lifetime_years'   => \LuziApi\Loyalty\Domain\LoyaltyProgress::POT_LIFETIME_YEARS,
     ];
 }
 

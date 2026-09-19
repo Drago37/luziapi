@@ -533,6 +533,8 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
 
     $offerProducts        = luziapi_offerable_products();
     $offerRewardsAvailable = luziapi_order_available_rewards($order);
+    $volumeWriter         = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
+    $volumeMissingCents   = $volumeWriter::isCorrectable($order) ? $volumeWriter::missingCents($order) : 0;
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
     ?>
@@ -576,22 +578,39 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
         </p>
         <?php if ($offerProducts !== []) : ?>
         <div class="form-field form-field-wide luziapi-offer-pot">
-            <label for="luziapi_offer_product"><strong>Ajouter un pot offert</strong></label>
-            <div class="luziapi-offer-pot__row">
-                <select id="luziapi_offer_product" name="luziapi_offer_product">
-                    <option value="">— Aucun —</option>
-                    <?php foreach ($offerProducts as $offerProduct) : ?>
-                        <option value="<?php echo esc_attr((string) $offerProduct->get_id()); ?>"><?php echo esc_html($offerProduct->get_name()); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <input type="number" id="luziapi_offer_qty" name="luziapi_offer_qty" min="0" value="0" aria-label="Quantité de pots offerts">
+            <label><strong>Ajouter un ou plusieurs pots offerts</strong></label>
+            <div class="luziapi-offer-pot__rows">
+                <?php
+                $offerRowMarkup = static function () use ($offerProducts, $offerRewardsAvailable): void { ?>
+                    <div class="luziapi-offer-pot__row">
+                        <select name="luziapi_offer_product[]" aria-label="Miel offert">
+                            <option value="">— Aucun —</option>
+                            <?php foreach ($offerProducts as $offerProduct) : ?>
+                                <option value="<?php echo esc_attr((string) $offerProduct->get_id()); ?>"><?php echo esc_html($offerProduct->get_name()); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="number" name="luziapi_offer_qty[]" min="0" value="0" aria-label="Quantité de pots offerts">
+                        <select name="luziapi_offer_type[]" aria-label="Type de pot offert">
+                            <option value="gift">Geste commercial</option>
+                            <option value="loyalty" <?php disabled($offerRewardsAvailable <= 0); ?>>Fidélité</option>
+                        </select>
+                    </div>
+                <?php };
+            $offerRowMarkup();
+            ?>
             </div>
-            <p class="luziapi-offer-pot__types">
-                <label><input type="radio" name="luziapi_offer_type" value="gift" checked> Geste commercial</label>
-                <label><input type="radio" name="luziapi_offer_type" value="loyalty" <?php disabled($offerRewardsAvailable <= 0); ?>> Fidélité (<?php echo esc_html((string) $offerRewardsAvailable); ?> avantage<?php echo $offerRewardsAvailable > 1 ? 's' : ''; ?> dispo.)</label>
-            </p>
-            <span class="description">Ajoute une ligne à 0 € (sortie du stock) sans changer le montant ni la recette. « Fidélité » consomme un avantage du client (borné au disponible).</span>
+            <button type="button" class="button luziapi-offer-pot__add">+ Ajouter un autre miel</button>
+            <span class="description">Une ligne par miel : chaque ligne ajoute des pots à 0 € (sortie du stock) sans changer le montant ni la recette. « Fidélité » consomme un avantage du client par pot — <?php echo esc_html((string) $offerRewardsAvailable); ?> avantage<?php echo $offerRewardsAvailable > 1 ? 's' : ''; ?> disponible<?php echo $offerRewardsAvailable > 1 ? 's' : ''; ?> (le surplus est refusé).</span>
         </div>
+        <?php endif; ?>
+        <?php if ($volumeMissingCents > 0) : ?>
+        <p class="form-field form-field-wide luziapi-volume-fix">
+            <label for="luziapi_fix_volume_discount" style="display:flex;gap:7px;align-items:flex-start;">
+                <input type="checkbox" id="luziapi_fix_volume_discount" name="luziapi_fix_volume_discount" value="yes">
+                <strong>Corriger la remise de volume (−<?php echo esc_html(number_format($volumeMissingCents / 100, 2, ',', ' ')); ?> €)</strong>
+            </label>
+            <span class="description">Cette commande a été créée sans la remise « −1 € par pot dès 2 pots » (bug corrigé). Cocher applique la remise manquante et, si la commande a déjà été encaissée, aligne la recette au registre sur le montant corrigé (jamais de double correction : une recette déjà juste n’est pas retouchée). Sans effet si tout est déjà correct.</span>
+        </p>
         <?php endif; ?>
         <p class="form-field form-field-wide">
             <label for="luziapi_cancellation_reason"><strong>Motif d’annulation communiqué au client</strong></label>
@@ -602,20 +621,87 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
     <style>
         .luziapi-order-workflow .luziapi-offer-pot__row {
             display: grid;
-            grid-template-columns: 1fr 78px;
+            grid-template-columns: minmax(0, 1fr) 64px minmax(120px, 150px);
             gap: 8px;
             align-items: center;
-            margin: 4px 0;
+            margin: 0 0 6px;
         }
         .luziapi-order-workflow .luziapi-offer-pot__row input,
         .luziapi-order-workflow .luziapi-offer-pot__row select {
             box-sizing: border-box;
             margin: 0;
+            max-width: none; /* la grille gère la largeur, pas le max-width global */
         }
-        .luziapi-order-workflow .luziapi-offer-pot__types {
-            display: flex;
-            gap: 16px;
-            margin: 6px 0 2px;
+        .luziapi-order-workflow .luziapi-offer-pot__add {
+            margin: 2px 0 4px;
+        }
+        /* Rééquilibrage de l'écran commande. WooCommerce empile les 3 colonnes
+           (Général / Facturation / Expédition) en flottants de 32 %, or « Général »
+           porte TOUS nos champs workflow → colonne interminable et déséquilibrée,
+           avec un grand vide à droite. On passe le conteneur en grille : Facturation
+           et Expédition sur la ligne du haut, « Général » PLEINE LARGEUR en dessous,
+           et son bloc workflow réparti sur 2 colonnes. */
+        #order_data .order_data_column_container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 24px;
+            align-items: start;
+        }
+        #order_data .order_data_column {
+            float: none !important;
+            width: auto !important;
+            box-sizing: border-box;
+        }
+        #order_data .order_data_column:nth-child(2) { grid-column: 1; grid-row: 1; } /* Facturation */
+        #order_data .order_data_column:nth-child(3) { grid-column: 2; grid-row: 1; } /* Expédition */
+        #order_data .order_data_column:nth-child(1) { /* Général, pleine largeur dessous */
+            grid-column: 1 / -1;
+            grid-row: 2;
+            margin-top: 8px;
+            border-top: 1px solid #e2ddd4;
+            padding-top: 10px;
+        }
+        /* Le bloc workflow (nos nombreux champs) sur 2 colonnes. */
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow {
+            columns: 2;
+            column-gap: 32px;
+        }
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow > .form-field {
+            break-inside: avoid;
+            margin-top: 0;
+        }
+        /* Champs simples de « Général » : largeur raisonnable une fois la colonne large. */
+        #order_data .order_data_column:nth-child(1) > p.form-field select,
+        #order_data .order_data_column:nth-child(1) > p.form-field > input,
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow select,
+        #order_data .order_data_column:nth-child(1) .luziapi-order-workflow textarea {
+            max-width: 340px;
+        }
+        /* Cases à cocher et boutons radio à leur taille naturelle : bat la largeur
+           imposée par WooCommerce (sélecteur #order_data … p.form-field input, plus
+           spécifique que la classe seule) via !important, ciblé aux seuls check/radio. */
+        #order_data .luziapi-order-workflow input[type="checkbox"],
+        #order_data .luziapi-order-workflow input[type="radio"] {
+            width: auto !important;
+            max-width: none !important;
+            flex: 0 0 auto;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        #order_data .luziapi-order-workflow .luziapi-offer-pot__types label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        @media only screen and (max-width: 1100px) {
+            #order_data .order_data_column_container { grid-template-columns: 1fr; }
+            #order_data .order_data_column:nth-child(1),
+            #order_data .order_data_column:nth-child(2),
+            #order_data .order_data_column:nth-child(3) {
+                grid-column: 1;
+                grid-row: auto;
+            }
+            #order_data .order_data_column:nth-child(1) .luziapi-order-workflow { columns: 1; }
         }
         #order_data .order_data_column .form-field .luziapi-order-datetime {
             display: grid;
@@ -662,6 +748,27 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const box = document.querySelector('.luziapi-order-workflow');
+
+        // Pots offerts : « Ajouter un autre miel » clone la dernière ligne (produit +
+        // quantité + type), réinitialisée, pour offrir plusieurs miels différents en
+        // un seul enregistrement.
+        const offerPot = document.querySelector('.luziapi-offer-pot');
+        if (offerPot) {
+            const offerRows = offerPot.querySelector('.luziapi-offer-pot__rows');
+            const offerAdd = offerPot.querySelector('.luziapi-offer-pot__add');
+            if (offerRows && offerAdd) {
+                offerAdd.addEventListener('click', function () {
+                    const last = offerRows.querySelector('.luziapi-offer-pot__row:last-child');
+                    if (!last) {
+                        return;
+                    }
+                    const clone = last.cloneNode(true);
+                    clone.querySelectorAll('select').forEach(function (select) { select.selectedIndex = 0; });
+                    clone.querySelectorAll('input[type="number"]').forEach(function (input) { input.value = '0'; });
+                    offerRows.appendChild(clone);
+                });
+            }
+        }
         const status = document.querySelector('#order_status');
         const reason = document.querySelector('#luziapi_cancellation_reason');
         const fulfillment = document.querySelector('#luziapi_fulfillment_mode');
@@ -1040,6 +1147,14 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
     }
 
     luziapi_maybe_add_offered_pot($order);
+
+    // Rattrapage de la remise de volume manquante (case cochée sur la fiche). Émet
+    // une action dédiée, consommée par le subscriber Pilotage qui applique le fee
+    // manquant et corrige la recette : on ne recalcule PAS à chaque édition.
+    if (isset($_POST['luziapi_fix_volume_discount'])
+        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_fix_volume_discount']))) {
+        do_action('luziapi_fix_volume_discount', $orderId, $order);
+    }
 }
 add_action('woocommerce_process_shop_order_meta', 'luziapi_save_admin_order_workflow', 20, 2);
 
@@ -1091,73 +1206,133 @@ function luziapi_order_available_rewards(\WC_Order $order): int
 }
 
 /**
- * Ajoute, si demandé depuis la fiche commande, un pot offert (geste ou fidélité)
- * à une commande existante : ligne à 0 € (montant inchangé donc recette intacte),
- * stock décompté du seul nouvel item, et — pour la fidélité — consommation d'un
- * avantage portée au journal par une réconciliation ciblée.
+ * Ajoute, si demandé depuis la fiche commande, un ou PLUSIEURS pots offerts (geste
+ * ou fidélité, chacun avec son produit et sa quantité) à une commande existante :
+ * lignes à 0 € (montant inchangé donc recette intacte), stock décompté des seuls
+ * nouveaux items, et — pour la fidélité — consommation des avantages portée au
+ * journal par une réconciliation ciblée (une seule pour tout le lot).
+ *
+ * Les champs sont des tableaux (`luziapi_offer_product[]`, `_qty[]`, `_type[]`) pour
+ * offrir plusieurs miels différents en un seul enregistrement ; la forme scalaire
+ * (une seule ligne) reste acceptée pour compatibilité.
  */
 function luziapi_maybe_add_offered_pot(\WC_Order $order): void
 {
-    $productId = absint($_POST['luziapi_offer_product'] ?? 0);
-    $quantity  = absint($_POST['luziapi_offer_qty'] ?? 0);
-    if ($productId <= 0 || $quantity <= 0) {
+    $toList = static function (mixed $raw): array {
+        if (is_array($raw)) {
+            return array_values($raw);
+        }
+
+        return null === $raw ? [] : [$raw];
+    };
+    $rawProducts = $toList($_POST['luziapi_offer_product'] ?? null);
+    $rawQty      = $toList($_POST['luziapi_offer_qty'] ?? null);
+    $rawTypes    = $toList($_POST['luziapi_offer_type'] ?? null);
+
+    // Normalise en lignes {productId, qty, loyalty}, en ignorant les lignes vides.
+    $rows = [];
+    foreach ($rawProducts as $i => $rawProduct) {
+        $productId = absint($rawProduct);
+        $quantity  = absint($rawQty[$i] ?? 0);
+        if ($productId <= 0 || $quantity <= 0) {
+            continue;
+        }
+        $typeRaw = $rawTypes[$i] ?? 'gift';
+        $loyalty = is_string($typeRaw) && 'loyalty' === sanitize_key(wp_unslash($typeRaw));
+        $rows[] = ['productId' => $productId, 'quantity' => $quantity, 'loyalty' => $loyalty];
+    }
+    if ([] === $rows) {
         return;
     }
-    $loyalty = 'loyalty' === sanitize_key(wp_unslash((string) ($_POST['luziapi_offer_type'] ?? 'gift')));
 
     $notify = static function (string $message, bool $error) use ($order): void {
         set_transient('luziapi_offer_pot_notice_' . get_current_user_id(), ['message' => $message, 'error' => $error], 120);
         $order->add_order_note($message, 0);
     };
 
-    $product = wc_get_product($productId);
-    if (! $product instanceof \WC_Product || ! $product->is_purchasable()) {
-        $notify('Pot offert non ajouté : produit invalide.', true);
-
-        return;
-    }
-    if ($product->managing_stock() && null !== $product->get_stock_quantity() && $product->get_stock_quantity() < $quantity) {
-        $notify('Pot offert non ajouté : stock insuffisant.', true);
-
-        return;
-    }
-    if ($loyalty && $quantity > luziapi_order_available_rewards($order)) {
-        $notify('Pot offert non ajouté : pas assez d’avantages fidélité disponibles pour ce client.', true);
-
-        return;
-    }
-
+    // Budget d'avantages consommables sur ce lot : la réconciliation n'ayant lieu
+    // qu'à la fin, le disponible ne bouge pas pendant la boucle — on le décompte donc
+    // nous-mêmes, ligne fidélité après ligne fidélité.
+    $loyaltyRemaining = luziapi_order_available_rewards($order);
     $totalBefore = (float) $order->get_total();
-    $item = \LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $quantity, $loyalty);
+
+    $added = [];
+    $errors = [];
+    $anyLoyalty = false;
+    foreach ($rows as $row) {
+        $product = wc_get_product($row['productId']);
+        if (! $product instanceof \WC_Product || ! $product->is_purchasable()) {
+            $errors[] = 'produit invalide';
+
+            continue;
+        }
+        // Stock frais à chaque ligne (un même produit peut revenir sur deux lignes).
+        if ($product->managing_stock() && null !== $product->get_stock_quantity() && $product->get_stock_quantity() < $row['quantity']) {
+            $errors[] = sprintf('%s : stock insuffisant', $product->get_name());
+
+            continue;
+        }
+        if ($row['loyalty'] && $row['quantity'] > $loyaltyRemaining) {
+            $errors[] = sprintf('%s : pas assez d’avantages fidélité disponibles', $product->get_name());
+
+            continue;
+        }
+
+        $item = \LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $row['quantity'], $row['loyalty']);
+        $added[] = ['item' => $item, 'product' => $product, 'quantity' => $row['quantity'], 'loyalty' => $row['loyalty']];
+        if ($row['loyalty']) {
+            $loyaltyRemaining -= $row['quantity'];
+            $anyLoyalty = true;
+        }
+    }
+
+    if ([] === $added) {
+        if ([] !== $errors) {
+            $notify('Pot offert non ajouté : ' . implode(' ; ', $errors) . '.', true);
+        }
+
+        return;
+    }
+
     $order->calculate_totals(false);
 
     // Garde-fou : une commande ne doit pas voir son montant changer (recette intacte).
     if (abs((float) $order->get_total() - $totalBefore) > 0.0001) {
-        $notify('Pot offert non ajouté : il aurait modifié le montant de la commande.', true);
+        $notify('Pots offerts non ajoutés : ils auraient modifié le montant de la commande.', true);
 
-        return; // item non persisté : pas de save()
+        return; // items non persistés : pas de save()
     }
 
     $order->save();
 
-    // Décompte ciblé du stock : seulement le nouvel item (les items d'origine
-    // portent déjà leur `_reduced_stock`). On le marque réduit pour éviter un double
+    // Décompte ciblé du stock : seulement les nouveaux items (les items d'origine
+    // portent déjà leur `_reduced_stock`). On les marque réduits pour éviter un double
     // décompte ultérieur et permettre une restitution correcte à l'annulation.
-    if ($product->managing_stock()) {
-        wc_update_product_stock($product, $quantity, 'decrease');
-        $item->add_meta_data('_reduced_stock', (string) $quantity, true);
-        $item->save();
+    foreach ($added as $entry) {
+        if ($entry['product']->managing_stock()) {
+            wc_update_product_stock($entry['product'], $entry['quantity'], 'decrease');
+            $entry['item']->add_meta_data('_reduced_stock', (string) $entry['quantity'], true);
+            $entry['item']->save();
+        }
     }
 
-    $notify(sprintf(
-        'Pot offert ajouté : %d × %s (%s).',
-        $quantity,
-        $product->get_name(),
-        $loyalty ? 'fidélité' : 'geste commercial',
-    ), false);
+    $parts = array_map(
+        static fn (array $entry): string => sprintf(
+            '%d × %s (%s)',
+            $entry['quantity'],
+            $entry['product']->get_name(),
+            $entry['loyalty'] ? 'fidélité' : 'geste commercial',
+        ),
+        $added,
+    );
+    $message = 'Pot(s) offert(s) ajouté(s) : ' . implode(' ; ', $parts) . '.';
+    if ([] !== $errors) {
+        $message .= ' Non ajouté : ' . implode(' ; ', $errors) . '.';
+    }
+    $notify($message, [] !== $errors);
 
-    if ($loyalty) {
-        // Recalcul ciblé : porte la consommation de l'avantage au journal fidélité.
+    if ($anyLoyalty) {
+        // Recalcul ciblé : porte la consommation des avantages au journal fidélité.
         do_action('luziapi_loyalty_order_lines_changed', $order->get_id(), $order);
     }
 }
@@ -1168,6 +1343,24 @@ function luziapi_maybe_add_offered_pot(\WC_Order $order): void
  */
 add_action('admin_notices', static function (): void {
     $key = 'luziapi_offer_pot_notice_' . get_current_user_id();
+    $notice = get_transient($key);
+    if (! is_array($notice) || ! isset($notice['message'])) {
+        return;
+    }
+    delete_transient($key);
+    printf(
+        '<div class="notice %s is-dismissible"><p>%s</p></div>',
+        ! empty($notice['error']) ? 'notice-error' : 'notice-success',
+        esc_html((string) $notice['message']),
+    );
+});
+
+/**
+ * Affiche l'issue d'un rattrapage de remise de volume déposé par le subscriber
+ * {@see \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
+ */
+add_action('admin_notices', static function (): void {
+    $key = 'luziapi_volume_fix_notice_' . get_current_user_id();
     $notice = get_transient($key);
     if (! is_array($notice) || ! isset($notice['message'])) {
         return;

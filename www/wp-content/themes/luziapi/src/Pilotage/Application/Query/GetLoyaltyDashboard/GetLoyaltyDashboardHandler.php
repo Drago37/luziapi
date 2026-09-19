@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard;
 
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Application\Port\LoyaltyEconomicsReader;
+use LuziApi\Pilotage\Application\Port\LoyaltyRewardsReader;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
@@ -13,17 +14,23 @@ use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 
 /**
  * Construit le récapitulatif de fidélité par client et les classements pour une
- * période (une année, les 2 dernières années, ou tout), à partir des commandes
+ * période (une année, ou toutes les années), à partir des commandes
  * **terminées**. Fournit aussi les totaux cumulés toutes années pour un encart
- * de synthèse toujours visible.
+ * de synthèse toujours visible, dont le **passif** = avantages fidélité dus mais
+ * non encore réclamés (pots offerts que la boutique devra honorer).
  */
 final readonly class GetLoyaltyDashboardHandler
 {
+    /**
+     * @param LoyaltyRewardsReader|null $rewards source des avantages disponibles par
+     *                                           client (passif) ; `null` = passif à 0
+     */
     public function __construct(
         private OrderRepository $orders,
         private CustomerHistoryProjector $projector,
         private LoyaltyEconomicsReader $economics,
         private Clock $clock,
+        private ?LoyaltyRewardsReader $rewards = null,
     ) {
     }
 
@@ -78,7 +85,14 @@ final readonly class GetLoyaltyDashboardHandler
 
         $byPots = $this->sorted($rows, static fn (LoyaltyCustomerRow $r): int => $r->potsBought);
 
+        // Avantages disponibles par client (toutes années, les pots n'expirent pas) :
+        // une seule requête sert et le passif cumulé et la liste « en cours ».
+        $rewardsByCustomer = $this->availableRewardsByCustomer($profiles);
+        $outstanding = $this->rewardsOutstanding($profiles, $rewardsByCustomer);
+
         return new LoyaltyDashboardView(
+            grandRewardsOwed: array_sum($rewardsByCustomer),
+            rewardsOutstanding: $outstanding,
             periodKey: $periodKey,
             periodLabel: $periodLabel,
             availableYears: $availableYears,
@@ -98,6 +112,62 @@ final readonly class GetLoyaltyDashboardHandler
     }
 
     /**
+     * Avantages fidélité disponibles (non réclamés) par client, tous millésimes (les
+     * pots n'expirent pas), calculés sur les clés d'identité de chaque profil en une
+     * requête. Le total est le **passif** du programme ; la liste non nulle alimente
+     * « Pots offerts en cours ».
+     *
+     * @param list<CustomerProfile> $profiles
+     *
+     * @return array<string, int> customerId => avantages disponibles
+     */
+    private function availableRewardsByCustomer(array $profiles): array
+    {
+        if (! $this->rewards instanceof LoyaltyRewardsReader) {
+            return [];
+        }
+
+        $keysByCustomer = [];
+        foreach ($profiles as $profile) {
+            if ([] !== $profile->identityIds) {
+                $keysByCustomer[$profile->id] = $profile->identityIds;
+            }
+        }
+        if ([] === $keysByCustomer) {
+            return [];
+        }
+
+        return $this->rewards->availableRewardsByCustomer($keysByCustomer);
+    }
+
+    /**
+     * Clients ayant au moins un avantage en cours, avec leur nom, triés décroissant.
+     *
+     * @param list<CustomerProfile> $profiles
+     * @param array<string, int>    $rewardsByCustomer
+     *
+     * @return list<LoyaltyRewardHolder>
+     */
+    private function rewardsOutstanding(array $profiles, array $rewardsByCustomer): array
+    {
+        $profilesById = [];
+        foreach ($profiles as $profile) {
+            $profilesById[$profile->id] = $profile;
+        }
+
+        $holders = [];
+        foreach ($rewardsByCustomer as $customerId => $available) {
+            if ($available <= 0 || ! isset($profilesById[$customerId])) {
+                continue;
+            }
+            $holders[] = new LoyaltyRewardHolder($customerId, $this->displayName($profilesById[$customerId]), $available);
+        }
+        usort($holders, static fn (LoyaltyRewardHolder $a, LoyaltyRewardHolder $b): int => $b->rewards <=> $a->rewards);
+
+        return $holders;
+    }
+
+    /**
      * @param list<int> $availableYears
      *
      * @return array{0: list<int>, 1: string, 2: string}
@@ -107,18 +177,10 @@ final readonly class GetLoyaltyDashboardHandler
         if (null !== $period && 1 === preg_match('/^\d{4}$/', $period) && in_array((int) $period, $availableYears, true)) {
             return [[(int) $period], $period, 'Année ' . $period];
         }
-        if ('all' === $period) {
-            return [$availableYears, 'all', 'Toutes les années'];
-        }
 
-        $lastTwo = array_slice($availableYears, 0, 2);
-        if (count($lastTwo) > 1) {
-            $label = '2 dernières années (' . min($lastTwo) . '–' . max($lastTwo) . ')';
-        } else {
-            $label = 'Année ' . ($lastTwo[0] ?? '');
-        }
-
-        return [$lastTwo, 'last2', $label];
+        // Par défaut (et pour 'all') : toutes les années. Les pots n'expirent plus,
+        // donc plus de fenêtre glissante « 2 dernières années ».
+        return [$availableYears, 'all', 'Toutes les années'];
     }
 
     /**

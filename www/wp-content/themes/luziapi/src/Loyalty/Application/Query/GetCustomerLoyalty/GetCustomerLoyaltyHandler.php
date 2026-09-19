@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Query\GetCustomerLoyalty;
 
-use LuziApi\Loyalty\Application\Port\Clock;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\LoyaltyProgress;
 
 final readonly class GetCustomerLoyaltyHandler
 {
     /**
-     * @param Clock|null $clock horloge servant à expirer les pots de plus de
-     *                          `LoyaltyProgress::POT_LIFETIME_YEARS` ans ; `null`
-     *                          désactive l'expiration (solde tous millésimes)
+     * @param LoyaltyIdentityLinks|null $links étend les clés d'un client à toutes celles
+     *                                         de son groupe (2ᵉ e-mail, changement de
+     *                                         numéro, fusion manuelle) ; `null` = pas de
+     *                                         regroupement. N'est appliqué qu'aux lectures
+     *                                         mono-client (fiche, suivi, bornage du geste),
+     *                                         pas à la somme multi-clients (pour ne pas
+     *                                         double-compter deux profils fusionnés).
      */
     public function __construct(
         private LoyaltyLedger $ledger,
-        private ?Clock $clock = null,
+        private ?LoyaltyIdentityLinks $links = null,
     ) {
     }
 
@@ -30,8 +34,9 @@ final readonly class GetCustomerLoyaltyHandler
         if ([] === $keys) {
             return CustomerLoyaltyView::empty();
         }
+        $keys = $this->expand($keys);
 
-        $totals = $this->ledger->totalsForCustomerKeys($keys, $this->potsSince());
+        $totals = $this->ledger->totalsForCustomerKeys($keys);
         $progress = new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']);
         $entries = $this->ledger->entriesForCustomerKeys($keys);
 
@@ -46,14 +51,22 @@ final readonly class GetCustomerLoyaltyHandler
      */
     public function availableRewards(array $customerKeys): int
     {
-        $totals = $this->ledger->totalsForCustomerKeys($customerKeys, $this->potsSince());
+        $totals = $this->ledger->totalsForCustomerKeys($this->expand($customerKeys));
 
         return (new LoyaltyProgress($totals['pots'], $totals['rightsConsumed']))->rightsAvailable;
     }
 
-    private function potsSince(): ?\DateTimeImmutable
+    /**
+     * Étend un ensemble de clés à tout le groupe d'identité du client, si un service
+     * de liens est branché. Sinon renvoie les clés telles quelles (dédoublonnées).
+     *
+     * @param list<string> $keys
+     *
+     * @return list<string>
+     */
+    private function expand(array $keys): array
     {
-        return $this->clock?->now()->modify('-' . LoyaltyProgress::POT_LIFETIME_YEARS . ' years');
+        return $this->links?->expand($keys) ?? array_values(array_unique($keys));
     }
 
     /**
@@ -78,7 +91,7 @@ final readonly class GetCustomerLoyaltyHandler
             return [];
         }
 
-        $balances = $this->ledger->balancesByCustomerKeys(array_keys($allKeys), $this->potsSince());
+        $balances = $this->ledger->balancesByCustomerKeys(array_keys($allKeys));
 
         $available = [];
         foreach ($keysByCustomer as $customerId => $keys) {

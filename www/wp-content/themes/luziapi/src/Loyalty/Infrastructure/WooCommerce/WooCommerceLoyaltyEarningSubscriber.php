@@ -6,6 +6,7 @@ namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyCommand;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
+use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use Psr\Log\LoggerInterface;
 use WC_Order;
 
@@ -26,11 +27,17 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
     /** Préfixe du transient (par utilisateur) signalant un recalcul admin échoué. */
     private const ADMIN_NOTICE_TRANSIENT = 'luziapi_loyalty_reconcile_failed_';
 
+    /**
+     * @param list<string> $placeholderEmailKeys clés e-mail à ne jamais auto-lier
+     *                                            (adresses fourre-tout : boutique…)
+     */
     public function __construct(
         private ReconcileOrderLoyaltyHandler $reconcile,
         private EligiblePotCounter $counter,
         private OrderIdentityResolver $identityResolver,
         private LoggerInterface $logger,
+        private ?LoyaltyIdentityLinks $links = null,
+        private array $placeholderEmailKeys = [],
     ) {
     }
 
@@ -138,6 +145,20 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         $excluded = 'yes' === (string) $order->get_meta(self::LOYALTY_EXCLUDED_META);
 
         $completed = $order->has_status('completed');
+
+        // Auto-alimentation PRUDENTE des liens d'identité : uniquement sur une commande
+        // RÉELLE et honorée (« Terminée », non exclue), et via `autoLink` qui ne relie
+        // e-mail↔téléphone que si le téléphone n'est pas déjà rattaché — un téléphone de
+        // foyer / placeholder ne fusionne donc pas deux clients (cas ambigu → fusion
+        // manuelle depuis la fiche).
+        if ($completed && ! $excluded && $this->links instanceof LoyaltyIdentityLinks) {
+            $contactKeys = $this->identityResolver->contactKeys($order);
+            if (null !== $contactKeys['email']
+                && null !== $contactKeys['phone']
+                && ! in_array($contactKeys['email'], $this->placeholderEmailKeys, true)) {
+                $this->links->autoLink($contactKeys['email'], $contactKeys['phone']);
+            }
+        }
         $this->reconcile->handle(new ReconcileOrderLoyaltyCommand(
             orderId: $orderId,
             customerKey: $customerKey,

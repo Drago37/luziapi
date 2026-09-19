@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Pilotage\Application\Port\Clock;
 use LuziApi\Pilotage\Application\Port\LoyaltyEconomicsReader;
+use LuziApi\Pilotage\Application\Port\LoyaltyRewardsReader;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 final class GetLoyaltyDashboardHandlerTest extends TestCase
 {
-    private function handler(): GetLoyaltyDashboardHandler
+    private function handler(?LoyaltyRewardsReader $rewards = null): GetLoyaltyDashboardHandler
     {
         return new GetLoyaltyDashboardHandler(
             new OrderRepositoryStub([
@@ -37,6 +38,7 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
                 3 => ['potsBought' => 4, 'offeredPots' => 0, 'discountCents' => 0],
             ]),
             new DashboardClock(),
+            $rewards,
         );
     }
 
@@ -79,11 +81,12 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
         self::assertSame(12, $view->grandPots); // total toutes années inchangé
     }
 
-    public function testDefaultPeriodCoversTheLastTwoYears(): void
+    public function testDefaultPeriodCoversAllYears(): void
     {
         $view = $this->handler()->handle(new GetLoyaltyDashboardQuery());
 
-        self::assertSame('last2', $view->periodKey);
+        // Par défaut = toutes les années (plus de fenêtre glissante « 2 ans »).
+        self::assertSame('all', $view->periodKey);
         self::assertSame(2, $view->totalCustomers);
         self::assertSame(12, $view->totalPots); // Alice 9 (2026+2025) + Bob 3
         self::assertSame('Alice', $view->topBuyers[0]->name);
@@ -98,11 +101,49 @@ final class GetLoyaltyDashboardHandlerTest extends TestCase
         self::assertSame(12, $view->totalPots);
     }
 
-    public function testUnknownPeriodFallsBackToLastTwoYears(): void
+    public function testUnknownPeriodFallsBackToAllYears(): void
     {
         $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('1999'));
 
-        self::assertSame('last2', $view->periodKey);
+        self::assertSame('all', $view->periodKey);
+    }
+
+    public function testRewardsLiabilityIsZeroWithoutAReader(): void
+    {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('2026'));
+
+        self::assertSame(0, $view->grandRewardsOwed);
+    }
+
+    public function testAccumulatesTheOutstandingRewardsLiability(): void
+    {
+        // Le lecteur d'avantages rend 1 avantage dû par client identifié ; le passif
+        // est donc le nombre de clients de fidélité (Alice + Bob = 2), toutes années.
+        $view = $this->handler(new LoyaltyRewardsReaderStub())->handle(new GetLoyaltyDashboardQuery('2026'));
+
+        self::assertSame(2, $view->grandRewardsOwed);
+        self::assertSame($view->grandCustomers, $view->grandRewardsOwed);
+    }
+
+    public function testListsCustomersWithOutstandingRewards(): void
+    {
+        // Le lecteur rend 1 avantage par client identifié : Alice et Bob figurent
+        // donc dans la liste « en cours », chacun avec 1, quelle que soit la période.
+        $view = $this->handler(new LoyaltyRewardsReaderStub())->handle(new GetLoyaltyDashboardQuery('2026'));
+
+        self::assertCount(2, $view->rewardsOutstanding);
+        self::assertSame(1, $view->rewardsOutstanding[0]->rewards);
+        self::assertContains(
+            $view->rewardsOutstanding[0]->name,
+            ['Alice', 'Bob'],
+        );
+    }
+
+    public function testNoOutstandingRewardsWithoutAReader(): void
+    {
+        $view = $this->handler()->handle(new GetLoyaltyDashboardQuery('2026'));
+
+        self::assertSame([], $view->rewardsOutstanding);
     }
 
     private function order(int $id, string $name, string $email, string $date): OrderSnapshot
@@ -174,6 +215,20 @@ final class LoyaltyEconomicsReaderStub implements LoyaltyEconomicsReader
         }
 
         return ['potsBought' => $potsBought, 'offeredPots' => $offeredPots, 'discountCents' => $discountCents];
+    }
+}
+
+final class LoyaltyRewardsReaderStub implements LoyaltyRewardsReader
+{
+    /**
+     * @param array<string, list<string>> $keysByCustomer
+     *
+     * @return array<string, int>
+     */
+    public function availableRewardsByCustomer(array $keysByCustomer): array
+    {
+        // Un avantage dû par client identifié (suffit à vérifier l'agrégation du passif).
+        return array_map(static fn (array $keys): int => 1, $keysByCustomer);
     }
 }
 

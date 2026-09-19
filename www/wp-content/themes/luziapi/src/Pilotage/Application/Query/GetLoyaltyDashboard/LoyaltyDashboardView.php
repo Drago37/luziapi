@@ -17,7 +17,8 @@ final readonly class LoyaltyDashboardView
      * @param list<LoyaltyCustomerRow> $customers      clients avec activité sur la période, triés par pots achetés
      * @param list<LoyaltyCustomerRow> $topBuyers      meilleurs clients par pots achetés (période)
      * @param list<LoyaltyCustomerRow> $topBenefited   clients ayant reçu le plus de pots offerts (période)
-     * @param list<LoyaltyCustomerRow> $topDiscounts   clients ayant reçu le plus de remise remerciement (période)
+     * @param list<LoyaltyCustomerRow>   $topDiscounts       clients ayant reçu le plus de remise remerciement (période)
+     * @param list<LoyaltyRewardHolder>  $rewardsOutstanding clients avec des avantages en cours (toutes années), triés décroissant
      */
     public function __construct(
         public string $periodKey,
@@ -35,6 +36,8 @@ final readonly class LoyaltyDashboardView
         public int $grandPots,
         public int $grandOfferedPots,
         public int $grandDiscountCents,
+        public int $grandRewardsOwed = 0,
+        public array $rewardsOutstanding = [],
     ) {
     }
 }
