@@ -60,6 +60,7 @@ $assert = static function (string $label, bool $success, string $detail = '') us
 $productId = 0;
 $product2Id = 0;
 $orderId = 0;
+$extraOrderIds = [];
 $customerKey = '';
 $suffix = strtolower(wp_generate_password(10, false, false));
 $email = 'vente-loyalty-' . $suffix . '@example.test';
@@ -178,16 +179,53 @@ try {
     $assert('E-mail : un e-mail client a été envoyé', [] !== $sentEmails, 'count=' . count($sentEmails));
     $assert('E-mail : c\'est la confirmation LuziApi « Terminée » (pas le standard WooCommerce)', str_contains($subjects, 'a bien été remise'), 'sujets=' . $subjects);
     $assert('E-mail : il porte le récap fidélité', str_contains($bodies, 'fidélité'), 'fidélité absente du corps');
+
+    // Fabrique une Vente simple (1 pot payé, sans offert/fidélité/remise) pour tester
+    // les branches e-mail restantes.
+    $makeCmd = static fn (bool $paid, bool $send): CreateQuickSaleCommand => new CreateQuickSaleCommand(
+        [new QuickSaleLine($productId, 1)],
+        'Client Vente E2E',
+        $email,
+        $phone,
+        '',
+        '',
+        '',
+        'market',
+        'cash',
+        'immediate',
+        $paid,
+        $send,
+        new DateTimeImmutable('now', wp_timezone()),
+        0,
+        wp_generate_uuid4(),
+    );
+
+    // Vente NON payée + e-mail : doit envoyer l'e-mail LuziApi « en attente », jamais le standard.
+    $onHoldEmail = $mailerEmails['Luziapi_Email_Customer_On_Hold'] ?? null;
+    if ($onHoldEmail instanceof \Luziapi_Order_Status_Email) {
+        $onHoldEmail->enabled = 'yes';
+    }
+    $sentEmails = [];
+    $extraOrderIds[] = (new WooCommerceQuickSaleOrderWriter())->create($makeCmd(false, true))->orderId;
+    $onHoldSubjects = implode(' || ', array_map(static fn (array $m): string => (string) ($m['subject'] ?? ''), $sentEmails));
+    $assert('Vente non payée : e-mail LuziApi « en attente » (pas le standard)', str_contains($onHoldSubjects, 'règlement en attente'), 'sujets=' . $onHoldSubjects);
+
+    // « Envoyer l'e-mail » décoché : aucun e-mail ne doit partir.
+    $sentEmails = [];
+    $extraOrderIds[] = (new WooCommerceQuickSaleOrderWriter())->create($makeCmd(true, false))->orderId;
+    $assert('« Envoyer l\'e-mail » décoché : aucun e-mail', [] === $sentEmails, 'count=' . count($sentEmails));
 } catch (Throwable $exception) {
     $assert('Le scénario se termine sans exception', false, $exception->getMessage());
 } finally {
     if ('' !== $customerKey) {
         $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $customerKey], ['%s']);
     }
-    if ($orderId > 0) {
-        $order = wc_get_order($orderId);
-        if ($order instanceof WC_Order) {
-            $order->delete(true);
+    foreach (array_merge([$orderId], $extraOrderIds) as $oid) {
+        if ($oid > 0) {
+            $order = wc_get_order($oid);
+            if ($order instanceof WC_Order) {
+                $order->delete(true);
+            }
         }
     }
     foreach ([$productId, $product2Id] as $pid) {
