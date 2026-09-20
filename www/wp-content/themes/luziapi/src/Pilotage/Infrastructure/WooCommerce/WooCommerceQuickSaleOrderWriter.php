@@ -142,9 +142,13 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
             $order->delete_meta_data('_luziapi_order_emails_disabled');
             $order->save_meta_data();
             $emails = WC()->mailer()->get_emails();
-            $email = $emails[$command->paid ? 'WC_Email_Customer_Completed_Order' : 'WC_Email_Customer_On_Hold_Order'] ?? null;
+            // On envoie le MÊME e-mail LuziApi que le flux classique (statut « Terminée »
+            // ou « en attente ») : il porte le récap fidélité, le lien de suivi et le pied
+            // CGV — pas l'e-mail WooCommerce standard, qui n'a rien de tout ça. La fidélité
+            // vient d'être créditée par le passage à « completed » ci-dessus.
+            $email = $emails[$command->paid ? 'Luziapi_Email_Customer_Completed' : 'Luziapi_Email_Customer_On_Hold'] ?? null;
             try {
-                if ($email instanceof \WC_Email_Customer_Completed_Order || $email instanceof \WC_Email_Customer_On_Hold_Order) {
+                if ($email instanceof \Luziapi_Order_Status_Email) {
                     $email->trigger($order->get_id(), $order);
                 }
             } catch (\Throwable) {
