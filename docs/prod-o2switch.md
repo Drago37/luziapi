@@ -753,8 +753,8 @@ Changements en prod :
   validité » d'un pot (reliquat de l'expiration retirée), cohérente avec l'article 6.
 - Version du thème `1.3.0 → 1.3.1`.
 
-**À FAIRE côté prod :** **réimprimer le PDF règlement `2026-09-16-v2`** depuis la page à jour (texte
-corrigé ; la règle « sans expiration » ne change pas → millésime inchangé).
+_PDF règlement `2026-09-16-v2` **réimprimé** depuis la page à jour et redéployé le 20 septembre 2026
+(commit `cded01e`, 1/1 SHA identique, millésime inchangé — seul le texte de l'article 2 est corrigé)._
 
 ---
 
