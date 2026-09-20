@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -59,7 +61,7 @@ if ($post && $post->post_name === 'suivi-commande') {
 if ($post && $post->post_name === 'en') {
     array_unshift($templates, 'page-en.twig');
     $context['honeys_en'] = function_exists('luziapi_get_honeys_en') ? luziapi_get_honeys_en() : [];
-    $en_cf7 = (int) get_option('luziapi_cf7_en_id');
+    $en_cf7 = Wp::int(get_option('luziapi_cf7_en_id'));
     $context['contact_form_shortcode'] = $en_cf7
         ? '[contact-form-7 id="' . $en_cf7 . '" title="Contact (English)"]'
         : (defined('LUZIAPI_CF7') ? LUZIAPI_CF7 : '');
@@ -78,7 +80,7 @@ if ($post && $post->post_name === 'actualites') {
     $context['news_cats'] = Timber\Timber::get_terms([
         'taxonomy'   => 'category',
         'hide_empty' => true,
-        'exclude'    => [(int) get_option('default_category')],
+        'exclude'    => [Wp::int(get_option('default_category'))],
     ]);
 }
 

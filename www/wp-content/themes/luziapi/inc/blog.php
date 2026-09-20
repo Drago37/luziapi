@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -26,10 +28,12 @@ function luziapi_category_icon(string $slug): string
 
 /**
  * Badge HTML de la (première) catégorie d'un article : icône + nom.
+ *
+ * @param int|string $post_id
  */
 function luziapi_post_category_badge($post_id): string
 {
-    $cats = get_the_category((int) $post_id);
+    $cats = get_the_category(Wp::int($post_id));
     if (empty($cats)) {
         return '';
     }
