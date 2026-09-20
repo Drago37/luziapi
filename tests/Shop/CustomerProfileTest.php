@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Shop;
 
 use LuziApi\Shop\Domain\Customer\CustomerBilling;
 use LuziApi\Shop\Domain\Customer\CustomerProfile;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class CustomerProfileTest extends TestCase

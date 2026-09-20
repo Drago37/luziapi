@@ -19,7 +19,7 @@ use LuziApi\Shop\Domain\Inventory\StockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovementType;
 use LuziApi\Shop\Domain\Product\ProductCatalog;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class CreateHarvestLotHandlerTest extends TestCase

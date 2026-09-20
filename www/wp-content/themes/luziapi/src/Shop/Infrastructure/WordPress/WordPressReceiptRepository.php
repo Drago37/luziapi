@@ -6,11 +6,11 @@ namespace LuziApi\Shop\Infrastructure\WordPress;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
-use LuziApi\Shop\Domain\Shared\Money;
 use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;

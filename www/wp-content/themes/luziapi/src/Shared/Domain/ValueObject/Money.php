@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Domain\Shared;
+namespace LuziApi\Shared\Domain\ValueObject;
 
 use InvalidArgumentException;
 

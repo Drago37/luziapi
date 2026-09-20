@@ -13,7 +13,7 @@ use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftHandler;
 use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftQuery;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AuditLoyaltyDriftHandlerTest extends TestCase

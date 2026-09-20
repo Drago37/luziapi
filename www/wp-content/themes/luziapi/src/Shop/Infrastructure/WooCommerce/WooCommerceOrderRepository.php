@@ -6,10 +6,10 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Sales\OrderLineSnapshot;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
 use LuziApi\Support\Wp;
 use WC_Order;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Tests\Shop;
+namespace LuziApi\Tests\Shared;
 
 use InvalidArgumentException;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class MoneyTest extends TestCase

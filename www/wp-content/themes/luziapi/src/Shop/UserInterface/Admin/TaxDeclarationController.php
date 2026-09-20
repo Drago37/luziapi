@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\UserInterface\Admin;
 
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Port\TaxSettings;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardQuery;
 use LuziApi\Shop\Application\Query\GetTaxDeclaration\GetTaxDeclarationHandler;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
-use LuziApi\Shop\Domain\Shared\Money;
 use LuziApi\Support\Wp;
 use Timber\Timber;
 

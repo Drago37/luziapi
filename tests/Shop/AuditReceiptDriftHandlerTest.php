@@ -17,7 +17,7 @@ use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AuditReceiptDriftHandlerTest extends TestCase

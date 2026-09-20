@@ -14,7 +14,7 @@ use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class GetLoyaltyDashboardHandlerTest extends TestCase

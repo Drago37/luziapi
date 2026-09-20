@@ -22,7 +22,7 @@ declare(strict_types=1);
 
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 

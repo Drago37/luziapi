@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Domain\Product;
 
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 
 final readonly class ProductStockSnapshot
 {

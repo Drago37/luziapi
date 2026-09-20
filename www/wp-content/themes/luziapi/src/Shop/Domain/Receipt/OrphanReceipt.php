@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Domain\Receipt;
 
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 
 /**
  * Recette nette rattachée à une commande qui n'existe plus (mise à la corbeille ou

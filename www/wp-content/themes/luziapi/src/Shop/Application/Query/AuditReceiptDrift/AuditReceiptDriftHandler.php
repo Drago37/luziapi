@@ -7,6 +7,7 @@ namespace LuziApi\Shop\Application\Query\AuditReceiptDrift;
 use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Receipt\OrphanReceipt;
 use LuziApi\Shop\Domain\Receipt\ReceiptDriftAuditor;
 use LuziApi\Shop\Domain\Receipt\ReceiptDriftReport;
@@ -15,7 +16,6 @@ use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
 
 final readonly class AuditReceiptDriftHandler
 {

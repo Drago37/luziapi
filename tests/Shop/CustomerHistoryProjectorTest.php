@@ -7,7 +7,7 @@ namespace LuziApi\Tests\Shop;
 use DateTimeImmutable;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class CustomerHistoryProjectorTest extends TestCase

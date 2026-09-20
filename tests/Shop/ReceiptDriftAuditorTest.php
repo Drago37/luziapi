@@ -9,7 +9,7 @@ use LuziApi\Shop\Domain\Receipt\OrphanReceipt;
 use LuziApi\Shop\Domain\Receipt\ReceiptDriftAuditor;
 use LuziApi\Shop\Domain\Receipt\ReceiptReconciliation;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class ReceiptDriftAuditorTest extends TestCase

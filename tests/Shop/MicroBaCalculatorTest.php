@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Tests\Shop;
 
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Tax\MicroBaCalculator;
 use PHPUnit\Framework\TestCase;
 

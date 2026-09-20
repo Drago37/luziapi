@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use LuziApi\Shop\Domain\Receipt\AnnualReceiptCalculator;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AnnualReceiptCalculatorTest extends TestCase

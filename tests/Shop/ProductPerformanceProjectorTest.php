@@ -9,7 +9,7 @@ use LuziApi\Shop\Domain\Product\ProductPerformanceProjector;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
 use LuziApi\Shop\Domain\Sales\OrderLineSnapshot;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class ProductPerformanceProjectorTest extends TestCase
