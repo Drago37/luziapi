@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
+use LuziApi\Support\Wp;
 use WC_Order;
 use WC_Order_Item_Product;
 
@@ -36,7 +37,7 @@ final class WooCommerceThankYouDiscount
             if (! $item instanceof WC_Order_Item_Product) {
                 continue;
             }
-            if ('yes' === (string) $item->get_meta(WooCommerceEligiblePotCounter::OFFERT_LINE_META)) {
+            if ('yes' === Wp::str($item->get_meta(WooCommerceEligiblePotCounter::OFFERT_LINE_META))) {
                 continue; // déjà offerte
             }
             $cents = (int) round((float) $item->get_total() * 100);
@@ -74,7 +75,7 @@ final class WooCommerceThankYouDiscount
             return 0;
         }
 
-        $previous = (int) $order->get_meta(self::ORDER_META);
+        $previous = Wp::int($order->get_meta(self::ORDER_META));
         $order->update_meta_data(self::ORDER_META, (string) ($previous + $realized));
 
         return $realized;

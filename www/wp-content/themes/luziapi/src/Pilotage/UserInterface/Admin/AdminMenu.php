@@ -29,9 +29,13 @@ final readonly class AdminMenu
         add_action('admin_menu', static function (): void {
             global $submenu;
 
-            $woocommerceItems = $submenu['woocommerce'] ?? [];
+            if (! is_array($submenu) || ! isset($submenu['woocommerce']) || ! is_array($submenu['woocommerce'])) {
+                return;
+            }
+
+            $woocommerceItems = $submenu['woocommerce'];
             foreach ($woocommerceItems as $index => $item) {
-                if (self::PAGE_SLUG !== ($item[2] ?? null)) {
+                if (! is_array($item) || self::PAGE_SLUG !== ($item[2] ?? null)) {
                     continue;
                 }
 

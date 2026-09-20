@@ -11,6 +11,7 @@ use LuziApi\Pilotage\Application\Query\GetAnnualDashboard\GetAnnualDashboardQuer
 use LuziApi\Pilotage\Application\Query\GetTaxDeclaration\GetTaxDeclarationHandler;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
 use LuziApi\Pilotage\Domain\Shared\Money;
+use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class TaxDeclarationController
@@ -34,7 +35,7 @@ final readonly class TaxDeclarationController
             wp_die(esc_html__('Vous n’avez pas l’autorisation d’accéder à cette page.', 'luziapi'));
         }
 
-        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
+        $requestedYear = isset($_GET['year']) ? absint(Wp::str($_GET['year'])) : null;
         $taxDeclaration = $this->getTaxDeclaration->handle($requestedYear ?: null);
         $estimate = $taxDeclaration->estimate;
         $dashboard = $this->getDashboard->handle(new GetAnnualDashboardQuery($estimate->declarationYear));
@@ -69,7 +70,7 @@ final readonly class TaxDeclarationController
             'taxable_profit'       => $this->formatMoney($estimate->taxableProfit->cents()),
             'years_count'          => $estimate->yearsCount,
             'commercial_reference' => $this->formatMoney($dashboard->summary->netOrderedTotal->cents()),
-            'notice'               => isset($_GET['tax_notice']) ? sanitize_key(wp_unslash((string) $_GET['tax_notice'])) : '',
+            'notice'               => isset($_GET['tax_notice']) ? sanitize_key(wp_unslash(Wp::str($_GET['tax_notice']))) : '',
         ]);
     }
 
@@ -80,7 +81,7 @@ final readonly class TaxDeclarationController
         }
         check_admin_referer('luziapi_save_tax_settings');
         $currentYear = (int) wp_date('Y');
-        $year = max(2000, min(absint($_POST['activity_start_year'] ?? 0), $currentYear));
+        $year = max(2000, min(absint(Wp::str($_POST['activity_start_year'] ?? 0)), $currentYear));
         $this->settings->saveActivityStartYear($year);
         $this->activity->record(
             ActivityCategory::Settings,

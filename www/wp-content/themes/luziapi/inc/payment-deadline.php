@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -89,7 +91,7 @@ function luziapi_is_advance_payment_order(\WC_Order $order): bool
 
 function luziapi_payment_due_timestamp(\WC_Order $order): int
 {
-    return (int) $order->get_meta('_luziapi_payment_due_at');
+    return Wp::int($order->get_meta('_luziapi_payment_due_at'));
 }
 
 function luziapi_payment_due_label(\WC_Order $order): string
@@ -99,12 +101,16 @@ function luziapi_payment_due_label(\WC_Order $order): string
         return '';
     }
 
-    return wp_date('d/m/Y', $timestamp, new \DateTimeZone('Europe/Paris'));
+    $formatted = wp_date('d/m/Y', $timestamp, new \DateTimeZone('Europe/Paris'));
+
+    return is_string($formatted) ? $formatted : '';
 }
 
 /**
  * Programme un rappel au cinquième jour ouvré et l'annulation à l'issue du
  * dixième. Action Scheduler est privilégié car il est fourni par WooCommerce.
+ *
+ * @param mixed $order
  */
 function luziapi_schedule_payment_deadline(int $orderId, $order = null): void
 {

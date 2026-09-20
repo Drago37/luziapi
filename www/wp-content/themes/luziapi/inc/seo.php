@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -255,7 +256,8 @@ add_filter('wp_sitemaps_posts_query_args', static function (array $args, string 
         ], static fn ($id) => (int) $id > 0);
 
         if ($exclude) {
-            $args['post__not_in'] = array_merge($args['post__not_in'] ?? [], $exclude);
+            $existing = $args['post__not_in'] ?? [];
+            $args['post__not_in'] = array_merge(is_array($existing) ? $existing : [], $exclude);
         }
     }
 

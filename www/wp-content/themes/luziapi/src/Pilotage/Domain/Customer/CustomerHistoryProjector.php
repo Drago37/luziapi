@@ -12,6 +12,7 @@ final class CustomerHistoryProjector
 {
     /**
      * @param list<OrderSnapshot> $orders
+     * @param array<int, int>     $receiptTotalsByOrder
      *
      * @return list<CustomerProfile>
      */
@@ -73,7 +74,9 @@ final class CustomerHistoryProjector
     }
 
     /**
-     * @param non-empty-list<OrderSnapshot> $orders
+     * @param non-empty-list<OrderSnapshot>          $orders
+     * @param array<int, int>                        $receiptTotalsByOrder
+     * @param array<string, array<string, true>>     $phoneEmails
      */
     private function profile(string $key, array $orders, array $receiptTotalsByOrder, array $phoneEmails): CustomerProfile
     {

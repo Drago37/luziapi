@@ -8,6 +8,8 @@ use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
 use LuziApi\Pilotage\Domain\Inventory\HarvestLot;
 use LuziApi\Pilotage\Domain\Inventory\InventoryRepository;
+use LuziApi\Support\Wp;
+use WC_Order;
 use WC_Order_Factory;
 use WC_Order_Item_Product;
 use WC_Product;
@@ -58,7 +60,7 @@ final readonly class WooCommerceOrderLotSelector
             return;
         }
 
-        $selected = absint($item->get_meta(self::META_KEY));
+        $selected = absint(Wp::str($item->get_meta(self::META_KEY)));
         $lots = $this->inventory->availableLotsForProduct($product->get_id());
         echo '<div class="luziapi-order-item-lot"><label><strong>Lot à utiliser</strong><br><select name="luziapi_stock_lot_id['
             . esc_attr((string) $itemId)
@@ -91,8 +93,8 @@ final readonly class WooCommerceOrderLotSelector
                 continue;
             }
 
-            $lotId = absint($rawLotId);
-            $previousLotId = absint($item->get_meta(self::META_KEY));
+            $lotId = absint(Wp::str($rawLotId));
+            $previousLotId = absint(Wp::str($item->get_meta(self::META_KEY)));
             if (0 === $lotId) {
                 $item->delete_meta_data(self::META_KEY);
                 $item->save_meta_data();
@@ -125,7 +127,7 @@ final readonly class WooCommerceOrderLotSelector
             'stock_lot_selected',
             'order',
             $orderId,
-            sprintf('Lot de stock choisi pour la commande n°%s', $order ? $order->get_order_number() : $orderId),
+            sprintf('Lot de stock choisi pour la commande n°%s', $order instanceof WC_Order ? $order->get_order_number() : $orderId),
             [
                 'Produit' => $item->get_name(),
                 'Lot' => $lot instanceof HarvestLot ? $lot->lotNumber : 'Affectation automatique',

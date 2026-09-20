@@ -11,6 +11,7 @@ use LuziApi\Pilotage\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
 use LuziApi\Pilotage\Domain\Activity\ActivityEntry;
 use LuziApi\Pilotage\Domain\Activity\ActivityFilter;
+use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class ActivityController
@@ -127,9 +128,9 @@ final readonly class ActivityController
             [$from, $to] = [$to->setTime(0, 0), $from->setTime(23, 59, 59)];
         }
         $category = isset($_GET['category'])
-            ? ActivityCategory::tryFrom(sanitize_key(wp_unslash((string) $_GET['category'])))
+            ? ActivityCategory::tryFrom(sanitize_key(wp_unslash(Wp::str($_GET['category']))))
             : null;
-        $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash((string) $_GET['search'])) : '';
+        $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash(Wp::str($_GET['search']))) : '';
 
         return new ActivityFilter($from, $to, $category, $search, $limit);
     }
@@ -141,7 +142,7 @@ final readonly class ActivityController
         }
         $date = DateTimeImmutable::createFromFormat(
             '!Y-m-d',
-            sanitize_text_field(wp_unslash((string) $_GET[$name])),
+            sanitize_text_field(wp_unslash(Wp::str($_GET[$name]))),
             $this->clock->timezone(),
         );
 

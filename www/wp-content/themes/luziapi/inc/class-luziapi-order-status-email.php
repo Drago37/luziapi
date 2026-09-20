@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -85,9 +87,10 @@ final class Luziapi_Order_Status_Email extends \WC_Email
         }
 
         if ($order instanceof \WC_Order) {
+            $dateCreated                          = $order->get_date_created();
             $this->object                         = $order;
             $this->recipient                      = $order->get_billing_email();
-            $this->placeholders['{order_date}']   = wc_format_datetime($order->get_date_created());
+            $this->placeholders['{order_date}']   = $dateCreated instanceof \WC_DateTime ? wc_format_datetime($dateCreated) : '';
             $this->placeholders['{order_number}'] = $order->get_order_number();
         }
 
@@ -106,7 +109,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
 
         if ('cancelled' === $this->message
             && $this->object instanceof \WC_Order
-            && '' === trim((string) $this->object->get_meta('_luziapi_cancellation_reason'))) {
+            && '' === trim(Wp::str($this->object->get_meta('_luziapi_cancellation_reason')))) {
             $this->restore_locale();
 
             return;
@@ -204,7 +207,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
             case 'cancelled':
                 return [
                     sprintf('Votre commande n°%s a été annulée.', $orderNumber),
-                    'Motif : ' . trim((string) $this->object->get_meta('_luziapi_cancellation_reason')),
+                    'Motif : ' . trim(Wp::str($this->object->get_meta('_luziapi_cancellation_reason'))),
                     'Si un règlement avait déjà été reçu, je prendrai contact avec vous concernant son remboursement.',
                 ];
         }
@@ -347,12 +350,12 @@ final class Luziapi_Order_Status_Email extends \WC_Email
 function luziapi_get_pickup_address(): string
 {
     $parts = array_filter([
-        trim((string) get_option('woocommerce_store_address')),
-        trim((string) get_option('woocommerce_store_address_2')),
+        trim(Wp::str(get_option('woocommerce_store_address'))),
+        trim(Wp::str(get_option('woocommerce_store_address_2'))),
         trim(
-            (string) get_option('woocommerce_store_postcode')
+            Wp::str(get_option('woocommerce_store_postcode'))
             . ' '
-            . (string) get_option('woocommerce_store_city')
+            . Wp::str(get_option('woocommerce_store_city'))
         ),
     ]);
 

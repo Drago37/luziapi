@@ -7,6 +7,7 @@ namespace LuziApi\Pilotage\Infrastructure\WordPress;
 use DateTimeImmutable;
 use LuziApi\Pilotage\Domain\Customer\CustomerCategory;
 use LuziApi\Pilotage\Domain\Customer\CustomerCategoryRepository;
+use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 
@@ -29,16 +30,17 @@ final readonly class WordPressCustomerCategoryRepository implements CustomerCate
         }
 
         $placeholders = implode(', ', array_fill(0, count($customerIds), '%s'));
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT customer_key, category FROM ' . $this->schema->customerCategoriesTableName() . " WHERE customer_key IN ({$placeholders})",
             ...$customerIds,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
         $categories = [];
-        foreach (is_array($rows) ? $rows : [] as $row) {
-            $category = CustomerCategory::tryFrom((string) $row['category']);
+        foreach (Wp::rows($rows) as $row) {
+            $category = CustomerCategory::tryFrom(Wp::str($row['category']));
             if ($category instanceof CustomerCategory) {
-                $categories[(string) $row['customer_key']] = $category;
+                $categories[Wp::str($row['customer_key'])] = $category;
             }
         }
 

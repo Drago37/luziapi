@@ -14,6 +14,7 @@ use LuziApi\OrderTracking\Application\View\PublicOrderView;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
+use LuziApi\Support\Wp;
 
 final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGateway
 {
@@ -109,11 +110,14 @@ final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGat
             $updates[] = new PublicOrderUpdate('status', $status['label'], '', $transition->occurredAt);
         }
         foreach ($order->get_customer_order_notes() as $note) {
+            if (! $note instanceof \WP_Comment) {
+                continue;
+            }
             $updates[] = new PublicOrderUpdate(
                 'note',
                 'Message de LuziApi',
-                trim((string) $note->comment_content),
-                new DateTimeImmutable((string) $note->comment_date, wp_timezone()),
+                trim(Wp::str($note->comment_content)),
+                new DateTimeImmutable($note->comment_date, wp_timezone()),
             );
         }
         if ([] === $transitions) {

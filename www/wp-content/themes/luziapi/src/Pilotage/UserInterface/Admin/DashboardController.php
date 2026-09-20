@@ -12,6 +12,7 @@ use LuziApi\Pilotage\Domain\Activity\ActivityEntry;
 use LuziApi\Pilotage\Domain\Activity\ActivityFilter;
 use LuziApi\Pilotage\Domain\FollowUp\FollowUpItem;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
+use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class DashboardController
@@ -56,7 +57,7 @@ final readonly class DashboardController
             wp_die(esc_html__('Vous n’avez pas l’autorisation d’accéder à cette page.', 'luziapi'));
         }
 
-        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
+        $requestedYear = isset($_GET['year']) ? absint(Wp::str($_GET['year'])) : null;
         $dashboard = $this->getDashboard->handle(new GetAnnualDashboardQuery($requestedYear ?: null));
         $summary = $dashboard->summary;
         $sourceLabels = function_exists('luziapi_order_source_options')
@@ -165,7 +166,7 @@ final readonly class DashboardController
         return [
             'number'   => $order->number,
             'url'      => admin_url('admin.php?page=wc-orders&action=edit&id=' . $order->id),
-            'date'     => wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp()),
+            'date'     => Wp::str(wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp())),
             'customer' => $order->customerName,
             'total'    => $this->formatMoney($order->total->cents()),
             'status'   => self::STATUS_LABELS[$order->status] ?? $order->status,
@@ -183,7 +184,7 @@ final readonly class DashboardController
         $user = $entry->actorId > 0 ? get_userdata($entry->actorId) : null;
 
         return [
-            'date' => wp_date('d/m à H:i', $entry->occurredAt->getTimestamp()),
+            'date' => Wp::str(wp_date('d/m à H:i', $entry->occurredAt->getTimestamp())),
             'category' => $entry->category->label(),
             'summary' => $entry->summary,
             'actor' => $user ? $user->display_name : 'Système WooCommerce',

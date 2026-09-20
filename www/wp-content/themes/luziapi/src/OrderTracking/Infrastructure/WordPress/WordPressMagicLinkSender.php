@@ -6,6 +6,7 @@ namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use DateTimeImmutable;
 use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
+use LuziApi\Support\Wp;
 use Psr\Log\LoggerInterface;
 
 final readonly class WordPressMagicLinkSender implements MagicLinkSender
@@ -28,7 +29,7 @@ final readonly class WordPressMagicLinkSender implements MagicLinkSender
             . '<h1 style="margin:0 0 20px;color:#2b1d10;font-family:Georgia,serif;font-size:30px">Retrouvez vos commandes LuziApi</h1>'
             . '<p>Vous avez demandé un accès à l’historique des commandes associées à cette adresse e-mail.</p>'
             . '<p style="text-align:center;margin:28px 0"><a href="' . esc_url($accessUrl) . '" style="display:inline-block;background:#e0a124;color:#432c16;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:999px">Accéder à mes commandes</a></p>'
-            . '<p style="font-size:14px;color:#7d6038">Ce lien est utilisable une seule fois et expire à ' . esc_html($expiry) . '. Après ouverture, votre session restera active pendant 2 heures sur cet appareil.</p>'
+            . '<p style="font-size:14px;color:#7d6038">Ce lien est utilisable une seule fois et expire à ' . esc_html(Wp::str($expiry)) . '. Après ouverture, votre session restera active pendant 2 heures sur cet appareil.</p>'
             . '<p style="font-size:14px;color:#7d6038">Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail : aucune commande n’a été modifiée.</p>'
             . '</td></tr></table></td></tr></table></body></html>';
 

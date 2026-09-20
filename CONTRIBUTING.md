@@ -235,9 +235,9 @@ PHPUnit runs on a **PHP matrix** (theme floor `8.2` + current version `8.3`; to 
 the version actually in production if it differs) and **measures coverage** (pcov, `--coverage-text`).
 The coverage scope is declared in `phpunit.xml.dist` (`<source>`: the DDD core `src/`, the `inc/`
 files actually tested, the newsletter mu-plugin) — not all of `inc/`, for an honest rate. PHPStan is
-at **level `max`** with a baseline (`phpstan-baseline.neon`) that freezes the existing debt: all new
-code must pass at max, and the baseline is to be paid down progressively (do not add lines to it to
-work around a new error). A **Dependency audit** job (`composer audit` + `npm audit`) runs in CI,
+at **level `max`** with **no baseline**: the whole theme passes at max, and it must stay that way —
+fix the underlying type instead of introducing a baseline or `@phpstan-ignore` to work around a new
+error. A **Dependency audit** job (`composer audit` + `npm audit`) runs in CI,
 **non-blocking** for now (CVE visibility; to be made blocking once any debt is addressed).
 
 Test doubles belong to the tests. Do not add test-specific conditions to the production code.

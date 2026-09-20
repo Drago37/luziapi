@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Pilotage\Application\Port\LoyaltyEconomicsReader;
+use LuziApi\Support\Wp;
 use WC_Order;
 
 final readonly class WooCommerceLoyaltyEconomicsReader implements LoyaltyEconomicsReader
@@ -26,7 +27,7 @@ final readonly class WooCommerceLoyaltyEconomicsReader implements LoyaltyEconomi
             }
             $potsBought += $this->counter->countEligiblePots($order);
             $offeredPots += $this->counter->countOfferedPots($order);
-            $discountCents += max(0, (int) $order->get_meta(WooCommerceThankYouDiscount::ORDER_META));
+            $discountCents += max(0, Wp::int($order->get_meta(WooCommerceThankYouDiscount::ORDER_META)));
         }
 
         return ['potsBought' => $potsBought, 'offeredPots' => $offeredPots, 'discountCents' => $discountCents];

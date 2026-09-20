@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -47,7 +49,7 @@ add_filter('timber/context', static function (array $context): array {
     $actus = get_page_by_path('actualites');
     $context['blog_url'] = $actus
         ? get_permalink($actus->ID)
-        : (get_option('page_for_posts') ? get_permalink((int) get_option('page_for_posts')) : home_url('/'));
+        : (get_option('page_for_posts') ? get_permalink(Wp::int(get_option('page_for_posts'))) : home_url('/'));
     // Panier (bouton + mini-panier du header), si WooCommerce est actif.
     if (function_exists('WC') && WC()->cart) {
         $context['cart_count'] = WC()->cart->get_cart_contents_count();

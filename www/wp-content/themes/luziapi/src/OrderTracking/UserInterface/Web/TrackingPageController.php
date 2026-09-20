@@ -20,6 +20,7 @@ use LuziApi\OrderTracking\Application\View\PublicOrderView;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
+use LuziApi\Support\Wp;
 use Throwable;
 
 final readonly class TrackingPageController
@@ -56,7 +57,7 @@ final readonly class TrackingPageController
         $this->disableCaching();
         $this->access->purgeExpired($this->clock->now());
 
-        $magicToken = isset($_GET['acces']) ? (string) wp_unslash($_GET['acces']) : '';
+        $magicToken = isset($_GET['acces']) ? Wp::str(wp_unslash($_GET['acces'])) : '';
         if ('' !== $magicToken) {
             $session = $this->redeemHistoryLink->handle($magicToken);
             if (null !== $session) {
@@ -66,18 +67,18 @@ final readonly class TrackingPageController
             $this->redirect(['suivi' => 'lien-invalide']);
         }
 
-        if ('POST' !== strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'))) {
+        if ('POST' !== strtoupper(Wp::str($_SERVER['REQUEST_METHOD'] ?? 'GET'))) {
             return;
         }
-        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash((string) $_POST['_wpnonce'])) : '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash(Wp::str($_POST['_wpnonce']))) : '';
         if (! wp_verify_nonce($nonce, self::FORM_NONCE)) {
             $this->redirect(['suivi' => 'session-expiree']);
         }
-        if ('' !== trim((string) ($_POST['website'] ?? ''))) {
+        if ('' !== trim(Wp::str($_POST['website'] ?? ''))) {
             $this->redirect(['suivi' => 'lien-envoye']);
         }
 
-        $action = sanitize_key(wp_unslash((string) ($_POST['tracking_action'] ?? '')));
+        $action = sanitize_key(wp_unslash(Wp::str($_POST['tracking_action'] ?? '')));
         if ('logout' === $action) {
             $token = $this->cookie->read();
             if ('' !== $token) {
@@ -90,7 +91,7 @@ final readonly class TrackingPageController
         if ('request_history' === $action) {
             try {
                 $this->requestHistoryLink->handle(
-                    sanitize_email(wp_unslash((string) ($_POST['history_email'] ?? ''))),
+                    sanitize_email(wp_unslash(Wp::str($_POST['history_email'] ?? ''))),
                     $this->remoteAddress(),
                 );
                 $this->redirect(['suivi' => 'lien-envoye']);
@@ -102,11 +103,11 @@ final readonly class TrackingPageController
         }
 
         if ('track_order' === $action) {
-            $orderNumber = sanitize_text_field(wp_unslash((string) ($_POST['order_number'] ?? '')));
+            $orderNumber = sanitize_text_field(wp_unslash(Wp::str($_POST['order_number'] ?? '')));
             try {
                 $credentials = new OrderAccessCredentials(
                     $orderNumber,
-                    sanitize_email(wp_unslash((string) ($_POST['order_email'] ?? ''))),
+                    sanitize_email(wp_unslash(Wp::str($_POST['order_email'] ?? ''))),
                 );
                 $result = $this->startOrderAccess->handle($credentials, $this->remoteAddress());
                 if ('granted' === $result->status && null !== $result->session) {
@@ -138,9 +139,9 @@ final readonly class TrackingPageController
 
         $this->disableCaching();
         $orderNumber = isset($_GET['commande'])
-            ? sanitize_text_field(wp_unslash((string) $_GET['commande']))
+            ? sanitize_text_field(wp_unslash(Wp::str($_GET['commande'])))
             : '';
-        $page = isset($_GET['page-commandes']) ? max(1, absint($_GET['page-commandes'])) : 1;
+        $page = isset($_GET['page-commandes']) ? max(1, absint(Wp::str($_GET['page-commandes']))) : 1;
         $sessionToken = $this->cookie->read();
         $orders = '' !== $sessionToken
             ? $this->resolveSession->handle($sessionToken, $page, 10, $orderNumber)
@@ -167,7 +168,7 @@ final readonly class TrackingPageController
             'page_url' => $this->urls->pageUrl(),
             'nonce' => wp_create_nonce(self::FORM_NONCE),
             'prefill_order' => ltrim($orderNumber, '#'),
-            'notice' => $this->notice(isset($_GET['suivi']) ? sanitize_key(wp_unslash((string) $_GET['suivi'])) : ''),
+            'notice' => $this->notice(isset($_GET['suivi']) ? sanitize_key(wp_unslash(Wp::str($_GET['suivi']))) : ''),
             'loyalty' => $orders instanceof PublicOrderPage ? $this->loyaltyFor($orders) : null,
         ];
 
@@ -318,7 +319,7 @@ final readonly class TrackingPageController
 
     private function remoteAddress(): string
     {
-        $address = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $address = Wp::str($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 
         return 1 === preg_match('/^[0-9a-fA-F:.]{2,45}$/', $address) ? $address : 'unknown';
     }

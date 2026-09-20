@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Support\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -40,13 +42,14 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
             'WC_Email_Customer_Invoice',
         ] as $className
     ) {
-        if (! isset($emails[$className])) {
+        $email = $emails[$className] ?? null;
+        if (! $email instanceof \WC_Email) {
             continue;
         }
 
-        $emails[$className]->template_html              = 'emails/luziapi-customer-order.php';
-        $emails[$className]->template_plain             = 'emails/plain/luziapi-customer-order.php';
-        $emails[$className]->block_email_editor_enabled = false;
+        $email->template_html              = 'emails/luziapi-customer-order.php';
+        $email->template_plain             = 'emails/plain/luziapi-customer-order.php';
+        $email->block_email_editor_enabled = false;
     }
 
     return $emails;
@@ -81,7 +84,7 @@ function luziapi_customer_email_common_data(?\WC_Order $order): array
     $cgvVersion = defined('LUZIAPI_CGV_VERSION') ? LUZIAPI_CGV_VERSION : '';
 
     if ($order instanceof \WC_Order) {
-        $acceptedVersion = trim((string) $order->get_meta('_luziapi_cgv_version'));
+        $acceptedVersion = trim(Wp::str($order->get_meta('_luziapi_cgv_version')));
         if ('' !== $acceptedVersion) {
             $cgvVersion = $acceptedVersion;
         }

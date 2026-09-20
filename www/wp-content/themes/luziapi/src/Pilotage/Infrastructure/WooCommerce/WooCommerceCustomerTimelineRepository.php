@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineEntry;
 use LuziApi\Pilotage\Domain\Customer\CustomerTimelineRepository;
+use LuziApi\Support\Wp;
 use WC_Order;
 
 final readonly class WooCommerceCustomerTimelineRepository implements CustomerTimelineRepository
@@ -34,9 +35,9 @@ final readonly class WooCommerceCustomerTimelineRepository implements CustomerTi
                     $orderId,
                     $order->get_order_number(),
                     (new DateTimeImmutable('@' . $date->getTimestamp()))->setTimezone($this->timezone),
-                    wp_strip_all_tags((string) ($note->content ?? '')),
+                    wp_strip_all_tags(Wp::str($note->content ?? '')),
                     (bool) ($note->customer_note ?? false),
-                    (string) ($note->added_by ?? 'Système'),
+                    Wp::str($note->added_by ?? 'Système'),
                 );
             }
         }

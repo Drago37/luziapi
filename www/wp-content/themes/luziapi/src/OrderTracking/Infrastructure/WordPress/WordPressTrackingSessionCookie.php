@@ -6,6 +6,7 @@ namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use LuziApi\OrderTracking\Application\Port\TrackingSessionCookie;
 use LuziApi\OrderTracking\Application\Service\TrackingSession;
+use LuziApi\Support\Wp;
 use Psr\Log\LoggerInterface;
 
 final readonly class WordPressTrackingSessionCookie implements TrackingSessionCookie
@@ -18,7 +19,7 @@ final readonly class WordPressTrackingSessionCookie implements TrackingSessionCo
 
     public function read(): string
     {
-        $token = isset($_COOKIE[self::NAME]) ? (string) wp_unslash($_COOKIE[self::NAME]) : '';
+        $token = isset($_COOKIE[self::NAME]) ? Wp::str(wp_unslash($_COOKIE[self::NAME])) : '';
 
         return 1 === preg_match('/^[A-Za-z0-9_-]{43}$/', $token) ? $token : '';
     }
@@ -27,7 +28,7 @@ final readonly class WordPressTrackingSessionCookie implements TrackingSessionCo
     {
         $written = setcookie(self::NAME, $session->token, [
             'expires' => $session->expiresAt->getTimestamp(),
-            'path' => defined('COOKIEPATH') && '' !== COOKIEPATH ? COOKIEPATH : '/',
+            'path' => defined('COOKIEPATH') && '' !== COOKIEPATH ? Wp::str(COOKIEPATH) : '/',
             'secure' => is_ssl(),
             'httponly' => true,
             'samesite' => 'Lax',
@@ -46,7 +47,7 @@ final readonly class WordPressTrackingSessionCookie implements TrackingSessionCo
     {
         setcookie(self::NAME, '', [
             'expires' => time() - 3600,
-            'path' => defined('COOKIEPATH') && '' !== COOKIEPATH ? COOKIEPATH : '/',
+            'path' => defined('COOKIEPATH') && '' !== COOKIEPATH ? Wp::str(COOKIEPATH) : '/',
             'secure' => is_ssl(),
             'httponly' => true,
             'samesite' => 'Lax',

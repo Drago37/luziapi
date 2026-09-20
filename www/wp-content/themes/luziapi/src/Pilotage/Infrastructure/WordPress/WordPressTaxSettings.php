@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Pilotage\Infrastructure\WordPress;
 
 use LuziApi\Pilotage\Application\Port\TaxSettings;
+use LuziApi\Support\Wp;
 
 final class WordPressTaxSettings implements TaxSettings
 {
@@ -12,7 +13,7 @@ final class WordPressTaxSettings implements TaxSettings
 
     public function activityStartYear(int $fallback): int
     {
-        $year = (int) get_option(self::OPTION, $fallback);
+        $year = Wp::int(get_option(self::OPTION, $fallback));
 
         return $year >= 2000 ? $year : $fallback;
     }

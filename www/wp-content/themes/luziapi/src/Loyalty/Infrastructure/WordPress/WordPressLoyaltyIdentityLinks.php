@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Loyalty\Infrastructure\WordPress;
 
 use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
+use LuziApi\Support\Wp;
 use wpdb;
 
 /**
@@ -29,21 +30,23 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
 
         $table = $this->schema->identityLinksTableName();
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $canonicals = $this->database->get_col($this->database->prepare(
+        $canonicals = $this->database->get_col(Wp::prepared(
+            $this->database,
             "SELECT DISTINCT canonical_key FROM {$table} WHERE identity_key IN ({$placeholders})",
             ...$keys,
         ));
-        $canonicals = array_map(static fn ($value): string => (string) $value, is_array($canonicals) ? $canonicals : []);
+        $canonicals = array_map(static fn ($value): string => Wp::str($value), is_array($canonicals) ? $canonicals : []);
         if ([] === $canonicals) {
             return $keys;
         }
 
         $canonicalPlaceholders = implode(', ', array_fill(0, count($canonicals), '%s'));
-        $group = $this->database->get_col($this->database->prepare(
+        $group = $this->database->get_col(Wp::prepared(
+            $this->database,
             "SELECT identity_key FROM {$table} WHERE canonical_key IN ({$canonicalPlaceholders})",
             ...$canonicals,
         ));
-        $group = array_map(static fn ($value): string => (string) $value, is_array($group) ? $group : []);
+        $group = array_map(static fn ($value): string => Wp::str($value), is_array($group) ? $group : []);
 
         return array_values(array_unique(array_merge($keys, $group)));
     }
@@ -57,14 +60,15 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
 
         $table = $this->schema->identityLinksTableName();
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $rows = $this->database->get_results($this->database->prepare(
+        $rows = $this->database->get_results(Wp::prepared(
+            $this->database,
             "SELECT identity_key, canonical_key FROM {$table} WHERE identity_key IN ({$placeholders})",
             ...$keys,
         ), ARRAY_A);
 
         $existingCanonicals = [];
         foreach (is_array($rows) ? $rows : [] as $row) {
-            $existingCanonicals[(string) $row['canonical_key']] = true;
+            $existingCanonicals[Wp::str($row['canonical_key'])] = true;
         }
 
         // Canonique fusionnée = la plus petite clé (déterministe), parmi les clés
@@ -78,7 +82,8 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
         if ([] !== $existingCanonicals) {
             $canonicalKeys = array_keys($existingCanonicals);
             $canonicalPlaceholders = implode(', ', array_fill(0, count($canonicalKeys), '%s'));
-            $this->database->query($this->database->prepare(
+            $this->database->query(Wp::prepared(
+                $this->database,
                 "UPDATE {$table} SET canonical_key = %s WHERE canonical_key IN ({$canonicalPlaceholders})",
                 ...array_merge([$merged], $canonicalKeys),
             ));
@@ -86,7 +91,8 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
 
         // Chaque clé fournie porte désormais une ligne vers la canonique fusionnée.
         foreach ($keys as $key) {
-            $this->database->query($this->database->prepare(
+            $this->database->query(Wp::prepared(
+                $this->database,
                 "INSERT INTO {$table} (identity_key, canonical_key, linked_at) VALUES (%s, %s, %s)"
                 . ' ON DUPLICATE KEY UPDATE canonical_key = VALUES(canonical_key)',
                 $key,
@@ -119,21 +125,23 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
 
         $table = $this->schema->identityLinksTableName();
         $placeholders = implode(', ', array_fill(0, count($detach), '%s'));
-        $canonicals = $this->database->get_col($this->database->prepare(
+        $canonicals = $this->database->get_col(Wp::prepared(
+            $this->database,
             "SELECT DISTINCT canonical_key FROM {$table} WHERE identity_key IN ({$placeholders})",
             ...$detach,
         ));
-        $canonicals = array_map(static fn ($value): string => (string) $value, is_array($canonicals) ? $canonicals : []);
+        $canonicals = array_map(static fn ($value): string => Wp::str($value), is_array($canonicals) ? $canonicals : []);
         if ([] === $canonicals) {
             return; // aucune de ces clés n'est liée
         }
 
         $canonicalPlaceholders = implode(', ', array_fill(0, count($canonicals), '%s'));
-        $all = $this->database->get_col($this->database->prepare(
+        $all = $this->database->get_col(Wp::prepared(
+            $this->database,
             "SELECT identity_key FROM {$table} WHERE canonical_key IN ({$canonicalPlaceholders})",
             ...$canonicals,
         ));
-        $all = array_map(static fn ($value): string => (string) $value, is_array($all) ? $all : []);
+        $all = array_map(static fn ($value): string => Wp::str($value), is_array($all) ? $all : []);
 
         $detachSet = array_fill_keys($detach, true);
         $remaining = array_values(array_filter($all, static fn (string $key): bool => ! isset($detachSet[$key])));
@@ -178,7 +186,8 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
 
         $table = $this->schema->identityLinksTableName();
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $this->database->query($this->database->prepare(
+        $this->database->query(Wp::prepared(
+            $this->database,
             "DELETE FROM {$table} WHERE identity_key IN ({$placeholders})",
             ...$keys,
         ));
@@ -190,7 +199,8 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
         $merged = $keys[0];
         $now = current_time('mysql');
         foreach ($keys as $key) {
-            $this->database->query($this->database->prepare(
+            $this->database->query(Wp::prepared(
+                $this->database,
                 "INSERT INTO {$table} (identity_key, canonical_key, linked_at) VALUES (%s, %s, %s)"
                 . ' ON DUPLICATE KEY UPDATE canonical_key = VALUES(canonical_key)',
                 $key,
@@ -209,7 +219,8 @@ final readonly class WordPressLoyaltyIdentityLinks implements LoyaltyIdentityLin
     {
         $table = $this->schema->identityLinksTableName();
 
-        return null !== $this->database->get_var($this->database->prepare(
+        return null !== $this->database->get_var(Wp::prepared(
+            $this->database,
             "SELECT identity_key FROM {$table} WHERE identity_key = %s LIMIT 1",
             $key,
         ));

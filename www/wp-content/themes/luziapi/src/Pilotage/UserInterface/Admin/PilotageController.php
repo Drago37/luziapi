@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Support\Wp;
+
 final readonly class PilotageController
 {
     public function __construct(
@@ -22,7 +24,7 @@ final readonly class PilotageController
 
     public function render(): void
     {
-        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash((string) $_GET['tab'])) : 'dashboard';
+        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash(Wp::str($_GET['tab']))) : 'dashboard';
 
         if ('customers' === $tab) {
             $this->customers->render();

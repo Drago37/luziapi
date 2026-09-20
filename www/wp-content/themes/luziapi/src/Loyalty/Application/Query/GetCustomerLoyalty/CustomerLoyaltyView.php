@@ -26,6 +26,9 @@ final readonly class CustomerLoyaltyView
     ) {
     }
 
+    /**
+     * @param list<LoyaltyEntry> $entries écritures récentes, les plus récentes d'abord
+     */
     public static function fromProgress(LoyaltyProgress $progress, array $entries): self
     {
         return new self(
