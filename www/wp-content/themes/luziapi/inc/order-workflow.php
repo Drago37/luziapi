@@ -539,7 +539,7 @@ add_action('woocommerce_admin_order_data_after_order_details', static function (
 
     $offerProducts        = luziapi_offerable_products();
     $offerRewardsAvailable = luziapi_order_available_rewards($order);
-    $volumeWriter         = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
+    $volumeWriter         = \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
     $volumeMissingCents   = $volumeWriter::isCorrectable($order) ? $volumeWriter::missingCents($order) : 0;
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
@@ -1284,7 +1284,7 @@ function luziapi_maybe_add_offered_pot(\WC_Order $order): void
             continue;
         }
 
-        $item = \LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $row['quantity'], $row['loyalty']);
+        $item = \LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $row['quantity'], $row['loyalty']);
         $added[] = ['item' => $item, 'product' => $product, 'quantity' => $row['quantity'], 'loyalty' => $row['loyalty']];
         if ($row['loyalty']) {
             $loyaltyRemaining -= $row['quantity'];
@@ -1363,7 +1363,7 @@ add_action('admin_notices', static function (): void {
 
 /**
  * Affiche l'issue d'un rattrapage de remise de volume déposé par le subscriber
- * {@see \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
+ * {@see \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
  */
 add_action('admin_notices', static function (): void {
     $key = 'luziapi_volume_fix_notice_' . get_current_user_id();

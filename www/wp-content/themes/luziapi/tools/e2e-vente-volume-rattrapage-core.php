@@ -25,15 +25,15 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptCommand;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
-use LuziApi\Pilotage\Domain\Sales\VolumeDiscount;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
+use LuziApi\Shop\Domain\Sales\VolumeDiscount;
+use LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
     /**

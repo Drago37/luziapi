@@ -13,16 +13,16 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Query\AuditReceiptDrift\AuditReceiptDriftHandler;
-use LuziApi\Pilotage\Application\Query\AuditReceiptDrift\AuditReceiptDriftQuery;
-use LuziApi\Pilotage\Domain\Receipt\OrphanReceipt;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptDriftAuditor;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliation;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliationProjector;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Query\AuditReceiptDrift\AuditReceiptDriftHandler;
+use LuziApi\Shop\Application\Query\AuditReceiptDrift\AuditReceiptDriftQuery;
+use LuziApi\Shop\Domain\Receipt\OrphanReceipt;
+use LuziApi\Shop\Domain\Receipt\ReceiptDriftAuditor;
+use LuziApi\Shop\Domain\Receipt\ReceiptReconciliation;
+use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_audit_receipt_drift_data')) {
     /**

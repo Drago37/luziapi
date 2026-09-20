@@ -14,25 +14,25 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
-use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
-use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
-use LuziApi\Pilotage\Domain\Customer\CustomerProfile;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceProductCatalog;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
-use LuziApi\Pilotage\UserInterface\Admin\QuickSaleController;
+use LuziApi\Shop\Application\Activity\ActivityRecorder;
+use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
+use LuziApi\Shop\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
+use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
+use LuziApi\Shop\Domain\Customer\CustomerProfile;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceProductCatalog;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\UserInterface\Admin\QuickSaleController;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

@@ -12,15 +12,15 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
-use LuziApi\Pilotage\Application\Command\RecordOrderReceipt\RecordOrderReceiptCommand;
-use LuziApi\Pilotage\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Activity\ActivityRecorder;
+use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptCommand;
+use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

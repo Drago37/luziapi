@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace LuziApi\Shop\Domain\Sales;
+
+use DateTimeImmutable;
+use LuziApi\Shop\Domain\Shared\Money;
+
+final readonly class OrderSnapshot
+{
+    /** @param list<OrderLineSnapshot> $lines */
+    public function __construct(
+        public int $id,
+        public string $number,
+        public DateTimeImmutable $createdAt,
+        public string $status,
+        public Money $total,
+        public Money $refunded,
+        public int $itemsCount,
+        public string $customerName,
+        public string $email,
+        public string $phone,
+        public string $city,
+        public string $source,
+        public string $fulfillment,
+        public array $lines = [],
+        public string $paymentMethod = '',
+        public ?DateTimeImmutable $paidAt = null,
+    ) {
+    }
+}
