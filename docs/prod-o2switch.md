@@ -735,6 +735,27 @@ _Suite de QA de release le 20 septembre 2026 (déploiements FTPS ciblés success
 - **Pots offerts multiples** : la fiche commande (`68be29a`→) et la Vente (`8d35ff2`) acceptent plusieurs miels différents en un enregistrement ; la Vente borne le **total** des pots fidélité aux avantages disponibles côté client avec avertissement (`d7f648d`), le serveur bornant déjà (`assertRewardsAffordable`).
 - **Onglet Fidélité** (`32d8e82`) : nouvelle section **« Avantages en cours »** (qui a des pots offerts à réclamer) ; le sélecteur de période perd « 2 dernières années » (plus d'expiration) au profit d'un défaut **« Total (toutes années) »**.
 
+## Mise en production 1.3.1 — le 20 septembre 2026
+
+Déployée depuis `release/1.3.1` (PR #40, encore ouverte), `deploy-files.sh --yes`, delta
+`32d8e82 → 5e558ec`, **4 fichiers** (`templates/page-programme-de-fidelite.twig`,
+`src/Pilotage/Infrastructure/WooCommerce/WooCommerceQuickSaleOrderWriter.php`, `style.css`,
+`functions.php`), aucune suppression, aucune nouvelle dépendance. **4/4 SHA identiques**, OPcache
+vidé, contrôle post-déploiement 200 sur `/wp-login.php`, `/`, `/boutique/`, `/mon-compte/`. Merge
+`main` + tag `1.3.1` + back-merge `develop` à faire après, sur feu vert.
+
+Changements en prod :
+
+- **Vente** : « Envoyer l'e-mail » envoie désormais le **même e-mail LuziApi** que le flux classique
+  (confirmation « Terminée » avec récap fidélité + suivi + pied CGV, ou « en attente » si non payée)
+  au lieu de l'e-mail WooCommerce standard.
+- **Page « Programme de fidélité »** (article 2) : suppression d'une mention périmée de « durée de
+  validité » d'un pot (reliquat de l'expiration retirée), cohérente avec l'article 6.
+- Version du thème `1.3.0 → 1.3.1`.
+
+_PDF règlement `2026-09-16-v2` **réimprimé** depuis la page à jour et redéployé le 20 septembre 2026
+(commit `cded01e`, 1/1 SHA identique, millésime inchangé — seul le texte de l'article 2 est corrigé)._
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.
