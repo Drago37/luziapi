@@ -34,6 +34,14 @@ if (! function_exists('wc_create_order')) {
     WP_CLI::error('WooCommerce doit être actif pour lancer ce test.');
 }
 
+$sentEmails = [];
+// Capture les e-mails (sujet + corps) au lieu de les envoyer : on vérifie QUEL
+// e-mail la Vente déclenche (le LuziApi « Terminée » avec fidélité, pas le standard).
+add_filter('pre_wp_mail', static function ($short, $atts) use (&$sentEmails) {
+    $sentEmails[] = is_array($atts) ? $atts : [];
+
+    return false;
+}, 5, 2);
 add_filter('pre_wp_mail', '__return_false', 999);
 $previousDecimals = get_option('woocommerce_price_num_decimals');
 update_option('woocommerce_price_num_decimals', '2');
@@ -96,7 +104,7 @@ try {
         'cash',
         'immediate',
         true,   // payée -> passe « Terminée »
-        false,
+        true,   // envoyer l'e-mail client (comme le flux classique)
         new DateTimeImmutable('now', wp_timezone()),
         0,
         wp_generate_uuid4(),
@@ -104,6 +112,15 @@ try {
         [new QuickSaleLine($productId, 1), new QuickSaleLine($product2Id, 1)], // 2 miels DIFFÉRENTS en fidélité
         ThankYouDiscount::percent(10),                // -10 % sur les pots payés
     );
+
+    // L'e-mail custom « Terminée » doit exister et être activé (même instance que la
+    // Vente récupérera via WC()->mailer()) pour que l'envoi capturé soit déterministe.
+    $mailerEmails = WC()->mailer()->get_emails();
+    $completedEmail = $mailerEmails['Luziapi_Email_Customer_Completed'] ?? null;
+    $assert('Câblage : l\'e-mail LuziApi « Terminée » est enregistré', $completedEmail instanceof \Luziapi_Order_Status_Email);
+    if ($completedEmail instanceof \Luziapi_Order_Status_Email) {
+        $completedEmail->enabled = 'yes';
+    }
 
     $created = (new WooCommerceQuickSaleOrderWriter())->create($command);
     $orderId = $created->orderId;
@@ -153,6 +170,14 @@ try {
     $orderTotals = $ledger->orderTotals($orderId);
     $assert('Le subscriber a crédité les 2 pots payés', 2 === $orderTotals['pots']);
     $assert('Le subscriber a consommé 2 avantages (2 miels offerts)', -2 === $orderTotals['rights']);
+
+    // E-mail : la Vente doit envoyer le MÊME e-mail que le flux classique « Terminée »
+    // (sujet LuziApi + récap fidélité), pas l'e-mail WooCommerce standard.
+    $subjects = implode(' || ', array_map(static fn (array $m): string => (string) ($m['subject'] ?? ''), $sentEmails));
+    $bodies = implode(' || ', array_map(static fn (array $m): string => (string) ($m['message'] ?? ''), $sentEmails));
+    $assert('E-mail : un e-mail client a été envoyé', [] !== $sentEmails, 'count=' . count($sentEmails));
+    $assert('E-mail : c\'est la confirmation LuziApi « Terminée » (pas le standard WooCommerce)', str_contains($subjects, 'a bien été remise'), 'sujets=' . $subjects);
+    $assert('E-mail : il porte le récap fidélité', str_contains($bodies, 'fidélité'), 'fidélité absente du corps');
 } catch (Throwable $exception) {
     $assert('Le scénario se termine sans exception', false, $exception->getMessage());
 } finally {
