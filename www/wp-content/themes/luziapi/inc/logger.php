@@ -15,7 +15,7 @@
 
 declare(strict_types=1);
 
-use LuziApi\Support\WordPressMailerHandler;
+use LuziApi\Shared\Infrastructure\WordPressMailerHandler;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\UserInterface\Admin;
 
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use Throwable;
 
 /**

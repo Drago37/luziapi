@@ -6,7 +6,7 @@ namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use DateTimeImmutable;
 use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use wpdb;

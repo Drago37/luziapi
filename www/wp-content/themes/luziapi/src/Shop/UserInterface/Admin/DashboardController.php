@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\UserInterface\Admin;
 
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardQuery;
@@ -12,7 +13,6 @@ use LuziApi\Shop\Domain\Activity\ActivityEntry;
 use LuziApi\Shop\Domain\Activity\ActivityFilter;
 use LuziApi\Shop\Domain\FollowUp\FollowUpItem;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class DashboardController

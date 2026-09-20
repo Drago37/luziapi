@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Infrastructure\WordPress;
 
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Port\TaxSettings;
-use LuziApi\Support\Wp;
 
 final class WordPressTaxSettings implements TaxSettings
 {

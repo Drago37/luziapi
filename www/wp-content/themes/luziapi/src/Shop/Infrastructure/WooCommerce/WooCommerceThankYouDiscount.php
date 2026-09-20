@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
-use LuziApi\Support\Wp;
 use WC_Order;
 use WC_Order_Item_Product;
 

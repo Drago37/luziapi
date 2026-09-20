@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use RuntimeException;
 use wpdb;
 

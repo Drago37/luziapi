@@ -6,7 +6,7 @@ namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use LuziApi\OrderTracking\Application\Port\TrackingSessionCookie;
 use LuziApi\OrderTracking\Application\Service\TrackingSession;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 
 final readonly class WordPressTrackingSessionCookie implements TrackingSessionCookie

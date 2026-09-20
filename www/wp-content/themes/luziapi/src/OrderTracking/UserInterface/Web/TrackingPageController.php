@@ -20,7 +20,7 @@ use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
 use LuziApi\Shared\Domain\Clock;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use Throwable;
 
 final readonly class TrackingPageController

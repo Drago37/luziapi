@@ -7,10 +7,10 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Shared\Domain\ValueObject\Money;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Sales\OrderLineSnapshot;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Support\Wp;
 use WC_Order;
 
 final readonly class WooCommerceOrderRepository implements OrderRepository

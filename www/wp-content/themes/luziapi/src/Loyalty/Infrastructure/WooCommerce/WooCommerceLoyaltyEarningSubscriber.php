@@ -7,7 +7,7 @@ namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyCommand;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
 use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 use WC_Order;
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\UserInterface\Admin;
 
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Query\GetProductDashboard\GetProductDashboardHandler;
 use LuziApi\Shop\Domain\Product\ProductPerformance;
-use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class ProductsController

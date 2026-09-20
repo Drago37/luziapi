@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WordPress;
 
 use DateTimeImmutable;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Customer\CustomerCategory;
 use LuziApi\Shop\Domain\Customer\CustomerCategoryRepository;
-use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 

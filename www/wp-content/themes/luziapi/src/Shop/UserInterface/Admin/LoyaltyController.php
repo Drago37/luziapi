@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\UserInterface\Admin;
 
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\LoyaltyCustomerRow;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\LoyaltyRewardHolder;
-use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class LoyaltyController

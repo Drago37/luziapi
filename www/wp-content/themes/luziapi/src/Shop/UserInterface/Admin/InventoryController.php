@@ -7,6 +7,7 @@ namespace LuziApi\Shop\UserInterface\Admin;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotCommand;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
@@ -18,7 +19,6 @@ use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\StockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovementType;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
-use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 

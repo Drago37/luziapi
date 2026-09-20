@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Support;
+namespace LuziApi\Shared\Infrastructure;
 
 use wpdb;
 

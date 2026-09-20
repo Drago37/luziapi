@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
@@ -22,7 +23,6 @@ use LuziApi\Shop\Domain\Product\ProductCatalog;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
 use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
 use LuziApi\Shop\Domain\Sales\ThankYouDiscountType;
-use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 

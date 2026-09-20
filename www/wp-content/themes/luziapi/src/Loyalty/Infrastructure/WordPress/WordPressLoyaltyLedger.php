@@ -10,7 +10,7 @@ use LuziApi\Loyalty\Domain\LoyaltyEntry;
 use LuziApi\Loyalty\Domain\LoyaltyEntryType;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\NewLoyaltyEntry;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use RuntimeException;
 use wpdb;
 

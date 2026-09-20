@@ -6,13 +6,13 @@ namespace LuziApi\Shop\Infrastructure\WordPress;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewHarvestLot;
 use LuziApi\Shop\Domain\Inventory\NewStockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovementType;
-use LuziApi\Support\Wp;
 use RuntimeException;
 use Throwable;
 use wpdb;

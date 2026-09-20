@@ -7,6 +7,7 @@ namespace LuziApi\Shop\UserInterface\Admin;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
@@ -19,7 +20,6 @@ use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Shop\Domain\Receipt\ReceiptReconciliation;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
-use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 

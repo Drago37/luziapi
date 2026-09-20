@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Shared\Domain\ValueObject\Money;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Product\ProductCatalog;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
-use LuziApi\Support\Wp;
 use WC_Product;
 
 final class WooCommerceProductCatalog implements ProductCatalog

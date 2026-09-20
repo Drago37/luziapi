@@ -6,12 +6,12 @@ namespace LuziApi\Shop\UserInterface\Admin;
 
 use DateTimeImmutable;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Activity\ActivityEntry;
 use LuziApi\Shop\Domain\Activity\ActivityFilter;
-use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class ActivityController
