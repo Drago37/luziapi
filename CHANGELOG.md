@@ -16,6 +16,21 @@ stays empty on `develop`.
 
 _Nothing yet._
 
+## [1.3.1] - 2026-09-20
+
+### Changed
+
+- Dashboard **Vente** : quand « Envoyer l'e-mail » est coché, elle envoie désormais le même e-mail
+  LuziApi que le flux classique — la confirmation « commande terminée » (ou « règlement en
+  attente ») avec le **récap fidélité**, le lien de suivi et le pied CGV — au lieu de l'e-mail
+  WooCommerce standard.
+
+### Fixed
+
+- Page « Programme de fidélité » : l'article 2 ne mentionne plus de « durée de validité » d'un pot
+  (reliquat de l'expiration supprimée), désormais cohérent avec l'article 6 (les pots n'expirent
+  pas).
+
 ## [1.3.0] - 2026-09-19
 
 ### Added
