@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
+use LuziApi\Support\Wp;
 use WC_Order;
 use WP_User;
 
@@ -76,7 +77,7 @@ final readonly class WooCommerceActivitySubscriber
     {
         $comment = get_comment($commentId);
         $actorId = $comment ? (int) $comment->user_id : $this->adminActorId();
-        $visibility = '1' === (string) get_comment_meta($commentId, 'is_customer_note', true)
+        $visibility = '1' === Wp::str(get_comment_meta($commentId, 'is_customer_note', true))
             ? 'Visible par le client'
             : 'Privée';
         $this->activity->record(

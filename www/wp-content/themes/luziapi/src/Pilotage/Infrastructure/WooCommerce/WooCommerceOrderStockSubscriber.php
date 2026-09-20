@@ -7,9 +7,11 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
 use LuziApi\Pilotage\Application\Command\RecordOrderStockMovement\OrderStockMovementRecorder;
 use LuziApi\Pilotage\Domain\Activity\ActivityCategory;
+use LuziApi\Support\Wp;
 use Throwable;
 use WC_Order;
 use WC_Order_Item_Product;
+use WC_Product;
 
 final readonly class WooCommerceOrderStockSubscriber
 {
@@ -30,7 +32,7 @@ final readonly class WooCommerceOrderStockSubscriber
     {
         $product = $item->get_product();
         $quantity = (int) round((float) ($change['from'] ?? 0) - (float) ($change['to'] ?? 0));
-        if (! $product || $quantity <= 0) {
+        if (! $product instanceof WC_Product || $quantity <= 0) {
             return;
         }
 
@@ -41,7 +43,7 @@ final readonly class WooCommerceOrderStockSubscriber
                 $product->get_id(),
                 $quantity,
                 (int) round((float) ($change['from'] ?? 0)),
-                absint($item->get_meta('_luziapi_stock_lot_id')) ?: null,
+                absint(Wp::str($item->get_meta('_luziapi_stock_lot_id'))) ?: null,
             );
         } catch (Throwable) {
             $order->add_order_note('Le mouvement de stock LuziApi n’a pas pu être journalisé. Vérifier Stocks et lots.', 0);

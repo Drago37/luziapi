@@ -10,6 +10,7 @@ use LuziApi\Pilotage\Domain\Sales\OrderLineSnapshot;
 use LuziApi\Pilotage\Domain\Sales\OrderRepository;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use LuziApi\Pilotage\Domain\Shared\Money;
+use LuziApi\Support\Wp;
 use WC_Order;
 
 final readonly class WooCommerceOrderRepository implements OrderRepository
@@ -31,7 +32,7 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
         ]);
         $snapshots = [];
 
-        foreach ($orders as $order) {
+        foreach (is_array($orders) ? $orders : [] as $order) {
             if (! $order instanceof WC_Order) {
                 continue;
             }
@@ -55,7 +56,7 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
             'type'    => 'shop_order',
             'status'  => array_keys(wc_get_order_statuses()),
         ]);
-        $order = $orders[0] ?? null;
+        $order = is_array($orders) ? ($orders[0] ?? null) : null;
 
         if (! $order instanceof WC_Order || ! $order->get_date_created()) {
             return null;
@@ -128,7 +129,7 @@ final readonly class WooCommerceOrderRepository implements OrderRepository
             $order->get_status(),
             new Money($this->toCents($order->get_total())),
             new Money($this->toCents($order->get_total_refunded())),
-            $order->get_item_count(),
+            Wp::int($order->get_item_count()),
             '' !== $customerName ? $customerName : 'Client de passage',
             trim($order->get_billing_email()),
             trim($order->get_billing_phone()),

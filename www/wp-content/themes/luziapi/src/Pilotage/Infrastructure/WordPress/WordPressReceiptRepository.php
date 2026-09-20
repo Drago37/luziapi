@@ -11,6 +11,7 @@ use LuziApi\Pilotage\Domain\Receipt\ReceiptEntry;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptRepository;
 use LuziApi\Pilotage\Domain\Shared\Money;
+use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 
@@ -61,35 +62,38 @@ final readonly class WordPressReceiptRepository implements ReceiptRepository
 
     public function find(int $id): ?ReceiptEntry
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->tableName() . ' WHERE id = %d',
             $id,
         );
         $row = $this->database->get_row($query, ARRAY_A);
 
-        return is_array($row) ? $this->map($row) : null;
+        return is_array($row) ? $this->map(Wp::row($row)) : null;
     }
 
     public function hasReversalFor(int $entryId): bool
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT COUNT(*) FROM ' . $this->schema->tableName() . ' WHERE reversal_of_id = %d',
             $entryId,
         );
 
-        return (int) $this->database->get_var($query) > 0;
+        return Wp::int($this->database->get_var($query)) > 0;
     }
 
     public function occurredBetween(DateTimeImmutable $start, DateTimeImmutable $end): array
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->tableName() . ' WHERE occurred_at >= %s AND occurred_at <= %s ORDER BY occurred_at DESC, sequence_number DESC',
             $start->format('Y-m-d H:i:s'),
             $end->format('Y-m-d H:i:s'),
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->map(...), is_array($rows) ? $rows : []);
+        return array_map($this->map(...), Wp::rows($rows));
     }
 
     public function netTotalsByOrderIds(array $orderIds): array
@@ -100,15 +104,16 @@ final readonly class WordPressReceiptRepository implements ReceiptRepository
         }
 
         $placeholders = implode(',', array_fill(0, count($orderIds), '%d'));
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT order_id, SUM(amount_cents) AS total FROM ' . $this->schema->tableName() . " WHERE order_id IN ({$placeholders}) GROUP BY order_id",
             ...$orderIds,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
         $totals = [];
 
-        foreach (is_array($rows) ? $rows : [] as $row) {
-            $totals[(int) $row['order_id']] = (int) $row['total'];
+        foreach (Wp::rows($rows) as $row) {
+            $totals[Wp::int($row['order_id'])] = Wp::int($row['total']);
         }
 
         return $totals;
@@ -128,17 +133,17 @@ final readonly class WordPressReceiptRepository implements ReceiptRepository
     private function map(array $row): ReceiptEntry
     {
         return new ReceiptEntry(
-            (int) $row['id'],
-            (int) $row['sequence_number'],
-            null === $row['order_id'] ? null : (int) $row['order_id'],
-            new DateTimeImmutable((string) $row['occurred_at'], $this->timezone),
-            new Money((int) $row['amount_cents'], (string) $row['currency']),
-            (string) $row['payment_method'],
-            ReceiptEntryType::from((string) $row['entry_type']),
-            (string) $row['description'],
-            null === $row['reversal_of_id'] ? null : (int) $row['reversal_of_id'],
-            (int) $row['created_by'],
-            new DateTimeImmutable((string) $row['created_at'], $this->timezone),
+            Wp::int($row['id']),
+            Wp::int($row['sequence_number']),
+            null === $row['order_id'] ? null : Wp::int($row['order_id']),
+            new DateTimeImmutable(Wp::str($row['occurred_at']), $this->timezone),
+            new Money(Wp::int($row['amount_cents']), Wp::str($row['currency'])),
+            Wp::str($row['payment_method']),
+            ReceiptEntryType::from(Wp::str($row['entry_type'])),
+            Wp::str($row['description']),
+            null === $row['reversal_of_id'] ? null : Wp::int($row['reversal_of_id']),
+            Wp::int($row['created_by']),
+            new DateTimeImmutable(Wp::str($row['created_at']), $this->timezone),
         );
     }
 }

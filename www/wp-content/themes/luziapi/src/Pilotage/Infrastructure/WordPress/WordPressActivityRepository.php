@@ -12,6 +12,7 @@ use LuziApi\Pilotage\Domain\Activity\ActivityEntry;
 use LuziApi\Pilotage\Domain\Activity\ActivityFilter;
 use LuziApi\Pilotage\Domain\Activity\ActivityRepository;
 use LuziApi\Pilotage\Domain\Activity\NewActivityEntry;
+use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 
@@ -74,19 +75,20 @@ final readonly class WordPressActivityRepository implements ActivityRepository
         }
         $limit = max(1, min(2000, $filter->limit));
         $arguments[] = $limit;
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->activityTableName() . ' WHERE ' . implode(' AND ', $where) . ' ORDER BY occurred_at DESC, id DESC LIMIT %d',
             ...$arguments,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->map(...), is_array($rows) ? $rows : []);
+        return array_map($this->map(...), Wp::rows($rows));
     }
 
     /** @param array<string, mixed> $row */
     private function map(array $row): ActivityEntry
     {
-        $details = json_decode((string) $row['details_json'], true);
+        $details = json_decode(Wp::str($row['details_json']), true);
         $normalizedDetails = [];
         if (is_array($details)) {
             foreach ($details as $key => $value) {
@@ -97,14 +99,14 @@ final readonly class WordPressActivityRepository implements ActivityRepository
         }
 
         return new ActivityEntry(
-            (int) $row['id'],
-            new DateTimeImmutable((string) $row['occurred_at'], $this->timezone),
-            (int) $row['actor_id'],
-            ActivityCategory::from((string) $row['category']),
-            (string) $row['action'],
-            (string) $row['object_type'],
-            null === $row['object_id'] ? null : (int) $row['object_id'],
-            (string) $row['summary'],
+            Wp::int($row['id']),
+            new DateTimeImmutable(Wp::str($row['occurred_at']), $this->timezone),
+            Wp::int($row['actor_id']),
+            ActivityCategory::from(Wp::str($row['category'])),
+            Wp::str($row['action']),
+            Wp::str($row['object_type']),
+            null === $row['object_id'] ? null : Wp::int($row['object_id']),
+            Wp::str($row['summary']),
             $normalizedDetails,
         );
     }

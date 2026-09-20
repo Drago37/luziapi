@@ -12,6 +12,7 @@ use LuziApi\Pilotage\Domain\Inventory\NewHarvestLot;
 use LuziApi\Pilotage\Domain\Inventory\NewStockMovement;
 use LuziApi\Pilotage\Domain\Inventory\StockMovement;
 use LuziApi\Pilotage\Domain\Inventory\StockMovementType;
+use LuziApi\Support\Wp;
 use RuntimeException;
 use Throwable;
 use wpdb;
@@ -77,28 +78,29 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
 
     public function findLot(int $id): ?HarvestLot
     {
-        $query = $this->database->prepare($this->lotsQuery() . ' WHERE lots.id = %d', $id);
+        $query = Wp::prepared($this->database, $this->lotsQuery() . ' WHERE lots.id = %d', $id);
         $row = $this->database->get_row($query, ARRAY_A);
 
-        return is_array($row) ? $this->mapLot($row) : null;
+        return is_array($row) ? $this->mapLot(Wp::row($row)) : null;
     }
 
     public function lots(): array
     {
         $rows = $this->database->get_results($this->lotsQuery() . ' ORDER BY lots.harvest_year DESC, lots.id DESC', ARRAY_A);
 
-        return array_map($this->mapLot(...), is_array($rows) ? $rows : []);
+        return array_map($this->mapLot(...), Wp::rows($rows));
     }
 
     public function availableLotsForProduct(int $productId): array
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             $this->lotsQuery() . ' WHERE lots.product_id = %d AND COALESCE(balance.stock_remaining, 0) > 0 ORDER BY lots.harvest_year ASC, lots.id ASC',
             $productId,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->mapLot(...), is_array($rows) ? $rows : []);
+        return array_map($this->mapLot(...), Wp::rows($rows));
     }
 
     public function addMovement(NewStockMovement $movement): StockMovement
@@ -128,29 +130,31 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
             throw new RuntimeException('Unable to number stock movement: ' . $this->database->last_error);
         }
 
-        $query = $this->database->prepare("SELECT * FROM {$table} WHERE id = %d", $id);
+        $query = Wp::prepared($this->database, "SELECT * FROM {$table} WHERE id = %d", $id);
         $row = $this->database->get_row($query, ARRAY_A);
         if (! is_array($row)) {
             $this->database->delete($table, ['id' => $id], ['%d']);
             throw new RuntimeException('Stored stock movement could not be read back.');
         }
 
-        return $this->mapMovement($row);
+        return $this->mapMovement(Wp::row($row));
     }
 
     public function hasMovementReference(string $referenceKey): bool
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT COUNT(*) FROM ' . $this->schema->stockMovementsTableName() . ' WHERE reference_key = %s',
             $referenceKey,
         );
 
-        return (int) $this->database->get_var($query) > 0;
+        return Wp::int($this->database->get_var($query)) > 0;
     }
 
     public function orderMovements(int $orderId, int $orderItemId, StockMovementType $type): array
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->stockMovementsTableName() . ' WHERE order_id = %d AND order_item_id = %d AND movement_type = %s ORDER BY id ASC',
             $orderId,
             $orderItemId,
@@ -158,31 +162,33 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->mapMovement(...), is_array($rows) ? $rows : []);
+        return array_map($this->mapMovement(...), Wp::rows($rows));
     }
 
     public function orderItemMovements(int $orderId, int $orderItemId): array
     {
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->stockMovementsTableName() . ' WHERE order_id = %d AND order_item_id = %d ORDER BY id ASC',
             $orderId,
             $orderItemId,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->mapMovement(...), is_array($rows) ? $rows : []);
+        return array_map($this->mapMovement(...), Wp::rows($rows));
     }
 
     public function recentMovements(int $limit = 100): array
     {
         $limit = max(1, min(500, $limit));
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->stockMovementsTableName() . ' ORDER BY occurred_at DESC, id DESC LIMIT %d',
             $limit,
         );
         $rows = $this->database->get_results($query, ARRAY_A);
 
-        return array_map($this->mapMovement(...), is_array($rows) ? $rows : []);
+        return array_map($this->mapMovement(...), Wp::rows($rows));
     }
 
     private function lotsQuery(): string
@@ -198,19 +204,19 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
     private function mapLot(array $row): HarvestLot
     {
         return new HarvestLot(
-            (int) $row['id'],
-            (string) $row['code'],
-            (int) $row['product_id'],
-            (int) $row['harvest_year'],
-            new DateTimeImmutable((string) $row['harvested_at'], $this->timezone),
-            new DateTimeImmutable((string) $row['jarred_at'], $this->timezone),
-            (string) $row['apiary_origin'],
-            (string) $row['variety'],
-            (int) $row['quantity_jarred'],
-            (int) $row['stock_remaining'],
-            1 === (int) $row['stock_already_recorded'],
-            (int) $row['created_by'],
-            new DateTimeImmutable((string) $row['created_at'], $this->timezone),
+            Wp::int($row['id']),
+            Wp::str($row['code']),
+            Wp::int($row['product_id']),
+            Wp::int($row['harvest_year']),
+            new DateTimeImmutable(Wp::str($row['harvested_at']), $this->timezone),
+            new DateTimeImmutable(Wp::str($row['jarred_at']), $this->timezone),
+            Wp::str($row['apiary_origin']),
+            Wp::str($row['variety']),
+            Wp::int($row['quantity_jarred']),
+            Wp::int($row['stock_remaining']),
+            1 === Wp::int($row['stock_already_recorded']),
+            Wp::int($row['created_by']),
+            new DateTimeImmutable(Wp::str($row['created_at']), $this->timezone),
         );
     }
 
@@ -218,19 +224,19 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
     private function mapMovement(array $row): StockMovement
     {
         return new StockMovement(
-            (int) $row['id'],
-            (int) $row['sequence_number'],
-            (int) $row['product_id'],
-            null === $row['lot_id'] ? null : (int) $row['lot_id'],
-            null === $row['order_id'] ? null : (int) $row['order_id'],
-            null === $row['order_item_id'] ? null : (int) $row['order_item_id'],
-            new DateTimeImmutable((string) $row['occurred_at'], $this->timezone),
-            (int) $row['quantity_delta'],
-            StockMovementType::from((string) $row['movement_type']),
-            (string) $row['reason'],
-            null === $row['reference_key'] ? null : (string) $row['reference_key'],
-            (int) $row['created_by'],
-            new DateTimeImmutable((string) $row['created_at'], $this->timezone),
+            Wp::int($row['id']),
+            Wp::int($row['sequence_number']),
+            Wp::int($row['product_id']),
+            null === $row['lot_id'] ? null : Wp::int($row['lot_id']),
+            null === $row['order_id'] ? null : Wp::int($row['order_id']),
+            null === $row['order_item_id'] ? null : Wp::int($row['order_item_id']),
+            new DateTimeImmutable(Wp::str($row['occurred_at']), $this->timezone),
+            Wp::int($row['quantity_delta']),
+            StockMovementType::from(Wp::str($row['movement_type'])),
+            Wp::str($row['reason']),
+            null === $row['reference_key'] ? null : Wp::str($row['reference_key']),
+            Wp::int($row['created_by']),
+            new DateTimeImmutable(Wp::str($row['created_at']), $this->timezone),
         );
     }
 }

@@ -93,7 +93,10 @@ final class PilotageServiceProvider
         self::$booted = true;
 
         add_filter('timber/locations', static function (array $locations) use ($themeDirectory): array {
-            $locations['luziapi_admin'][] = $themeDirectory . '/resources/views/admin';
+            $existing = $locations['luziapi_admin'] ?? [];
+            $existing = is_array($existing) ? $existing : [];
+            $existing[] = $themeDirectory . '/resources/views/admin';
+            $locations['luziapi_admin'] = $existing;
 
             return $locations;
         });

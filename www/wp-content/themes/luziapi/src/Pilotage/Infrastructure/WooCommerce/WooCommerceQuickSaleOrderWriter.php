@@ -196,7 +196,7 @@ final class WooCommerceQuickSaleOrderWriter implements QuickSaleOrderWriter
             'meta_key'   => '_luziapi_quick_sale_request_id',
             'meta_value' => $requestId,
         ]);
-        $order = $orders[0] ?? null;
+        $order = is_array($orders) ? ($orders[0] ?? null) : null;
 
         return $order instanceof WC_Order ? $order : null;
     }

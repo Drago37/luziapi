@@ -7,6 +7,7 @@ namespace LuziApi\Pilotage\Infrastructure\WooCommerce;
 use LuziApi\Pilotage\Domain\Product\ProductCatalog;
 use LuziApi\Pilotage\Domain\Product\ProductStockSnapshot;
 use LuziApi\Pilotage\Domain\Shared\Money;
+use LuziApi\Support\Wp;
 use WC_Product;
 
 final class WooCommerceProductCatalog implements ProductCatalog
@@ -19,10 +20,10 @@ final class WooCommerceProductCatalog implements ProductCatalog
             'order'   => 'ASC',
             'status'  => ['publish', 'private'],
         ]);
-        $defaultLowStock = (int) get_option('woocommerce_notify_low_stock_amount', 5);
+        $defaultLowStock = Wp::int(get_option('woocommerce_notify_low_stock_amount', 5));
         $snapshots = [];
 
-        foreach ($products as $product) {
+        foreach (is_array($products) ? $products : [] as $product) {
             if (! $product instanceof WC_Product || $product->is_type('variation')) {
                 continue;
             }
