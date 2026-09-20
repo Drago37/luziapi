@@ -16,7 +16,7 @@ use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrde
 use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Port\QuickSaleOrderWriter;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;

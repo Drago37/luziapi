@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Application\Command\AssignCustomerCategory;
 
 use InvalidArgumentException;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Customer\CustomerCategoryRepository;
 
 final readonly class AssignCustomerCategoryHandler

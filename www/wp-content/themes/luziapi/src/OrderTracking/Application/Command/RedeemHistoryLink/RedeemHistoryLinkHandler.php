@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Application\Command\RedeemHistoryLink;
 
 use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\Clock;
 use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
 use LuziApi\OrderTracking\Application\Service\TrackingSession;
 use LuziApi\OrderTracking\Application\Service\TrackingSessionIssuer;
+use LuziApi\Shared\Domain\Clock;
 
 final readonly class RedeemHistoryLinkHandler
 {

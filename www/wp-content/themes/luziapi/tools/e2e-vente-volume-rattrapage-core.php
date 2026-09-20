@@ -32,7 +32,7 @@ use LuziApi\Shop\Domain\Sales\VolumeDiscount;
 use LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {

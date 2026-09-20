@@ -23,7 +23,7 @@ use LuziApi\Shop\Domain\Loyalty\OrphanLoyaltyCredit;
 use LuziApi\Shop\Infrastructure\Loyalty\LoyaltyModuleLedgerReader;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceEligiblePotReader;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 
 if (! function_exists('luziapi_audit_loyalty_drift_data')) {
     /**

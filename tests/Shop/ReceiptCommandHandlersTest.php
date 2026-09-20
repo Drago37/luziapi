@@ -11,7 +11,7 @@ use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Application\Command\ReverseReceipt\ReverseReceiptCommand;
 use LuziApi\Shop\Application\Command\ReverseReceipt\ReverseReceiptHandler;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;

@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Shop;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Port\LoyaltyEconomicsReader;
 use LuziApi\Shop\Application\Port\LoyaltyRewardsReader;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;

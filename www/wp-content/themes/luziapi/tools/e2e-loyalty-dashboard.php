@@ -25,7 +25,7 @@ use LuziApi\Shop\Infrastructure\Loyalty\LoyaltyModuleRewardsReader;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceLoyaltyEconomicsReader;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceThankYouDiscount;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

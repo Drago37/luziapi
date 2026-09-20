@@ -20,7 +20,7 @@ use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandle
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 $token = 'REPLACE_WITH_TOKEN';

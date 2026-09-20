@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Infrastructure\WordPress;
+namespace LuziApi\Shared\Infrastructure\WordPress;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 
 final class WordPressClock implements Clock
 {

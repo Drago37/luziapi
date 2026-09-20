@@ -16,13 +16,13 @@ use LuziApi\OrderTracking\Infrastructure\WooCommerce\WooCommerceStatusHistorySub
 use LuziApi\OrderTracking\Infrastructure\WordPress\OrderTrackingSchemaManager;
 use LuziApi\OrderTracking\Infrastructure\WordPress\RandomTokenGenerator;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressAccessFingerprint;
-use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressClock;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressMagicLinkSender;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressStatusHistoryRepository;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingAccessRepository;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingSessionCookie;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
 use LuziApi\OrderTracking\UserInterface\Web\TrackingPageController;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use wpdb;
 
 final class OrderTrackingServiceProvider

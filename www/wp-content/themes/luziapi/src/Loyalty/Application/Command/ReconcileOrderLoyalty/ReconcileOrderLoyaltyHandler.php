@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty;
 
-use LuziApi\Loyalty\Application\Port\Clock;
 use LuziApi\Loyalty\Application\Port\IdGenerator;
 use LuziApi\Loyalty\Domain\LoyaltyEntryType;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\NewLoyaltyEntry;
+use LuziApi\Shared\Domain\Clock;
 
 /**
  * Écrit, si nécessaire, les écritures qui amènent le journal d'une commande à son

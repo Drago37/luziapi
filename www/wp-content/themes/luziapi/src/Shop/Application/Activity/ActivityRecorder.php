@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Application\Activity;
 
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Activity\ActivityRepository;
 use LuziApi\Shop\Domain\Activity\NewActivityEntry;

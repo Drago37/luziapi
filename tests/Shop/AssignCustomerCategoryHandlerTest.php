@@ -9,7 +9,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 use LuziApi\Shop\Application\Command\AssignCustomerCategory\AssignCustomerCategoryCommand;
 use LuziApi\Shop\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Customer\CustomerCategory;
 use LuziApi\Shop\Domain\Customer\CustomerCategoryRepository;
 use PHPUnit\Framework\TestCase;

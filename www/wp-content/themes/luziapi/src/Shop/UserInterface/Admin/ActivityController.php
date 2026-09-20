@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\Shop\UserInterface\Admin;
 
 use DateTimeImmutable;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
-use LuziApi\Shop\Application\Port\Clock;
 use LuziApi\Shop\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Activity\ActivityEntry;

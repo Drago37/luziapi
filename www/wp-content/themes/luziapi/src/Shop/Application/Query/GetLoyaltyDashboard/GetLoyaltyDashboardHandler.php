@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Application\Query\GetLoyaltyDashboard;
 
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Port\LoyaltyEconomicsReader;
 use LuziApi\Shop\Application\Port\LoyaltyRewardsReader;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;

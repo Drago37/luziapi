@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Application\Query\AuditReceiptDrift;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Receipt\OrphanReceipt;
 use LuziApi\Shop\Domain\Receipt\ReceiptDriftAuditor;
 use LuziApi\Shop\Domain\Receipt\ReceiptDriftReport;

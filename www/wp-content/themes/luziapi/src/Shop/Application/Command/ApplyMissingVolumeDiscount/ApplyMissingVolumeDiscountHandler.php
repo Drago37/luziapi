@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Application\Command\ApplyMissingVolumeDiscount;
 
 use InvalidArgumentException;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Shop\Application\Port\Clock;
 use LuziApi\Shop\Application\Port\OrderVolumeDiscountWriter;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Application\Query\GetAnnualDashboard;
 
 use DateTimeImmutable;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\FollowUp\FollowUpProjector;
 use LuziApi\Shop\Domain\Receipt\AnnualReceiptCalculator;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;

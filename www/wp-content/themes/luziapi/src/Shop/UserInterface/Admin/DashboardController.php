@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\UserInterface\Admin;
 
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Query\GetActivityLog\GetActivityLogHandler;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardHandler;
 use LuziApi\Shop\Application\Query\GetAnnualDashboard\GetAnnualDashboardQuery;

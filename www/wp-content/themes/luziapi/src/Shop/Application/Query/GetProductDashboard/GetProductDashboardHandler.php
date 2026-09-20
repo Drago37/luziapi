@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Application\Query\GetProductDashboard;
 
 use DateTimeImmutable;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Product\ProductCatalog;
 use LuziApi\Shop\Domain\Product\ProductPerformanceProjector;
 use LuziApi\Shop\Domain\Sales\OrderRepository;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Tests\OrderTracking;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use InvalidArgumentException;
 use LuziApi\OrderTracking\Application\Command\RecordOrderStatusChange\RecordOrderStatusChangeHandler;
 use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLinkHandler;
@@ -12,7 +13,7 @@ use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryL
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Command\StartOrderAccess\StartOrderAccessHandler;
 use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
 use LuziApi\OrderTracking\Application\Port\MagicLinkUrlGenerator;
 use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
@@ -291,6 +292,11 @@ final class TrackingClock implements Clock
     public function now(): DateTimeImmutable
     {
         return $this->current;
+    }
+
+    public function timezone(): DateTimeZone
+    {
+        return new DateTimeZone('Europe/Paris');
     }
 }
 

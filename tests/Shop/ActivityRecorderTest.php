@@ -7,7 +7,7 @@ namespace LuziApi\Tests\Shop;
 use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Activity\ActivityEntry;
 use LuziApi\Shop\Domain\Activity\ActivityFilter;

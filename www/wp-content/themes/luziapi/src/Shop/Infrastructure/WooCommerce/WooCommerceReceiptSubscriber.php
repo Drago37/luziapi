@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
-use LuziApi\Shop\Application\Port\Clock;
 use WC_Order;
 
 /**

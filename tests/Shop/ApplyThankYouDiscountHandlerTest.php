@@ -12,7 +12,7 @@ use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscount
 use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Port\OrderDiscountWriter;
 use LuziApi\Shop\Domain\Activity\ActivityEntry;
 use LuziApi\Shop\Domain\Activity\ActivityFilter;
