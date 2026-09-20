@@ -10,6 +10,7 @@ use LuziApi\Loyalty\Domain\LoyaltyEntry;
 use LuziApi\Loyalty\Domain\LoyaltyEntryType;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\NewLoyaltyEntry;
+use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 
@@ -58,7 +59,7 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         // (0 ligne affectée), garantissant l'idempotence sans lever d'erreur.
         $sql = 'INSERT IGNORE INTO ' . $this->schema->ledgerTableName()
             . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
-        $result = $this->database->query($this->database->prepare($sql, ...$args));
+        $result = $this->database->query(Wp::prepared($this->database, $sql, ...$args));
         if (false === $result) {
             throw new RuntimeException('Unable to append the loyalty ledger entry.');
         }
@@ -71,7 +72,8 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
 
     public function hasEntryForIdempotencyKey(string $idempotencyKey): bool
     {
-        $found = $this->database->get_var($this->database->prepare(
+        $found = $this->database->get_var(Wp::prepared(
+            $this->database,
             'SELECT id FROM ' . $this->schema->ledgerTableName() . ' WHERE idempotency_key = %s LIMIT 1',
             $idempotencyKey,
         ));
@@ -81,7 +83,8 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
 
     public function hasEntryForOrder(int $orderId): bool
     {
-        $found = $this->database->get_var($this->database->prepare(
+        $found = $this->database->get_var(Wp::prepared(
+            $this->database,
             'SELECT id FROM ' . $this->schema->ledgerTableName() . ' WHERE source_order_id = %d LIMIT 1',
             $orderId,
         ));
@@ -97,30 +100,32 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         );
 
         return array_values(array_map(
-            static fn ($id): int => (int) $id,
+            static fn ($id): int => Wp::int($id),
             is_array($ids) ? $ids : [],
         ));
     }
 
     public function findByIdempotencyKey(string $idempotencyKey): ?LoyaltyEntry
     {
-        $row = $this->database->get_row($this->database->prepare(
+        $row = $this->database->get_row(Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->ledgerTableName() . ' WHERE idempotency_key = %s LIMIT 1',
             $idempotencyKey,
         ), ARRAY_A);
 
-        return is_array($row) ? $this->hydrate($row) : null;
+        return is_array($row) ? $this->hydrate(Wp::row($row)) : null;
     }
 
     public function orderTotals(int $orderId): array
     {
-        $row = $this->database->get_row($this->database->prepare(
+        $row = $this->database->get_row(Wp::prepared(
+            $this->database,
             'SELECT COALESCE(SUM(pots_delta), 0) AS pots, COALESCE(SUM(rights_delta), 0) AS rights'
             . ' FROM ' . $this->schema->ledgerTableName() . ' WHERE source_order_id = %d',
             $orderId,
         ), ARRAY_A);
 
-        return ['pots' => (int) ($row['pots'] ?? 0), 'rights' => (int) ($row['rights'] ?? 0)];
+        return ['pots' => Wp::int($row['pots'] ?? 0), 'rights' => Wp::int($row['rights'] ?? 0)];
     }
 
     public function totalsForCustomerKeys(array $customerKeys): array
@@ -131,7 +136,8 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         }
 
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $row = $this->database->get_row($this->database->prepare(
+        $row = $this->database->get_row(Wp::prepared(
+            $this->database,
             'SELECT COALESCE(SUM(pots_delta), 0) AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights,'
             . ' COUNT(*) AS entry_count'
@@ -141,9 +147,9 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ), ARRAY_A);
 
         return [
-            'pots' => (int) ($row['pots'] ?? 0),
-            'rightsConsumed' => max(0, -(int) ($row['rights'] ?? 0)),
-            'entryCount' => (int) ($row['entry_count'] ?? 0),
+            'pots' => Wp::int($row['pots'] ?? 0),
+            'rightsConsumed' => max(0, -Wp::int($row['rights'] ?? 0)),
+            'entryCount' => Wp::int($row['entry_count'] ?? 0),
         ];
     }
 
@@ -155,7 +161,8 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         }
 
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $rows = $this->database->get_results($this->database->prepare(
+        $rows = $this->database->get_results(Wp::prepared(
+            $this->database,
             'SELECT customer_key,'
             . ' COALESCE(SUM(pots_delta), 0) AS pots,'
             . ' COALESCE(SUM(rights_delta), 0) AS rights'
@@ -166,10 +173,10 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
         ), ARRAY_A);
 
         $balances = [];
-        foreach (is_array($rows) ? $rows : [] as $row) {
-            $balances[(string) $row['customer_key']] = [
-                'pots' => (int) $row['pots'],
-                'rights' => (int) $row['rights'],
+        foreach (Wp::rows($rows) as $row) {
+            $balances[Wp::str($row['customer_key'])] = [
+                'pots' => Wp::int($row['pots']),
+                'rights' => Wp::int($row['rights']),
             ];
         }
 
@@ -185,14 +192,15 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
 
         $limit = max(1, min(500, $limit));
         $placeholders = implode(', ', array_fill(0, count($keys), '%s'));
-        $rows = $this->database->get_results($this->database->prepare(
+        $rows = $this->database->get_results(Wp::prepared(
+            $this->database,
             'SELECT * FROM ' . $this->schema->ledgerTableName()
             . " WHERE customer_key IN ({$placeholders})"
             . ' ORDER BY occurred_at DESC, id DESC LIMIT %d',
             ...[...$keys, $limit],
         ), ARRAY_A);
 
-        return array_map($this->hydrate(...), is_array($rows) ? $rows : []);
+        return array_map($this->hydrate(...), Wp::rows($rows));
     }
 
     /**
@@ -214,19 +222,19 @@ final readonly class WordPressLoyaltyLedger implements LoyaltyLedger
     private function hydrate(array $row): LoyaltyEntry
     {
         return new LoyaltyEntry(
-            id: (int) $row['id'],
-            customerKey: (string) $row['customer_key'],
-            type: LoyaltyEntryType::from((string) $row['entry_type']),
-            potsDelta: (int) $row['pots_delta'],
-            rightsDelta: (int) $row['rights_delta'],
-            sourceOrderId: null !== $row['source_order_id'] ? (int) $row['source_order_id'] : null,
-            usageOrderId: null !== $row['usage_order_id'] ? (int) $row['usage_order_id'] : null,
-            reversalOfId: null !== $row['reversal_of_id'] ? (int) $row['reversal_of_id'] : null,
-            idempotencyKey: (string) $row['idempotency_key'],
-            reason: (string) ($row['reason'] ?? ''),
-            createdBy: (int) $row['created_by'],
-            occurredAt: new DateTimeImmutable((string) $row['occurred_at'], $this->timezone),
-            createdAt: new DateTimeImmutable((string) $row['created_at'], $this->timezone),
+            id: Wp::int($row['id']),
+            customerKey: Wp::str($row['customer_key']),
+            type: LoyaltyEntryType::from(Wp::str($row['entry_type'])),
+            potsDelta: Wp::int($row['pots_delta']),
+            rightsDelta: Wp::int($row['rights_delta']),
+            sourceOrderId: null !== $row['source_order_id'] ? Wp::int($row['source_order_id']) : null,
+            usageOrderId: null !== $row['usage_order_id'] ? Wp::int($row['usage_order_id']) : null,
+            reversalOfId: null !== $row['reversal_of_id'] ? Wp::int($row['reversal_of_id']) : null,
+            idempotencyKey: Wp::str($row['idempotency_key']),
+            reason: Wp::str($row['reason'] ?? ''),
+            createdBy: Wp::int($row['created_by']),
+            occurredAt: new DateTimeImmutable(Wp::str($row['occurred_at']), $this->timezone),
+            createdAt: new DateTimeImmutable(Wp::str($row['created_at']), $this->timezone),
         );
     }
 }
