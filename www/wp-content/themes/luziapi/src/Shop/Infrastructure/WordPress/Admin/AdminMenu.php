@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\UserInterface\Admin;
+namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 
 final readonly class AdminMenu
 {

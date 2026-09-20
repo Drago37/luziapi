@@ -33,7 +33,7 @@ use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
-use LuziApi\Shop\UserInterface\Admin\CustomersController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\CustomersController;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

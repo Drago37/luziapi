@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Bootstrap;
+namespace LuziApi\Shop\Infrastructure;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
@@ -55,6 +55,20 @@ use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceStockLevelGateway;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\ActivityController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\AddressLookupController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\AdminMenu;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\AssetLoader;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\CustomersController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\DashboardController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\InventoryController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\LoyaltyController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\PilotageController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\ProductsController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\QuickSaleController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\ReceiptsController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\SubscribersController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\TaxDeclarationController;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedInventoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
@@ -65,20 +79,6 @@ use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressInventoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressTaxSettings;
-use LuziApi\Shop\UserInterface\Admin\ActivityController;
-use LuziApi\Shop\UserInterface\Admin\AddressLookupController;
-use LuziApi\Shop\UserInterface\Admin\AdminMenu;
-use LuziApi\Shop\UserInterface\Admin\AssetLoader;
-use LuziApi\Shop\UserInterface\Admin\CustomersController;
-use LuziApi\Shop\UserInterface\Admin\DashboardController;
-use LuziApi\Shop\UserInterface\Admin\InventoryController;
-use LuziApi\Shop\UserInterface\Admin\LoyaltyController;
-use LuziApi\Shop\UserInterface\Admin\PilotageController;
-use LuziApi\Shop\UserInterface\Admin\ProductsController;
-use LuziApi\Shop\UserInterface\Admin\QuickSaleController;
-use LuziApi\Shop\UserInterface\Admin\ReceiptsController;
-use LuziApi\Shop\UserInterface\Admin\SubscribersController;
-use LuziApi\Shop\UserInterface\Admin\TaxDeclarationController;
 use wpdb;
 
 final class ShopServiceProvider

@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Shop\Application\Command\ApplyMissingVolumeDiscount\AppliedVolumeDiscount;
-use LuziApi\Shop\Application\Port\OrderVolumeDiscountWriter;
+use LuziApi\Shop\Domain\Gateway\OrderVolumeDiscountWriter;
 use LuziApi\Shop\Domain\Sales\VolumeDiscount;
 use RuntimeException;
 use WC_Order;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
-use LuziApi\Shop\Application\Port\EligiblePotReader;
+use LuziApi\Shop\Domain\Gateway\EligiblePotReader;
 use WC_Order;
 
 /**

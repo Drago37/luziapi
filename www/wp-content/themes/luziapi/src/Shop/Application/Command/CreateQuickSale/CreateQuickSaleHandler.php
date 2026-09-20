@@ -10,8 +10,8 @@ use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Shop\Application\Port\QuickSaleOrderWriter;
 use LuziApi\Shop\Domain\Customer\NormalizedPhone;
+use LuziApi\Shop\Domain\Gateway\QuickSaleOrderWriter;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use Throwable;
 

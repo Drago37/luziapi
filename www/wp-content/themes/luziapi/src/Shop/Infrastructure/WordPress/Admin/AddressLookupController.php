@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\UserInterface\Admin;
+namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 
 use LuziApi\Shop\Application\Query\SearchAddress\SearchAddressHandler;
 use LuziApi\Shop\Application\Query\SearchAddress\SearchAddressQuery;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\UserInterface\Admin;
+namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 
 /**
  * Source unique des onglets du tableau de pilotage. Les vues incluent

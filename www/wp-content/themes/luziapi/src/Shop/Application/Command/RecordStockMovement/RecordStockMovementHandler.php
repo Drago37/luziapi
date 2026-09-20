@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Application\Command\RecordStockMovement;
 
 use InvalidArgumentException;
 use LuziApi\Shared\Domain\Clock;
-use LuziApi\Shop\Application\Port\StockLevelGateway;
+use LuziApi\Shop\Domain\Gateway\StockLevelGateway;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewStockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovement;

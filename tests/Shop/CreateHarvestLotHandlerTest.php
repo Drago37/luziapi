@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotCommand;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
 use LuziApi\Shared\Domain\Clock;
-use LuziApi\Shop\Application\Port\StockLevelGateway;
+use LuziApi\Shop\Domain\Gateway\StockLevelGateway;
 use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewHarvestLot;

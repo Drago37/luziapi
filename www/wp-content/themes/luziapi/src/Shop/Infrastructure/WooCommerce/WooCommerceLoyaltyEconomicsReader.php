@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Shared\Infrastructure\Wp;
-use LuziApi\Shop\Application\Port\LoyaltyEconomicsReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyEconomicsReader;
 use WC_Order;
 
 final readonly class WooCommerceLoyaltyEconomicsReader implements LoyaltyEconomicsReader

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Application\Port;
+namespace LuziApi\Shop\Domain\Gateway;
 
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreatedQuickSale;
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleCommand;

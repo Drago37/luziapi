@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Application\Query\GetTaxDeclaration;
 
 use DateTimeImmutable;
 use LuziApi\Shared\Domain\Clock;
-use LuziApi\Shop\Application\Port\TaxSettings;
+use LuziApi\Shop\Domain\Gateway\TaxSettings;
 use LuziApi\Shop\Domain\Receipt\AnnualReceiptCalculator;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
 use LuziApi\Shop\Domain\Sales\OrderRepository;

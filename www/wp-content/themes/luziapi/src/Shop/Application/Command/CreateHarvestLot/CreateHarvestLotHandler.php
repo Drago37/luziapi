@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Application\Command\CreateHarvestLot;
 
 use InvalidArgumentException;
 use LuziApi\Shared\Domain\Clock;
-use LuziApi\Shop\Application\Port\StockLevelGateway;
+use LuziApi\Shop\Domain\Gateway\StockLevelGateway;
 use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewHarvestLot;

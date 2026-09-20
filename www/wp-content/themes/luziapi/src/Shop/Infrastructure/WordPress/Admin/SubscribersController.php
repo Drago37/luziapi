@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\UserInterface\Admin;
+namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersHandler;
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersQuery;

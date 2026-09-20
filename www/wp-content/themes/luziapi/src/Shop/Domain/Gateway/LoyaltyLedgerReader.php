@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Application\Port;
+namespace LuziApi\Shop\Domain\Gateway;
 
 /**
  * Lecture du journal de fidélité pour l'audit de dérive (lecture seule). Alimenté

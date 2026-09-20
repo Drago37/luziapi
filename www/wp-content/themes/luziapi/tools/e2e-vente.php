@@ -32,7 +32,7 @@ use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
-use LuziApi\Shop\UserInterface\Admin\QuickSaleController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\QuickSaleController;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Shop\Application\Port;
+namespace LuziApi\Shop\Domain\Gateway;
 
 /**
  * Nombre de pots **admissibles** à la fidélité par commande (pots vendus des

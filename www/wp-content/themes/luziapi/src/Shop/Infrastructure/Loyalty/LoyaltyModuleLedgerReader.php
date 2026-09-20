@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\Loyalty;
 
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
-use LuziApi\Shop\Application\Port\LoyaltyLedgerReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyLedgerReader;
 
 /**
  * Adaptateur du port {@see LoyaltyLedgerReader} vers le journal du module Loyalty.
