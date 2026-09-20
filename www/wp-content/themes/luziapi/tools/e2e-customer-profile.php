@@ -32,12 +32,12 @@ if (! function_exists('luziapi_e2e_customer_profile_run')) {
         $tag = 'e2e-profile-' . uniqid();
         $email = $tag . '@e2e-profile.test';
 
-        $schema = new \LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
-        $projector = new \LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector();
-        $repoOrders = new \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository(wp_timezone());
-        $profiles = new \LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerProfileRepository($wpdb, $schema);
+        $schema = new \LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
+        $projector = new \LuziApi\Shop\Domain\Customer\CustomerHistoryProjector();
+        $repoOrders = new \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository(wp_timezone());
+        $profiles = new \LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository($wpdb, $schema);
 
-        $findProfile = static function () use ($projector, $repoOrders, $email): ?\LuziApi\Pilotage\Domain\Customer\CustomerProfile {
+        $findProfile = static function () use ($projector, $repoOrders, $email): ?\LuziApi\Shop\Domain\Customer\CustomerProfile {
             $orders = $repoOrders->createdBetween(new DateTimeImmutable('2000-01-01', wp_timezone()), (new DateTimeImmutable('now', wp_timezone()))->modify('+1 day'));
             foreach ($projector->project($orders, []) as $p) {
                 foreach ($p->emails as $e) {
@@ -73,14 +73,14 @@ if (! function_exists('luziapi_e2e_customer_profile_run')) {
             $orderId = (int) $order->get_id();
 
             $profile = $findProfile();
-            $assert('Client projeté depuis la commande', $profile instanceof \LuziApi\Pilotage\Domain\Customer\CustomerProfile);
-            if (! $profile instanceof \LuziApi\Pilotage\Domain\Customer\CustomerProfile) {
+            $assert('Client projeté depuis la commande', $profile instanceof \LuziApi\Shop\Domain\Customer\CustomerProfile);
+            if (! $profile instanceof \LuziApi\Shop\Domain\Customer\CustomerProfile) {
                 throw new \RuntimeException('Profil de test introuvable après création de la commande.');
             }
             $identityIds = $profile->identityIds;
 
             // 2. Enregistrement de la fiche dédiée (adresse complète) — vrai write SQL.
-            $billing = new \LuziApi\Pilotage\Domain\Customer\CustomerBilling(
+            $billing = new \LuziApi\Shop\Domain\Customer\CustomerBilling(
                 'Hélène', 'Dupont', '', '3 rue des Abeilles', 'Bâtiment B', '37150', 'Luzillé', 'FR', $email, '06 31 43 70 46',
             );
             $profiles->save($identityIds, $billing, 0, new DateTimeImmutable('now', wp_timezone()));
@@ -88,12 +88,12 @@ if (! function_exists('luziapi_e2e_customer_profile_run')) {
             // 3. Relecture depuis la base (aller-retour SQL réel).
             $stored = $profiles->forCustomerIds($identityIds);
             $first = $stored[$identityIds[0]] ?? null;
-            $assert('Fiche relue depuis la base', $first instanceof \LuziApi\Pilotage\Domain\Customer\CustomerBilling);
-            $assert('Adresse persistée', $first instanceof \LuziApi\Pilotage\Domain\Customer\CustomerBilling && '3 rue des Abeilles' === $first->address1, 'address1=' . ($first?->address1 ?? '∅'));
-            $assert('Code postal persisté', $first instanceof \LuziApi\Pilotage\Domain\Customer\CustomerBilling && '37150' === $first->postcode);
+            $assert('Fiche relue depuis la base', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling);
+            $assert('Adresse persistée', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling && '3 rue des Abeilles' === $first->address1, 'address1=' . ($first?->address1 ?? '∅'));
+            $assert('Code postal persisté', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling && '37150' === $first->postcode);
 
             // 4. La surcharge s'applique à l'affichage du profil.
-            if ($first instanceof \LuziApi\Pilotage\Domain\Customer\CustomerBilling) {
+            if ($first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling) {
                 $overridden = $profile->withOverride($first);
                 $assert('Affichage : nom surchargé', 'Hélène Dupont' === $overridden->name, 'name=' . $overridden->name);
                 $assert('Affichage : ville surchargée (Tours → Luzillé)', 'Luzillé' === $overridden->city, 'city=' . $overridden->city);

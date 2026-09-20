@@ -16,7 +16,7 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
 
 if (! function_exists('luziapi_audit_vente_volume_data')) {
     /**

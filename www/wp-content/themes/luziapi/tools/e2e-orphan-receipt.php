@@ -20,11 +20,11 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Domain\Receipt\NewReceiptEntry;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
-use LuziApi\Pilotage\Domain\Shared\Money;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
+use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
+use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_e2e_orphan_receipt_run')) {
     /**

@@ -16,12 +16,12 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
+use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 $token = 'REPLACE_WITH_TOKEN';
 if (! isset($_GET['k']) || ! hash_equals($token, (string) $_GET['k'])) {

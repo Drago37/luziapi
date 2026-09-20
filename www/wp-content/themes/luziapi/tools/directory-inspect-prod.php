@@ -66,11 +66,11 @@ if (is_string($key) && '' !== trim($key)) {
 }
 
 // --- Répertoire client : groupes ------------------------------------------
-if (class_exists(\LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository::class)) {
+if (class_exists(\LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository::class)) {
     $tz = wp_timezone();
-    $orders = (new \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository($tz))
+    $orders = (new \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository($tz))
         ->createdBetween(new DateTimeImmutable('2000-01-01', $tz), (new DateTimeImmutable('now', $tz))->modify('+1 day'));
-    $profiles = (new \LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector())->project($orders, []);
+    $profiles = (new \LuziApi\Shop\Domain\Customer\CustomerHistoryProjector())->project($orders, []);
     foreach ($profiles as $p) {
         $out['directory'][] = [
             'name'   => $p->name,

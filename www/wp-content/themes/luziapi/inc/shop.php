@@ -228,10 +228,10 @@ add_action('woocommerce_cart_calculate_fees', static function (\WC_Cart $cart): 
     }
 
     $qty = (int) $cart->get_cart_contents_count();
-    $euros = \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::euros($qty);
+    $euros = \LuziApi\Shop\Domain\Sales\VolumeDiscount::euros($qty);
     if ($euros > 0) {
         $cart->add_fee(
-            \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::label($qty),
+            \LuziApi\Shop\Domain\Sales\VolumeDiscount::label($qty),
             -1 * $euros,
         );
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Domain;
 
-use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
+use LuziApi\Shop\Domain\Customer\NormalizedPhone;
 
 /**
  * Clé d'identité client de la fidélité. Elle DOIT être calculée exactement comme

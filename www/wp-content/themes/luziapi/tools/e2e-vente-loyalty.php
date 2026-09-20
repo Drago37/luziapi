@@ -17,10 +17,10 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLine;
-use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
+use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
+use LuziApi\Shop\Application\Command\CreateQuickSale\QuickSaleLine;
+use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
