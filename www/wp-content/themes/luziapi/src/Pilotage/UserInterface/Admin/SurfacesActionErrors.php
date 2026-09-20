@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Support\Wp;
 use Throwable;
 
 /**
@@ -37,7 +38,7 @@ trait SurfacesActionErrors
     private function takeErrorDetail(string $scope): string
     {
         $key = $this->errorTransientKey($scope);
-        $detail = (string) (get_transient($key) ?: '');
+        $detail = Wp::str(get_transient($key) ?: '');
         if ('' !== $detail) {
             delete_transient($key);
         }

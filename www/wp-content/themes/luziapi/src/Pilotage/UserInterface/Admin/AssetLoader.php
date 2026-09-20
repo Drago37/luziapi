@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Pilotage\UserInterface\Admin;
 
+use LuziApi\Support\Wp;
+
 final readonly class AssetLoader
 {
     public function __construct(
@@ -15,7 +17,7 @@ final readonly class AssetLoader
     public function register(): void
     {
         add_action('admin_enqueue_scripts', function (): void {
-            $page = isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '';
+            $page = isset($_GET['page']) ? sanitize_key(wp_unslash(Wp::str($_GET['page']))) : '';
             if (AdminMenu::PAGE_SLUG !== $page) {
                 return;
             }

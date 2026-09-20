@@ -19,6 +19,7 @@ use LuziApi\Pilotage\Domain\Receipt\ReceiptEntry;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptReconciliation;
 use LuziApi\Pilotage\Domain\Receipt\ReceiptRepository;
+use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 
@@ -56,7 +57,7 @@ final readonly class ReceiptsController
     public function render(): void
     {
         $this->assertPermission();
-        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
+        $requestedYear = isset($_GET['year']) ? absint(Wp::str($_GET['year'])) : null;
         $register = $this->getRegister->handle(new GetReceiptRegisterQuery($requestedYear ?: null));
         $summary = $register->summary;
 
@@ -92,7 +93,7 @@ final readonly class ReceiptsController
             ],
             'entries'             => array_map($this->formatEntry(...), $summary->entries),
             'reconciliations'     => array_map($this->formatReconciliation(...), $register->reconciliations),
-            'notice'              => isset($_GET['receipt_notice']) ? sanitize_key(wp_unslash((string) $_GET['receipt_notice'])) : '',
+            'notice'              => isset($_GET['receipt_notice']) ? sanitize_key(wp_unslash(Wp::str($_GET['receipt_notice']))) : '',
             'notice_detail'       => $this->takeErrorDetail('receipts'),
         ]);
     }
@@ -103,20 +104,20 @@ final readonly class ReceiptsController
         check_admin_referer('luziapi_record_receipt');
 
         try {
-            $type = ReceiptEntryType::tryFrom(sanitize_key(wp_unslash((string) ($_POST['entry_type'] ?? ''))));
+            $type = ReceiptEntryType::tryFrom(sanitize_key(wp_unslash(Wp::str($_POST['entry_type'] ?? ''))));
             if (! in_array($type, [ReceiptEntryType::Collection, ReceiptEntryType::Refund], true)) {
                 throw new InvalidArgumentException('Type d’écriture invalide.');
             }
             $occurredAt = DateTimeImmutable::createFromFormat(
                 'Y-m-d\TH:i',
-                sanitize_text_field(wp_unslash((string) ($_POST['occurred_at'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['occurred_at'] ?? ''))),
                 $this->clock->timezone(),
             );
             if (false === $occurredAt) {
                 throw new InvalidArgumentException('Date d’encaissement invalide.');
             }
-            $amountCents = (int) round((float) wc_format_decimal(wp_unslash((string) ($_POST['amount'] ?? '0')), 2) * 100);
-            $orderId = absint($_POST['order_id'] ?? 0) ?: null;
+            $amountCents = (int) round((float) wc_format_decimal(wp_unslash(Wp::str($_POST['amount'] ?? '0')), 2) * 100);
+            $orderId = absint(Wp::str($_POST['order_id'] ?? 0)) ?: null;
             if (null !== $orderId && ! wc_get_order($orderId)) {
                 throw new InvalidArgumentException('Commande introuvable.');
             }
@@ -125,9 +126,9 @@ final readonly class ReceiptsController
                 $orderId,
                 $occurredAt,
                 $amountCents,
-                sanitize_key(wp_unslash((string) ($_POST['payment_method'] ?? ''))),
+                sanitize_key(wp_unslash(Wp::str($_POST['payment_method'] ?? ''))),
                 $type,
-                sanitize_text_field(wp_unslash((string) ($_POST['description'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['description'] ?? ''))),
                 get_current_user_id(),
             ));
             $this->redirect((int) $occurredAt->format('Y'), 'recorded');
@@ -145,15 +146,15 @@ final readonly class ReceiptsController
 
         try {
             $this->reverseReceipt->handle(new ReverseReceiptCommand(
-                absint($_POST['entry_id'] ?? 0),
-                sanitize_text_field(wp_unslash((string) ($_POST['reason'] ?? ''))),
+                absint(Wp::str($_POST['entry_id'] ?? 0)),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['reason'] ?? ''))),
                 get_current_user_id(),
             ));
-            $this->redirect(absint($_POST['year'] ?? 0), 'reversed');
+            $this->redirect(absint(Wp::str($_POST['year'] ?? 0)), 'reversed');
         } catch (Throwable $exception) {
             $this->rememberErrorDetail('receipts', $exception);
             $this->recordFailure('Contre-écriture d’une recette échouée');
-            $this->redirect(absint($_POST['year'] ?? 0), 'error');
+            $this->redirect(absint(Wp::str($_POST['year'] ?? 0)), 'error');
         }
     }
 
@@ -161,7 +162,7 @@ final readonly class ReceiptsController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_export_receipts');
-        $year = absint($_GET['year'] ?? 0) ?: (int) $this->clock->now()->format('Y');
+        $year = absint(Wp::str($_GET['year'] ?? 0)) ?: (int) $this->clock->now()->format('Y');
         $summary = $this->getRegister->handle(new GetReceiptRegisterQuery($year))->summary;
         $this->activity->record(
             ActivityCategory::Export,

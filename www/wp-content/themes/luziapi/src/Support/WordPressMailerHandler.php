@@ -45,7 +45,7 @@ final class WordPressMailerHandler extends AbstractProcessingHandler
             wp_mail(
                 $this->to,
                 $this->subject,
-                (string) $record->formatted,
+                Wp::str($record->formatted),
                 ['Content-Type: text/plain; charset=UTF-8'],
             );
         } catch (\Throwable) {

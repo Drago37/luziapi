@@ -8,6 +8,7 @@ use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHa
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyCustomerRow;
 use LuziApi\Pilotage\Application\Query\GetLoyaltyDashboard\LoyaltyRewardHolder;
+use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class LoyaltyController
@@ -19,7 +20,7 @@ final readonly class LoyaltyController
     public function render(): void
     {
         $this->assertPermission();
-        $requestedPeriod = isset($_GET['period']) ? sanitize_key(wp_unslash((string) $_GET['period'])) : null;
+        $requestedPeriod = isset($_GET['period']) ? sanitize_key(wp_unslash(Wp::str($_GET['period']))) : null;
         $dashboard = $this->getDashboard->handle(new GetLoyaltyDashboardQuery('' !== (string) $requestedPeriod ? $requestedPeriod : null));
 
         Timber::render('@luziapi_admin/pilotage/loyalty.twig', [

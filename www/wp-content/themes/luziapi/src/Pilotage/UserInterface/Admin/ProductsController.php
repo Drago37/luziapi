@@ -6,6 +6,7 @@ namespace LuziApi\Pilotage\UserInterface\Admin;
 
 use LuziApi\Pilotage\Application\Query\GetProductDashboard\GetProductDashboardHandler;
 use LuziApi\Pilotage\Domain\Product\ProductPerformance;
+use LuziApi\Support\Wp;
 use Timber\Timber;
 
 final readonly class ProductsController
@@ -20,7 +21,7 @@ final readonly class ProductsController
             wp_die(esc_html__('Vous n’avez pas l’autorisation d’accéder à cette page.', 'luziapi'));
         }
 
-        $requestedYear = isset($_GET['year']) ? absint($_GET['year']) : null;
+        $requestedYear = isset($_GET['year']) ? absint(Wp::str($_GET['year'])) : null;
         $dashboard = $this->getProducts->handle($requestedYear ?: null);
         $sold = array_sum(array_map(static fn (ProductPerformance $product): int => $product->soldQuantity, $dashboard->products));
         $revenue = array_sum(array_map(static fn (ProductPerformance $product): int => $product->revenue->cents(), $dashboard->products));

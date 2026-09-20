@@ -18,6 +18,7 @@ use LuziApi\Pilotage\Domain\Inventory\HarvestLot;
 use LuziApi\Pilotage\Domain\Inventory\StockMovement;
 use LuziApi\Pilotage\Domain\Inventory\StockMovementType;
 use LuziApi\Pilotage\Domain\Product\ProductStockSnapshot;
+use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 
@@ -90,7 +91,7 @@ final readonly class InventoryController
                 ['label' => 'Écart non affecté', 'value' => ($wooStock - $lotStock) . ' pots'],
                 ['label' => 'Lots enregistrés', 'value' => (string) count($view->lots)],
             ],
-            'notice'               => isset($_GET['inventory_notice']) ? sanitize_key(wp_unslash((string) $_GET['inventory_notice'])) : '',
+            'notice'               => isset($_GET['inventory_notice']) ? sanitize_key(wp_unslash(Wp::str($_GET['inventory_notice']))) : '',
             'notice_detail'        => $noticeDetail,
         ]);
     }
@@ -99,17 +100,17 @@ final readonly class InventoryController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_create_harvest_lot');
-        $stockAlreadyRecorded = 'existing' === sanitize_key(wp_unslash((string) ($_POST['stock_registration'] ?? 'new')));
+        $stockAlreadyRecorded = 'existing' === sanitize_key(wp_unslash(Wp::str($_POST['stock_registration'] ?? 'new')));
 
         try {
             $this->createLot->handle(new CreateHarvestLotCommand(
-                sanitize_text_field(wp_unslash((string) ($_POST['lot_number'] ?? ''))),
-                absint($_POST['product_id'] ?? 0),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['lot_number'] ?? ''))),
+                absint(Wp::str($_POST['product_id'] ?? 0)),
                 $this->parseDate('harvested_at', '!Y-m-d'),
                 $this->parseDate('jarred_at', 'Y-m-d\TH:i'),
-                sanitize_text_field(wp_unslash((string) ($_POST['apiary_origin'] ?? ''))),
-                sanitize_text_field(wp_unslash((string) ($_POST['variety'] ?? ''))),
-                absint($_POST['quantity_jarred'] ?? 0),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['apiary_origin'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['variety'] ?? ''))),
+                absint(Wp::str($_POST['quantity_jarred'] ?? 0)),
                 $stockAlreadyRecorded,
                 get_current_user_id(),
             ));
@@ -126,18 +127,18 @@ final readonly class InventoryController
         check_admin_referer('luziapi_record_stock_movement');
 
         try {
-            $type = StockMovementType::tryFrom(sanitize_key(wp_unslash((string) ($_POST['movement_type'] ?? ''))));
+            $type = StockMovementType::tryFrom(sanitize_key(wp_unslash(Wp::str($_POST['movement_type'] ?? ''))));
             if (! $type instanceof StockMovementType) {
                 throw new InvalidArgumentException('Invalid stock movement type.');
             }
-            $quantity = (int) sanitize_text_field(wp_unslash((string) ($_POST['quantity'] ?? '0')));
-            $lotId = absint($_POST['lot_id'] ?? 0) ?: null;
+            $quantity = (int) sanitize_text_field(wp_unslash(Wp::str($_POST['quantity'] ?? '0')));
+            $lotId = absint(Wp::str($_POST['lot_id'] ?? 0)) ?: null;
             $this->recordMovement->handle(new RecordStockMovementCommand(
-                absint($_POST['product_id'] ?? 0),
+                absint(Wp::str($_POST['product_id'] ?? 0)),
                 $lotId,
                 $type,
                 $quantity,
-                sanitize_text_field(wp_unslash((string) ($_POST['reason'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['reason'] ?? ''))),
                 $this->parseDate('occurred_at'),
                 get_current_user_id(),
             ));
@@ -203,7 +204,7 @@ final readonly class InventoryController
     {
         $date = DateTimeImmutable::createFromFormat(
             $format,
-            sanitize_text_field(wp_unslash((string) ($_POST[$field] ?? ''))),
+            sanitize_text_field(wp_unslash(Wp::str($_POST[$field] ?? ''))),
             $this->clock->timezone(),
         );
         if (false === $date) {

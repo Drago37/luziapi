@@ -33,6 +33,7 @@ use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
 use LuziApi\Pilotage\Domain\Sales\OrderSnapshot;
 use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
 use LuziApi\Pilotage\Domain\Sales\ThankYouDiscountType;
+use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 
@@ -220,15 +221,15 @@ final readonly class CustomersController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_adjust_loyalty_pots');
-        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+        $customerId = sanitize_key(wp_unslash(Wp::str($_POST['customer_id'] ?? '')));
 
         try {
             if (! $this->adjustPots instanceof AdjustLoyaltyPotsHandler) {
                 throw new \RuntimeException('Loyalty adjustment is not available.');
             }
-            $amount = absint($_POST['pots_amount'] ?? 0);
-            $direction = 'remove' === sanitize_key(wp_unslash((string) ($_POST['pots_direction'] ?? 'add'))) ? -1 : 1;
-            $reason = sanitize_text_field(wp_unslash((string) ($_POST['pots_reason'] ?? '')));
+            $amount = absint(Wp::str($_POST['pots_amount'] ?? 0));
+            $direction = 'remove' === sanitize_key(wp_unslash(Wp::str($_POST['pots_direction'] ?? 'add'))) ? -1 : 1;
+            $reason = sanitize_text_field(wp_unslash(Wp::str($_POST['pots_reason'] ?? '')));
             $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 1, $customerId));
             $key = $directory->selectedCustomer instanceof CustomerProfile ? ($directory->selectedCustomer->identityIds[0] ?? '') : '';
             if ($amount <= 0 || '' === $key) {
@@ -261,10 +262,10 @@ final readonly class CustomersController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_merge_loyalty_customers');
-        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+        $customerId = sanitize_key(wp_unslash(Wp::str($_POST['customer_id'] ?? '')));
 
         try {
-            $targetId = sanitize_key(wp_unslash((string) ($_POST['merge_target'] ?? '')));
+            $targetId = sanitize_key(wp_unslash(Wp::str($_POST['merge_target'] ?? '')));
             $this->performMerge($customerId, $targetId);
             $this->redirectAfterCategory($customerId, 'customers_merged');
         } catch (Throwable $exception) {
@@ -371,7 +372,7 @@ final readonly class CustomersController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_unlink_loyalty_customer');
-        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+        $customerId = sanitize_key(wp_unslash(Wp::str($_POST['customer_id'] ?? '')));
 
         try {
             $this->performUnlink($customerId);
@@ -412,13 +413,13 @@ final readonly class CustomersController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_apply_thankyou_discount');
-        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+        $customerId = sanitize_key(wp_unslash(Wp::str($_POST['customer_id'] ?? '')));
 
         try {
             if (! $this->applyDiscount instanceof ApplyThankYouDiscountHandler) {
                 throw new \RuntimeException('Thank-you discount is not available.');
             }
-            $orderId = absint($_POST['order_id'] ?? 0);
+            $orderId = absint(Wp::str($_POST['order_id'] ?? 0));
             $discount = $this->readDiscount();
             if ($orderId <= 0 || ! $discount instanceof ThankYouDiscount) {
                 throw new \InvalidArgumentException('Invalid thank-you discount request.');
@@ -442,11 +443,11 @@ final readonly class CustomersController
 
     private function readDiscount(): ?ThankYouDiscount
     {
-        $type = sanitize_key(wp_unslash((string) ($_POST['discount_type'] ?? '')));
+        $type = sanitize_key(wp_unslash(Wp::str($_POST['discount_type'] ?? '')));
         if ('' === $type) {
             return null;
         }
-        $raw = sanitize_text_field(wp_unslash((string) ($_POST['discount_value'] ?? '')));
+        $raw = sanitize_text_field(wp_unslash(Wp::str($_POST['discount_value'] ?? '')));
         if (ThankYouDiscountType::Percent->value === $type) {
             return ThankYouDiscount::fromInput($type, absint($raw));
         }
@@ -458,11 +459,11 @@ final readonly class CustomersController
     {
         $this->assertPermission();
 
-        $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash((string) $_GET['s'])) : '';
-        $page = isset($_GET['paged']) ? absint($_GET['paged']) : 1;
-        $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash((string) $_GET['customer'])) : '';
+        $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash(Wp::str($_GET['s']))) : '';
+        $page = isset($_GET['paged']) ? absint(Wp::str($_GET['paged'])) : 1;
+        $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash(Wp::str($_GET['customer']))) : '';
         $category = isset($_GET['category'])
-            ? CustomerCategory::tryFrom(sanitize_key(wp_unslash((string) $_GET['category'])))
+            ? CustomerCategory::tryFrom(sanitize_key(wp_unslash(Wp::str($_GET['category']))))
             : null;
         $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery($search, $page, 50, $customerId, $category));
         $pageUrl = admin_url('admin.php?page=' . AdminMenu::PAGE_SLUG . '&tab=customers');
@@ -518,7 +519,7 @@ final readonly class CustomersController
                 $directory->totalPages,
             ),
             'timeline'          => array_map($this->formatTimeline(...), $directory->timeline),
-            'notice'            => isset($_GET['customer_notice']) ? sanitize_key(wp_unslash((string) $_GET['customer_notice'])) : '',
+            'notice'            => isset($_GET['customer_notice']) ? sanitize_key(wp_unslash(Wp::str($_GET['customer_notice']))) : '',
             'notice_detail'     => $this->takeErrorDetail('customers'),
         ]);
     }
@@ -527,10 +528,10 @@ final readonly class CustomersController
     {
         $this->assertPermission();
         check_admin_referer('luziapi_assign_customer_category');
-        $customerId = sanitize_key(wp_unslash((string) ($_POST['customer_id'] ?? '')));
+        $customerId = sanitize_key(wp_unslash(Wp::str($_POST['customer_id'] ?? '')));
 
         try {
-            $category = CustomerCategory::tryFrom(sanitize_key(wp_unslash((string) ($_POST['category'] ?? ''))));
+            $category = CustomerCategory::tryFrom(sanitize_key(wp_unslash(Wp::str($_POST['category'] ?? ''))));
             if (! $category instanceof CustomerCategory) {
                 throw new \InvalidArgumentException('Invalid customer category.');
             }
@@ -741,7 +742,7 @@ final readonly class CustomersController
         }
 
         return [
-            'date'   => wp_date('d/m/Y à H:i', $entry->occurredAt->getTimestamp()),
+            'date'   => Wp::str(wp_date('d/m/Y à H:i', $entry->occurredAt->getTimestamp())),
             'label'  => $entry->type->label(),
             'pots'   => $movement,
             'reason' => $entry->reason,
@@ -757,7 +758,7 @@ final readonly class CustomersController
             'id'     => (string) $order->id,
             'number' => $order->number,
             'url'    => admin_url('admin.php?page=wc-orders&action=edit&id=' . $order->id),
-            'date'   => wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp()),
+            'date'   => Wp::str(wp_date('d/m/Y à H:i', $order->createdAt->getTimestamp())),
             'status' => self::STATUS_LABELS[$order->status] ?? $order->status,
             'total'  => $this->formatMoney($order->total->cents()),
         ];

@@ -22,6 +22,7 @@ use LuziApi\Pilotage\Domain\Product\ProductCatalog;
 use LuziApi\Pilotage\Domain\Product\ProductStockSnapshot;
 use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
 use LuziApi\Pilotage\Domain\Sales\ThankYouDiscountType;
+use LuziApi\Support\Wp;
 use Throwable;
 use Timber\Timber;
 
@@ -59,7 +60,7 @@ final readonly class QuickSaleController
         $this->assertPermission();
         $sourceOptions = function_exists('luziapi_order_source_options') ? luziapi_order_source_options() : [];
 
-        $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash((string) $_GET['customer'])) : '';
+        $customerId = isset($_GET['customer']) ? sanitize_key(wp_unslash(Wp::str($_GET['customer']))) : '';
         $directory = $this->getCustomers->handle(new GetCustomerDirectoryQuery('', 1, 100, $customerId));
 
         $profiles = $directory->customers;
@@ -106,9 +107,9 @@ final readonly class QuickSaleController
             'sources'              => $sourceOptions,
             'payment_methods'      => self::PAYMENT_METHODS,
             'now'                  => $this->clock->now()->format('Y-m-d\TH:i'),
-            'notice'               => isset($_GET['quick_sale_notice']) ? sanitize_key(wp_unslash((string) $_GET['quick_sale_notice'])) : '',
+            'notice'               => isset($_GET['quick_sale_notice']) ? sanitize_key(wp_unslash(Wp::str($_GET['quick_sale_notice']))) : '',
             'notice_detail'        => $this->takeErrorDetail('quick_sale'),
-            'created_order_url'    => isset($_GET['order_id']) ? admin_url('admin.php?page=wc-orders&action=edit&id=' . absint($_GET['order_id'])) : '',
+            'created_order_url'    => isset($_GET['order_id']) ? admin_url('admin.php?page=wc-orders&action=edit&id=' . absint(Wp::str($_GET['order_id']))) : '',
             'clients'              => $clients,
             'prefill'              => $prefill,
             'loyalty_enabled'      => null !== $this->loyalty,
@@ -121,14 +122,14 @@ final readonly class QuickSaleController
         check_admin_referer('luziapi_create_quick_sale');
 
         try {
-            $email = sanitize_email(wp_unslash((string) ($_POST['email'] ?? '')));
+            $email = sanitize_email(wp_unslash(Wp::str($_POST['email'] ?? '')));
             if ('' !== $email && ! is_email($email)) {
                 throw new InvalidArgumentException('Invalid email.');
             }
-            $fulfillment = sanitize_key(wp_unslash((string) ($_POST['fulfillment'] ?? 'immediate')));
-            $address = sanitize_text_field(wp_unslash((string) ($_POST['address'] ?? '')));
-            $postcode = sanitize_text_field(wp_unslash((string) ($_POST['postcode'] ?? '')));
-            $city = sanitize_text_field(wp_unslash((string) ($_POST['city'] ?? '')));
+            $fulfillment = sanitize_key(wp_unslash(Wp::str($_POST['fulfillment'] ?? 'immediate')));
+            $address = sanitize_text_field(wp_unslash(Wp::str($_POST['address'] ?? '')));
+            $postcode = sanitize_text_field(wp_unslash(Wp::str($_POST['postcode'] ?? '')));
+            $city = sanitize_text_field(wp_unslash(Wp::str($_POST['city'] ?? '')));
             if ('delivery' === $fulfillment && function_exists('luziapi_is_local_delivery_destination') && ! luziapi_is_local_delivery_destination([
                 'country' => 'FR', 'postcode' => $postcode, 'city' => $city,
             ])) {
@@ -136,7 +137,7 @@ final readonly class QuickSaleController
             }
             $occurredAt = DateTimeImmutable::createFromFormat(
                 'Y-m-d\TH:i',
-                sanitize_text_field(wp_unslash((string) ($_POST['occurred_at'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['occurred_at'] ?? ''))),
                 $this->clock->timezone(),
             );
             if (false === $occurredAt) {
@@ -159,20 +160,20 @@ final readonly class QuickSaleController
             $discount = $this->readDiscount();
             $created = $this->createQuickSale->handle(new CreateQuickSaleCommand(
                 $lines,
-                sanitize_text_field(wp_unslash((string) ($_POST['customer_name'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['customer_name'] ?? ''))),
                 $email,
-                sanitize_text_field(wp_unslash((string) ($_POST['phone'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['phone'] ?? ''))),
                 $address,
                 $postcode,
                 $city,
-                sanitize_key(wp_unslash((string) ($_POST['source'] ?? 'market'))),
-                sanitize_key(wp_unslash((string) ($_POST['payment_method'] ?? 'cash'))),
+                sanitize_key(wp_unslash(Wp::str($_POST['source'] ?? 'market'))),
+                sanitize_key(wp_unslash(Wp::str($_POST['payment_method'] ?? 'cash'))),
                 $fulfillment,
                 isset($_POST['paid']),
                 isset($_POST['send_email']),
                 $occurredAt,
                 get_current_user_id(),
-                sanitize_text_field(wp_unslash((string) ($_POST['request_id'] ?? ''))),
+                sanitize_text_field(wp_unslash(Wp::str($_POST['request_id'] ?? ''))),
                 $giftLines,
                 $rewardLines,
                 $discount,
@@ -194,11 +195,11 @@ final readonly class QuickSaleController
      */
     private function readDiscount(): ?ThankYouDiscount
     {
-        $type = sanitize_key(wp_unslash((string) ($_POST['discount_type'] ?? '')));
+        $type = sanitize_key(wp_unslash(Wp::str($_POST['discount_type'] ?? '')));
         if ('' === $type) {
             return null;
         }
-        $raw = sanitize_text_field(wp_unslash((string) ($_POST['discount_value'] ?? '')));
+        $raw = sanitize_text_field(wp_unslash(Wp::str($_POST['discount_value'] ?? '')));
         if (ThankYouDiscountType::Percent->value === $type) {
             return ThankYouDiscount::fromInput($type, absint($raw));
         }
@@ -218,7 +219,7 @@ final readonly class QuickSaleController
     {
         $result = [];
         foreach ($quantities as $productId => $quantity) {
-            $quantity = absint($quantity);
+            $quantity = absint(Wp::str($quantity));
             if ($quantity > 0) {
                 $result[absint($productId)] = $quantity;
             }
