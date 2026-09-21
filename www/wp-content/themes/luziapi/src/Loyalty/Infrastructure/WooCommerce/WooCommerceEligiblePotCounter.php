@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use WC_Order;
 use WC_Order_Item_Product;
 

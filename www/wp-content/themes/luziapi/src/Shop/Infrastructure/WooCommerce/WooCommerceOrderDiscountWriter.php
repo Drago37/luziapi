@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\AppliedThankYouDiscount;
-use LuziApi\Shop\Application\Port\OrderDiscountWriter;
+use LuziApi\Shop\Domain\Gateway\OrderDiscountWriter;
 use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
 use RuntimeException;
 use WC_Order;

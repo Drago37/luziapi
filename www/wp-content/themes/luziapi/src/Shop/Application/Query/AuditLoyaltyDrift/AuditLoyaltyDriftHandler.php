@@ -6,9 +6,9 @@ namespace LuziApi\Shop\Application\Query\AuditLoyaltyDrift;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
-use LuziApi\Shop\Application\Port\EligiblePotReader;
-use LuziApi\Shop\Application\Port\LoyaltyLedgerReader;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shop\Domain\Gateway\EligiblePotReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyLedgerReader;
 use LuziApi\Shop\Domain\Loyalty\LoyaltyCreditGap;
 use LuziApi\Shop\Domain\Loyalty\LoyaltyDriftReport;
 use LuziApi\Shop\Domain\Loyalty\OrphanLoyaltyCredit;

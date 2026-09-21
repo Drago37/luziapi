@@ -14,7 +14,7 @@ use LuziApi\OrderTracking\Application\View\PublicOrderView;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 
 final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGateway
 {

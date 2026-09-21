@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace LuziApi\Tests\OrderTracking;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use LuziApi\OrderTracking\Application\Command\RecordOrderStatusChange\RecordOrderStatusChangeHandler;
-use LuziApi\OrderTracking\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
 use LuziApi\OrderTracking\Infrastructure\WooCommerce\WooCommerceStatusHistorySubscriber;
@@ -55,6 +56,11 @@ final class FixedClock implements Clock
     public function now(): DateTimeImmutable
     {
         return new DateTimeImmutable('2026-09-09 10:00:00');
+    }
+
+    public function timezone(): DateTimeZone
+    {
+        return new DateTimeZone('Europe/Paris');
     }
 }
 

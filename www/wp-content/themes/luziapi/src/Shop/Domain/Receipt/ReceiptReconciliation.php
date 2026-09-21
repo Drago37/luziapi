@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Domain\Receipt;
 
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
 
 final readonly class ReceiptReconciliation
 {

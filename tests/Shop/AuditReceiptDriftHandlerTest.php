@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Shop;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Application\Query\AuditReceiptDrift\AuditReceiptDriftHandler;
 use LuziApi\Shop\Application\Query\AuditReceiptDrift\AuditReceiptDriftQuery;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
@@ -17,7 +17,7 @@ use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AuditReceiptDriftHandlerTest extends TestCase

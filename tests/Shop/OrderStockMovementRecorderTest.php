@@ -7,7 +7,7 @@ namespace LuziApi\Tests\Shop;
 use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\Shop\Application\Command\RecordOrderStockMovement\OrderStockMovementRecorder;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewHarvestLot;

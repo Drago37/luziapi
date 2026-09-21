@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
-use LuziApi\Support\Wp;
 use WC_Order;
 use WP_User;
 

@@ -6,15 +6,15 @@ namespace LuziApi\Tests\Shop;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
-use LuziApi\Shop\Application\Port\LoyaltyEconomicsReader;
-use LuziApi\Shop\Application\Port\LoyaltyRewardsReader;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shop\Domain\Gateway\LoyaltyEconomicsReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyRewardsReader;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardHandler;
 use LuziApi\Shop\Application\Query\GetLoyaltyDashboard\GetLoyaltyDashboardQuery;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class GetLoyaltyDashboardHandlerTest extends TestCase

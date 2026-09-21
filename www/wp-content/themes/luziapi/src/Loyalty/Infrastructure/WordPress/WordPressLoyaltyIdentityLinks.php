@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Loyalty\Infrastructure\WordPress;
 
 use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 use wpdb;
 
 /**

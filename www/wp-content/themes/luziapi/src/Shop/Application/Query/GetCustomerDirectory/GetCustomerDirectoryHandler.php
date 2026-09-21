@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Application\Query\GetCustomerDirectory;
 
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Domain\ValueObject\NormalizedPhone;
 use LuziApi\Shop\Domain\Customer\CustomerCategory;
 use LuziApi\Shop\Domain\Customer\CustomerCategoryRepository;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Shop\Domain\Customer\CustomerProfile;
 use LuziApi\Shop\Domain\Customer\CustomerProfileRepository;
 use LuziApi\Shop\Domain\Customer\CustomerTimelineRepository;
-use LuziApi\Shop\Domain\Customer\NormalizedPhone;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 

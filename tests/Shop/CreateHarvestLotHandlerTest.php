@@ -9,8 +9,8 @@ use DateTimeZone;
 use InvalidArgumentException;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotCommand;
 use LuziApi\Shop\Application\Command\CreateHarvestLot\CreateHarvestLotHandler;
-use LuziApi\Shop\Application\Port\Clock;
-use LuziApi\Shop\Application\Port\StockLevelGateway;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shop\Domain\Gateway\StockLevelGateway;
 use LuziApi\Shop\Domain\Inventory\HarvestLot;
 use LuziApi\Shop\Domain\Inventory\InventoryRepository;
 use LuziApi\Shop\Domain\Inventory\NewHarvestLot;
@@ -19,7 +19,7 @@ use LuziApi\Shop\Domain\Inventory\StockMovement;
 use LuziApi\Shop\Domain\Inventory\StockMovementType;
 use LuziApi\Shop\Domain\Product\ProductCatalog;
 use LuziApi\Shop\Domain\Product\ProductStockSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class CreateHarvestLotHandlerTest extends TestCase

@@ -21,7 +21,7 @@ use LuziApi\Shop\Domain\Receipt\ReceiptReconciliation;
 use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_audit_receipt_drift_data')) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
-use LuziApi\Shop\Application\Port\StockLevelGateway;
+use LuziApi\Shop\Domain\Gateway\StockLevelGateway;
 use RuntimeException;
 
 final class WooCommerceStockLevelGateway implements StockLevelGateway

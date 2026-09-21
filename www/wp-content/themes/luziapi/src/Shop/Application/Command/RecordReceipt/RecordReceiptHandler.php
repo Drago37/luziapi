@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Application\Command\RecordReceipt;
 
 use InvalidArgumentException;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Shop\Domain\Receipt\ReceiptRepository;
-use LuziApi\Shop\Domain\Shared\Money;
 
 final readonly class RecordReceiptHandler
 {

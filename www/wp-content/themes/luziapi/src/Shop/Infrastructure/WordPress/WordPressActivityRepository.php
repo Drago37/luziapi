@@ -7,12 +7,12 @@ namespace LuziApi\Shop\Infrastructure\WordPress;
 use DateTimeImmutable;
 use DateTimeZone;
 use JsonException;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Activity\ActivityCategory;
 use LuziApi\Shop\Domain\Activity\ActivityEntry;
 use LuziApi\Shop\Domain\Activity\ActivityFilter;
 use LuziApi\Shop\Domain\Activity\ActivityRepository;
 use LuziApi\Shop\Domain\Activity\NewActivityEntry;
-use LuziApi\Support\Wp;
 use RuntimeException;
 use wpdb;
 

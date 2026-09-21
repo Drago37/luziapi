@@ -11,7 +11,6 @@ use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLin
 use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Command\StartOrderAccess\StartOrderAccessHandler;
-use LuziApi\OrderTracking\Application\Port\Clock;
 use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
 use LuziApi\OrderTracking\Application\Port\TrackingSessionCookie;
 use LuziApi\OrderTracking\Application\Query\ResolveTrackingSession\ResolveTrackingSessionHandler;
@@ -20,7 +19,8 @@ use LuziApi\OrderTracking\Application\View\PublicOrderView;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Infrastructure\Wp;
 use Throwable;
 
 final readonly class TrackingPageController

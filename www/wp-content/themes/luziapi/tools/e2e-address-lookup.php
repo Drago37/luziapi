@@ -69,7 +69,7 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
             $assert('Handler : rien sous 3 caractères', [] === $tooShort);
 
             // Câblage de l'endpoint admin-ajax (déterministe : on enregistre puis on vérifie).
-            $controller = new \LuziApi\Shop\UserInterface\Admin\AddressLookupController($handler);
+            $controller = new \LuziApi\Shop\Infrastructure\WordPress\Admin\AddressLookupController($handler);
             $controller->register();
             $assert('Endpoint admin-ajax câblé', false !== has_action('wp_ajax_luziapi_address_search', [$controller, 'search']));
 
@@ -78,7 +78,7 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
             $fatal = $exception->getMessage();
         } finally {
             remove_filter('pre_http_request', $intercept, 10);
-            if ($controller instanceof \LuziApi\Shop\UserInterface\Admin\AddressLookupController) {
+            if ($controller instanceof \LuziApi\Shop\Infrastructure\WordPress\Admin\AddressLookupController) {
                 remove_action('wp_ajax_luziapi_address_search', [$controller, 'search']);
             }
             $cleanup = 'ok (filtre + action retirés ; aucun appel réseau réel, aucune donnée écrite)';

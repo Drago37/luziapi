@@ -12,7 +12,7 @@ use LuziApi\Shop\Application\Command\ApplyMissingVolumeDiscount\ApplyMissingVolu
 use LuziApi\Shop\Application\Command\ApplyMissingVolumeDiscount\ApplyMissingVolumeDiscountHandler;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Shop\Application\Port\OrderVolumeDiscountWriter;
+use LuziApi\Shop\Domain\Gateway\OrderVolumeDiscountWriter;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use PHPUnit\Framework\TestCase;
 

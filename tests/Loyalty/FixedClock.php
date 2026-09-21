@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Loyalty;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Loyalty\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 
 final class FixedClock implements Clock
 {
@@ -22,5 +22,10 @@ final class FixedClock implements Clock
     public function now(): DateTimeImmutable
     {
         return $this->now;
+    }
+
+    public function timezone(): DateTimeZone
+    {
+        return new DateTimeZone('Europe/Paris');
     }
 }

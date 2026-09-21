@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Command\RecordCompletedOrder;
 
-use LuziApi\Loyalty\Application\Port\Clock;
 use LuziApi\Loyalty\Domain\LoyaltyEntryType;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\NewLoyaltyEntry;
+use LuziApi\Shared\Domain\Clock;
 
 /**
  * Écrit le crédit de pots d'une commande « Terminée » dans le journal.

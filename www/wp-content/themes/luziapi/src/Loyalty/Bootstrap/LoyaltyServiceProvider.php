@@ -15,10 +15,10 @@ use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscrib
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderContactKeys;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
-use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressIdGenerator;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use wpdb;
 
 /**

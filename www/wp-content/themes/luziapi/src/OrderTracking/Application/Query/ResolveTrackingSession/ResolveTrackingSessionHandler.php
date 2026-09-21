@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Application\Query\ResolveTrackingSession;
 
 use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\Clock;
 use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
 use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
 use LuziApi\OrderTracking\Application\View\PublicOrderPage;
+use LuziApi\Shared\Domain\Clock;
 
 final readonly class ResolveTrackingSessionHandler
 {

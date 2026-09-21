@@ -9,7 +9,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 use LuziApi\Shop\Application\Command\SaveCustomerProfile\SaveCustomerProfileCommand;
 use LuziApi\Shop\Application\Command\SaveCustomerProfile\SaveCustomerProfileHandler;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Customer\CustomerBilling;
 use LuziApi\Shop\Domain\Customer\CustomerProfileRepository;
 use PHPUnit\Framework\TestCase;

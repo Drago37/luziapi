@@ -27,7 +27,7 @@ use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {

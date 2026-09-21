@@ -29,10 +29,10 @@ use LuziApi\Shop\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
 use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Shop\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
-use LuziApi\Shop\UserInterface\Admin\QuickSaleController;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\QuickSaleController;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

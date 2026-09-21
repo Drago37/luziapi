@@ -6,14 +6,14 @@ namespace LuziApi\Tests\Shop;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LuziApi\Shop\Application\Port\Clock;
-use LuziApi\Shop\Application\Port\EligiblePotReader;
-use LuziApi\Shop\Application\Port\LoyaltyLedgerReader;
+use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shop\Domain\Gateway\EligiblePotReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyLedgerReader;
 use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftHandler;
 use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftQuery;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AuditLoyaltyDriftHandlerTest extends TestCase

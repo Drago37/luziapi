@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Application\Command\RecordOrderStatusChange;
 
-use LuziApi\OrderTracking\Application\Port\Clock;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
+use LuziApi\Shared\Domain\Clock;
 
 final readonly class RecordOrderStatusChangeHandler
 {

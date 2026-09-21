@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
 
 if (! defined('ABSPATH')) {
     exit;

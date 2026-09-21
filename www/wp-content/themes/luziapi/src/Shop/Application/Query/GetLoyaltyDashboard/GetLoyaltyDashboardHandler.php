@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Application\Query\GetLoyaltyDashboard;
 
-use LuziApi\Shop\Application\Port\Clock;
-use LuziApi\Shop\Application\Port\LoyaltyEconomicsReader;
-use LuziApi\Shop\Application\Port\LoyaltyRewardsReader;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
 use LuziApi\Shop\Domain\Customer\CustomerProfile;
+use LuziApi\Shop\Domain\Gateway\LoyaltyEconomicsReader;
+use LuziApi\Shop\Domain\Gateway\LoyaltyRewardsReader;
 use LuziApi\Shop\Domain\Sales\OrderRepository;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
 

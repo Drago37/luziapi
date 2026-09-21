@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreatedQuickSale;
 use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
-use LuziApi\Shop\Application\Port\QuickSaleOrderWriter;
+use LuziApi\Shop\Domain\Gateway\QuickSaleOrderWriter;
 use LuziApi\Shop\Domain\Sales\VolumeDiscount;
 use RuntimeException;
 use WC_Order;

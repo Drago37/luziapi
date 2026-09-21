@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace LuziApi\Shop\Domain\Customer;
 
+use LuziApi\Shared\Domain\ValueObject\Money;
+use LuziApi\Shared\Domain\ValueObject\NormalizedPhone;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
 use LuziApi\Shop\Domain\Sales\OrderStatusPolicy;
-use LuziApi\Shop\Domain\Shared\Money;
 
 final class CustomerHistoryProjector
 {

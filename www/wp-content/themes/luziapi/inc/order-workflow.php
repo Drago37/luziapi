@@ -6,7 +6,10 @@
 
 declare(strict_types=1);
 
-use LuziApi\Support\Wp;
+use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Sales\DeliveryDestination;
+use LuziApi\Shop\Domain\Sales\FulfillmentMode;
+use LuziApi\Shop\Domain\Sales\OrderSource;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -17,64 +20,46 @@ const LUZIAPI_ORDER_EMAILS_DISABLED_META = '_luziapi_order_emails_disabled';
 const LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META = '_wc_order_attribution_source_type';
 
 /**
- * Normalise une ville saisie librement pour comparer Bléré/Luzillé sans tenir
- * compte des accents, des espaces ou de la casse.
- */
-function luziapi_normalize_city(string $city): string
-{
-    $city = mb_strtolower(remove_accents(sanitize_text_field($city)));
-
-    return (string) preg_replace('/[^a-z]/', '', $city);
-}
-
-/**
  * La livraison gratuite est strictement réservée à Bléré et Luzillé.
- * Le code postal seul ne suffit pas car plusieurs communes utilisent 37150.
+ *
+ * La règle vit désormais dans le domaine (DeliveryDestination) ; cette fonction
+ * n'est plus qu'un adaptateur WordPress qui lui transmet la destination.
  *
  * @param array<string, mixed> $destination
  */
 function luziapi_is_local_delivery_destination(array $destination): bool
 {
-    $country  = strtoupper(Wp::str($destination['country'] ?? ''));
-    $postcode = preg_replace('/\s+/', '', Wp::str($destination['postcode'] ?? ''));
-    $city     = luziapi_normalize_city(Wp::str($destination['city'] ?? ''));
+    $normalizedCity = (string) preg_replace(
+        '/[^a-z]/',
+        '',
+        mb_strtolower(remove_accents(sanitize_text_field(Wp::str($destination['city'] ?? ''))))
+    );
 
-    return 'FR' === $country
-        && '37150' === $postcode
-        && in_array($city, ['blere', 'luzille'], true);
+    return (new DeliveryDestination(
+        Wp::str($destination['country'] ?? ''),
+        Wp::str($destination['postcode'] ?? ''),
+        $normalizedCity,
+    ))->qualifiesForFreeDelivery();
 }
 
 /**
  * Retourne le mode de remise réellement enregistré dans la commande.
+ * La règle vit dans le domaine (FulfillmentMode) ; on ne lit ici que les
+ * méthodes d'expédition WooCommerce.
  */
 function luziapi_order_fulfillment_mode(\WC_Order $order): string
 {
+    $methodIds = [];
     foreach ($order->get_shipping_methods() as $shippingItem) {
-        if ('free_shipping' === $shippingItem->get_method_id()) {
-            return 'delivery';
-        }
-
-        if ('local_pickup' === $shippingItem->get_method_id()) {
-            return 'pickup';
-        }
+        $methodIds[] = $shippingItem->get_method_id();
     }
 
-    return 'unknown';
+    return FulfillmentMode::fromShippingMethodIds($methodIds);
 }
 
 function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $status): bool
 {
-    $mode = luziapi_order_fulfillment_mode($order);
-
-    if ('out_for_delivery' === $status) {
-        return 'pickup' !== $mode;
-    }
-
-    if ('ready_for_pickup' === $status) {
-        return 'delivery' !== $mode;
-    }
-
-    return true;
+    return FulfillmentMode::statusMatches($status, luziapi_order_fulfillment_mode($order));
 }
 
 /**
@@ -82,14 +67,7 @@ function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $stat
  */
 function luziapi_order_source_options(): array
 {
-    return [
-        'online'     => 'Boutique en ligne',
-        'phone'      => 'Téléphone',
-        'market'     => 'Marché / événement',
-        'email_form' => 'E-mail / formulaire',
-        'social'     => 'Réseaux sociaux',
-        'other'      => 'Autre',
-    ];
+    return OrderSource::options();
 }
 
 /**
@@ -98,12 +76,10 @@ function luziapi_order_source_options(): array
  */
 function luziapi_order_source(\WC_Order $order): string
 {
-    $source = trim(Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)));
-    if (isset(luziapi_order_source_options()[$source])) {
-        return $source;
-    }
-
-    return in_array($order->get_created_via(), ['checkout', 'store-api'], true) ? 'online' : '';
+    return OrderSource::resolve(
+        Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)),
+        $order->get_created_via(),
+    );
 }
 
 function luziapi_order_emails_disabled(\WC_Order $order): bool

@@ -7,7 +7,7 @@ namespace LuziApi\Tests\Shop;
 use DateTimeImmutable;
 use LuziApi\Shop\Domain\Sales\AnnualSalesCalculator;
 use LuziApi\Shop\Domain\Sales\OrderSnapshot;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
 final class AnnualSalesCalculatorTest extends TestCase

@@ -9,7 +9,7 @@ use DateTimeZone;
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptCommand;
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Shop\Application\Port\Clock;
+use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;

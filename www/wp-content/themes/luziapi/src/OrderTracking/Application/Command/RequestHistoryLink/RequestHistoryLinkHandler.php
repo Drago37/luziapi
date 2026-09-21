@@ -6,12 +6,12 @@ namespace LuziApi\OrderTracking\Application\Command\RequestHistoryLink;
 
 use InvalidArgumentException;
 use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\Clock;
 use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
 use LuziApi\OrderTracking\Application\Port\MagicLinkUrlGenerator;
 use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
 use LuziApi\OrderTracking\Application\Port\TokenGenerator;
 use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
+use LuziApi\Shared\Domain\Clock;
 
 final readonly class RequestHistoryLinkHandler
 {

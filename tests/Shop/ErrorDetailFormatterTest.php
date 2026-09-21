@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Tests\Shop;
 
-use LuziApi\Shop\UserInterface\Admin\ErrorDetailFormatter;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\ErrorDetailFormatter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

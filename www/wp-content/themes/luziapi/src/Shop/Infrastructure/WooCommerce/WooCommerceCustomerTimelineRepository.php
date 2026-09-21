@@ -6,9 +6,9 @@ namespace LuziApi\Shop\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Customer\CustomerTimelineEntry;
 use LuziApi\Shop\Domain\Customer\CustomerTimelineRepository;
-use LuziApi\Support\Wp;
 use WC_Order;
 
 final readonly class WooCommerceCustomerTimelineRepository implements CustomerTimelineRepository

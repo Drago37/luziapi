@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Shop\Domain\Tax;
 
 use InvalidArgumentException;
-use LuziApi\Shop\Domain\Shared\Money;
+use LuziApi\Shared\Domain\ValueObject\Money;
 
 final class MicroBaCalculator
 {
