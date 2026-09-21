@@ -31,7 +31,9 @@ final class WithdrawalRequestTest extends TestCase
 
         // E-mail vide : c'est l'erreur « champ requis » qui s'applique, pas « format invalide ».
         $withoutEmail = new WithdrawalRequest('1636', '', 'all', '');
-        self::assertNotContains('L’adresse e-mail renseignée n’est pas valide.', $withoutEmail->fieldErrors(false));
+        $errors = $withoutEmail->fieldErrors(false);
+        self::assertNotContains('L’adresse e-mail renseignée n’est pas valide.', $errors);
+        self::assertContains('Renseignez le numéro de commande et l’adresse e-mail utilisée lors de l’achat.', $errors);
     }
 
     public function testPartialScopeRequiresDetails(): void

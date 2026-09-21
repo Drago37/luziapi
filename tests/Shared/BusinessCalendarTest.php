@@ -26,6 +26,21 @@ final class BusinessCalendarTest extends TestCase
         }
     }
 
+    /**
+     * Seconde année, avec Pâques indépendamment connue (28 mars 2027), pour
+     * vérifier le computus ET les trois fêtes mobiles — dont l'Ascension (+39)
+     * et le lundi de Pentecôte (+50), jamais contrôlés sinon.
+     */
+    public function testMobileFeastsForASecondYear(): void
+    {
+        $holidays = BusinessCalendar::publicHolidays(2027);
+
+        self::assertCount(11, $holidays);
+        self::assertContains('2027-03-29', $holidays); // lundi de Pâques
+        self::assertContains('2027-05-06', $holidays); // Ascension (Pâques + 39)
+        self::assertContains('2027-05-17', $holidays); // lundi de Pentecôte (Pâques + 50)
+    }
+
     #[DataProvider('days')]
     public function testIsBusinessDay(string $date, bool $expected): void
     {
@@ -59,6 +74,7 @@ final class BusinessCalendarTest extends TestCase
     public static function additions(): iterable
     {
         yield 'zéro jour inchangé' => ['2026-01-02', 0, '2026-01-02'];
+        yield 'nombre négatif : sans effet' => ['2026-01-02', -1, '2026-01-02'];
         yield 'saut du week-end' => ['2026-01-02', 1, '2026-01-05'];
         yield 'saut week-end + lundi de Pâques' => ['2026-04-03', 1, '2026-04-07'];
     }

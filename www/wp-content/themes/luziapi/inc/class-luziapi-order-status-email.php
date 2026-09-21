@@ -166,9 +166,7 @@ final class Luziapi_Order_Status_Email extends \WC_Email
         $cancellationReason = null !== $order
             ? trim(Wp::str($order->get_meta('_luziapi_cancellation_reason')))
             : '';
-        $pickupAddress = function_exists('luziapi_get_pickup_address')
-            ? luziapi_get_pickup_address()
-            : '';
+        $pickupAddress = luziapi_get_pickup_address();
 
         return new OrderStatusEmailContent(
             $this->message,

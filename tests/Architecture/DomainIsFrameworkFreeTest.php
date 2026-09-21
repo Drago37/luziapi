@@ -25,6 +25,7 @@ final class DomainIsFrameworkFreeTest extends TestCase
         self::assertDirectoryExists($src);
 
         $offenders = [];
+        $scanned = 0;
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS)
         );
@@ -39,16 +40,30 @@ final class DomainIsFrameworkFreeTest extends TestCase
                 continue;
             }
 
+            ++$scanned;
             $contents = file_get_contents($file->getPathname());
             if (is_string($contents) && 1 === preg_match(self::FORBIDDEN, $contents)) {
                 $offenders[] = substr($path, (int) strpos($path, '/src/') + 1);
             }
         }
 
+        // Contrôle positif : sans ceci, un filtre de chemin qui ne matche plus
+        // rien ferait passer la garde à vide (faux positif de conformité).
+        self::assertGreaterThan(10, $scanned, 'La garde n’a scanné aucun (ou trop peu de) fichier Domain — le filtre de chemin a dû dériver.');
+
         self::assertSame(
             [],
             $offenders,
             'Le domaine doit rester sans WordPress/WooCommerce ; déplacez la dépendance dans un adaptateur d’Infrastructure.'
         );
+    }
+
+    public function testForbiddenPatternActuallyMatchesWordPressTokens(): void
+    {
+        foreach (['$wpdb->get_row(...)', 'wc_get_order($id)', 'wp_mail(...)', 'get_option("x")', 'new WC_Order()', 'new WP_Error()'] as $offending) {
+            self::assertSame(1, preg_match(self::FORBIDDEN, $offending), "Le motif devrait matcher : {$offending}");
+        }
+
+        self::assertSame(0, preg_match(self::FORBIDDEN, 'return new Money(1000);'), 'Le motif ne doit pas matcher du code de domaine légitime.');
     }
 }

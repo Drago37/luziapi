@@ -29,10 +29,16 @@ const LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META = '_wc_order_attribution_source_ty
  */
 function luziapi_is_local_delivery_destination(array $destination): bool
 {
+    $normalizedCity = (string) preg_replace(
+        '/[^a-z]/',
+        '',
+        mb_strtolower(remove_accents(sanitize_text_field(Wp::str($destination['city'] ?? ''))))
+    );
+
     return (new DeliveryDestination(
         Wp::str($destination['country'] ?? ''),
         Wp::str($destination['postcode'] ?? ''),
-        Wp::str($destination['city'] ?? ''),
+        $normalizedCity,
     ))->qualifiesForFreeDelivery();
 }
 

@@ -47,6 +47,39 @@ final class OrderStatusEmailContentTest extends TestCase
         self::assertSame('À bientôt chez LuziApi !', $content->messageLines()[2]);
     }
 
+    public function testProcessingConfirmsTheOrder(): void
+    {
+        $lines = (new OrderStatusEmailContent('processing', '1636'))->messageLines();
+
+        self::assertCount(2, $lines);
+        self::assertStringContainsString('commande n°1636 est bien confirmée', $lines[0]);
+    }
+
+    public function testOutForDeliveryMentionsTheLocalArea(): void
+    {
+        $lines = (new OrderStatusEmailContent('out_for_delivery', '1636'))->messageLines();
+
+        self::assertCount(3, $lines);
+        self::assertStringContainsString('prête à être livrée', $lines[0]);
+        self::assertSame('La livraison est proposée uniquement à Bléré et Luzillé.', $lines[2]);
+    }
+
+    public function testPaymentReminderMentionsTheDeadlineWhenKnown(): void
+    {
+        $lines = (new OrderStatusEmailContent('payment_reminder', '1636', '30/09/2026'))->messageLines();
+
+        self::assertCount(3, $lines);
+        self::assertStringContainsString('pas encore reçu le règlement', $lines[0]);
+        self::assertStringContainsString('jusqu’au 30/09/2026 inclus', $lines[1]);
+    }
+
+    public function testPaymentReminderFallsBackWithoutDeadline(): void
+    {
+        $lines = (new OrderStatusEmailContent('payment_reminder', '1636', ''))->messageLines();
+
+        self::assertSame('Vous pouvez encore effectuer le virement bancaire ou le règlement WERO.', $lines[1]);
+    }
+
     public function testUnknownStatusHasNoLines(): void
     {
         self::assertSame([], (new OrderStatusEmailContent('whatever', '1636'))->messageLines());

@@ -10,10 +10,15 @@ use PHPUnit\Framework\TestCase;
 
 final class DeliveryDestinationTest extends TestCase
 {
+    /**
+     * La ville est reçue déjà normalisée (minuscules, sans accent, lettres
+     * uniquement) : la normalisation WordPress est faite par l'adaptateur et
+     * couverte par l'e2e de zone de livraison.
+     */
     #[DataProvider('destinations')]
-    public function testQualifiesForFreeDelivery(string $country, string $postcode, string $city, bool $expected): void
+    public function testQualifiesForFreeDelivery(string $country, string $postcode, string $normalizedCity, bool $expected): void
     {
-        $destination = new DeliveryDestination($country, $postcode, $city);
+        $destination = new DeliveryDestination($country, $postcode, $normalizedCity);
 
         self::assertSame($expected, $destination->qualifiesForFreeDelivery());
     }
@@ -23,33 +28,14 @@ final class DeliveryDestinationTest extends TestCase
      */
     public static function destinations(): iterable
     {
-        yield 'Bléré éligible' => ['FR', '37150', 'Bléré', true];
-        yield 'Luzillé éligible' => ['FR', '37150', 'Luzillé', true];
-        yield 'casse ignorée' => ['FR', '37150', 'BLÉRÉ', true];
-        yield 'accents et espaces ignorés' => ['FR', '37150', '  luzille ', true];
-        yield 'pays en minuscules' => ['fr', '37150', 'Bléré', true];
-        yield 'code postal avec espace' => ['FR', '37 150', 'Bléré', true];
-        yield 'même code postal, autre commune' => ['FR', '37150', 'Athée-sur-Cher', false];
-        yield 'autre code postal' => ['FR', '37000', 'Tours', false];
-        yield 'hors France' => ['BE', '37150', 'Bléré', false];
+        yield 'Bléré éligible' => ['FR', '37150', 'blere', true];
+        yield 'Luzillé éligible' => ['FR', '37150', 'luzille', true];
+        yield 'pays en minuscules' => ['fr', '37150', 'blere', true];
+        yield 'code postal avec espace' => ['FR', '37 150', 'blere', true];
+        yield 'même code postal, autre commune' => ['FR', '37150', 'atheesurcher', false];
+        yield 'autre code postal' => ['FR', '37000', 'tours', false];
+        yield 'hors France' => ['BE', '37150', 'blere', false];
+        yield 'pays avec espace parasite (non toléré, comme l’existant)' => [' FR', '37150', 'blere', false];
         yield 'ville vide' => ['FR', '37150', '', false];
-    }
-
-    #[DataProvider('cities')]
-    public function testNormalizeCity(string $raw, string $expected): void
-    {
-        self::assertSame($expected, DeliveryDestination::normalizeCity($raw));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function cities(): iterable
-    {
-        yield 'accents repliés' => ['Bléré', 'blere'];
-        yield 'majuscules accentuées' => ['LUZILLÉ', 'luzille'];
-        yield 'espaces et tiret retirés' => [' Saint-Martin ', 'saintmartin'];
-        yield 'chiffres retirés' => ['Tours37', 'tours'];
-        yield 'chaîne vide' => ['', ''];
     }
 }
