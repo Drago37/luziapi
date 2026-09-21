@@ -192,6 +192,10 @@ e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + s
 e2e-pilotage-schema-local: ## Teste le schéma du pilotage (migration idempotente, nullabilité, contraintes uniques, sauvegarde/restauration) — copies temporaires, rien de réel touché
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-schema-local.php';" --user=admin
 
+.PHONY: e2e-pilotage-perf-local
+e2e-pilotage-perf-local: ## Teste la performance du registre des recettes sur un historique volumineux (20 000 lignes) — copie temporaire, index vérifié, rien de réel touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-perf-local.php';" --user=admin
+
 .PHONY: e2e-address-lookup-local
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-address-lookup-local.php';" --user=admin
