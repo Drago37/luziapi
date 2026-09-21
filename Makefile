@@ -188,6 +188,10 @@ e2e-subscribers-local: ## Teste le répertoire d'abonnés Brevo (lecture seule, 
 e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + schéma + surcharge d'affichage), tout nettoyé
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-customer-profile-local.php';" --user=admin
 
+.PHONY: e2e-pilotage-schema-local
+e2e-pilotage-schema-local: ## Teste le schéma du pilotage (migration idempotente, nullabilité, contraintes uniques, sauvegarde/restauration) — copies temporaires, rien de réel touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-schema-local.php';" --user=admin
+
 .PHONY: e2e-address-lookup-local
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-address-lookup-local.php';" --user=admin
