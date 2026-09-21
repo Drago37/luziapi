@@ -7,6 +7,7 @@
 declare(strict_types=1);
 
 use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Notification\OrderStatusEmailContent;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -145,74 +146,38 @@ final class Luziapi_Order_Status_Email extends \WC_Email
             return [];
         }
 
-        $orderNumber = $this->object->get_order_number();
+        return $this->email_content()->messageLines();
+    }
 
-        switch ($this->message) {
-            case 'on_hold':
-                $dueDate = function_exists('luziapi_payment_due_label')
-                    ? luziapi_payment_due_label($this->object)
-                    : '';
-                $deadlineDays = defined('LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS')
-                    ? LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS
-                    : 10;
+    /**
+     * Rassemble les valeurs de contexte de la commande et délègue le contenu
+     * métier (lignes, libellé, clôture) au domaine.
+     */
+    private function email_content(): OrderStatusEmailContent
+    {
+        $order = $this->object instanceof \WC_Order ? $this->object : null;
 
-                return [
-                    sprintf('J’ai bien reçu votre commande n°%s. Elle est actuellement en attente de confirmation du règlement.', $orderNumber),
-                    '' !== $dueDate
-                        ? sprintf('Le règlement par virement bancaire ou WERO doit être reçu au plus tard le %s inclus, soit sous %d jours ouvrés.', $dueDate, $deadlineDays)
-                        : sprintf('Le règlement par virement bancaire ou WERO doit être reçu sous %d jours ouvrés.', $deadlineDays),
-                    'Sa préparation commencera dès que le paiement aura été confirmé. Sans règlement dans ce délai, la commande sera annulée et les pots remis en stock.',
-                ];
+        $dueLabel = null !== $order && function_exists('luziapi_payment_due_label')
+            ? luziapi_payment_due_label($order)
+            : '';
+        $deadlineDays = defined('LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS')
+            ? LUZIAPI_PAYMENT_DUE_BUSINESS_DAYS
+            : 10;
+        $cancellationReason = null !== $order
+            ? trim(Wp::str($order->get_meta('_luziapi_cancellation_reason')))
+            : '';
+        $pickupAddress = function_exists('luziapi_get_pickup_address')
+            ? luziapi_get_pickup_address()
+            : '';
 
-            case 'processing':
-                return [
-                    sprintf('Votre commande n°%s est bien confirmée.', $orderNumber),
-                    'Je vais maintenant préparer vos pots de miel. Vous recevrez un nouveau message lorsque votre commande sera prête.',
-                ];
-
-            case 'out_for_delivery':
-                return [
-                    sprintf('Votre commande n°%s est prête à être livrée.', $orderNumber),
-                    'Je prendrai contact avec vous afin de convenir du jour et de l’heure de la livraison à l’adresse indiquée dans votre commande.',
-                    'La livraison est proposée uniquement à Bléré et Luzillé.',
-                ];
-
-            case 'ready_for_pickup':
-                return [
-                    sprintf('Votre commande n°%s est prête.', $orderNumber),
-                    sprintf('Le retrait aura lieu à mon domicile, au %s.', luziapi_get_pickup_address()),
-                    'Je prendrai contact avec vous afin de convenir du jour et de l’heure du rendez-vous.',
-                ];
-
-            case 'completed':
-                return [
-                    sprintf('Votre commande n°%s a bien été livrée ou retirée.', $orderNumber),
-                    'Merci pour votre commande et pour votre confiance.',
-                    'À bientôt chez LuziApi !',
-                ];
-
-            case 'payment_reminder':
-                $dueDate = function_exists('luziapi_payment_due_label')
-                    ? luziapi_payment_due_label($this->object)
-                    : '';
-
-                return [
-                    sprintf('Je n’ai pas encore reçu le règlement de votre commande n°%s.', $orderNumber),
-                    '' !== $dueDate
-                        ? sprintf('Vous pouvez effectuer le virement bancaire ou le règlement WERO jusqu’au %s inclus.', $dueDate)
-                        : 'Vous pouvez encore effectuer le virement bancaire ou le règlement WERO.',
-                    'Sans règlement dans le délai prévu, la commande sera automatiquement annulée et les pots seront remis en stock.',
-                ];
-
-            case 'cancelled':
-                return [
-                    sprintf('Votre commande n°%s a été annulée.', $orderNumber),
-                    'Motif : ' . trim(Wp::str($this->object->get_meta('_luziapi_cancellation_reason'))),
-                    'Si un règlement avait déjà été reçu, je prendrai contact avec vous concernant son remboursement.',
-                ];
-        }
-
-        return [];
+        return new OrderStatusEmailContent(
+            $this->message,
+            null !== $order ? $order->get_order_number() : '',
+            $dueLabel,
+            (int) $deadlineDays,
+            $cancellationReason,
+            $pickupAddress,
+        );
     }
 
     public function get_content_html(): string
@@ -317,28 +282,12 @@ final class Luziapi_Order_Status_Email extends \WC_Email
 
     private function get_email_label(): string
     {
-        return [
-            'on_hold'           => 'Règlement en attente',
-            'processing'        => 'Commande confirmée',
-            'out_for_delivery'  => 'En cours de livraison',
-            'ready_for_pickup'  => 'Prête au retrait',
-            'completed'         => 'Commande terminée',
-            'payment_reminder'  => 'Rappel de règlement',
-            'cancelled'         => 'Commande annulée',
-        ][$this->message] ?? 'Votre commande';
+        return $this->email_content()->label();
     }
 
     private function get_closing_line(): string
     {
-        return [
-            'on_hold'           => 'Je reste disponible si vous avez une question sur votre règlement.',
-            'processing'        => 'Merci pour votre confiance et pour votre soutien à l’apiculture locale.',
-            'out_for_delivery'  => 'À très bientôt pour la remise de votre commande.',
-            'ready_for_pickup'  => 'À très bientôt pour la remise de votre commande.',
-            'completed'         => 'Merci pour votre confiance et pour votre soutien à l’apiculture locale.',
-            'payment_reminder'  => 'Si votre règlement a déjà été effectué, vous pouvez ignorer ce rappel.',
-            'cancelled'         => 'Je reste disponible si vous souhaitez un renseignement.',
-        ][$this->message] ?? 'Merci pour votre confiance.';
+        return $this->email_content()->closingLine();
     }
 
 }
