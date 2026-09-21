@@ -8,13 +8,13 @@ use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsComma
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
 use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesCommand;
 use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesHandler;
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Domain\LoyaltyEntry;
 use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionCommand;
 use LuziApi\Newsletter\Application\Command\UpdateSubscription\UpdateSubscriptionHandler;
-use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberDirectory;
 use LuziApi\Shared\Domain\ValueObject\NormalizedPhone;
 use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Newsletter\Infrastructure\Brevo;
 
 use DateTimeImmutable;
-use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberDirectory;
 use LuziApi\Newsletter\Domain\Subscriber;
 use LuziApi\Newsletter\Domain\SubscriptionStatus;
 use Throwable;

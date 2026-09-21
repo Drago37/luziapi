@@ -124,10 +124,10 @@ function luziapi_customer_email_common_data(?\WC_Order $order): array
 function luziapi_email_loyalty_summary(?\WC_Order $order): ?array
 {
     if (! $order instanceof \WC_Order
-        || ! class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)) {
+        || ! class_exists(\LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::class)) {
         return null;
     }
-    $handler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+    $handler = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler();
     if (null === $handler) {
         return null;
     }
@@ -159,8 +159,8 @@ function luziapi_email_loyalty_summary(?\WC_Order $order): ?array
  */
 function luziapi_email_loyalty_reminder(): ?array
 {
-    if (! class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)
-        || null === \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler()) {
+    if (! class_exists(\LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::class)
+        || null === \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler()) {
         return null;
     }
 

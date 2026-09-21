@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
-use LuziApi\OrderTracking\Application\Port\MagicLinkUrlGenerator;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkUrlGenerator;
 
 final readonly class WordPressTrackingUrlGenerator implements MagicLinkUrlGenerator
 {

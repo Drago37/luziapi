@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Tests\Newsletter;
 
-use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberDirectory;
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersHandler;
 use LuziApi\Newsletter\Application\Query\GetSubscribers\GetSubscribersQuery;
 use LuziApi\Newsletter\Domain\Subscriber;

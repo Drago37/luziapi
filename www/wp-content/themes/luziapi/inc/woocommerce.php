@@ -413,8 +413,8 @@ function luziapi_offer_html(): string
         . '<span><b>À partir de 2 pots&nbsp;: −1&nbsp;€ sur chaque pot.</b> Livraison à domicile gratuite sur Luzillé et Bléré.</span>'
         . '</div>';
 
-    if (class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)
-        && null !== \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler()) {
+    if (class_exists(\LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::class)
+        && null !== \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler()) {
         $threshold = (new \LuziApi\Loyalty\Domain\LoyaltyProgress(0))->potsPerReward();
         $html .= '<div class="product-offer product-offer--loyalty">'
             . '<span class="product-offer__badge">Fidélité</span>'

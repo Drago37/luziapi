@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Loyalty\Application\Port;
+namespace LuziApi\Loyalty\Domain\Gateway;
 
 interface IdGenerator
 {

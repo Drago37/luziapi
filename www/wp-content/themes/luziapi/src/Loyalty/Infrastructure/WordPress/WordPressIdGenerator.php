@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Infrastructure\WordPress;
 
-use LuziApi\Loyalty\Application\Port\IdGenerator;
+use LuziApi\Loyalty\Domain\Gateway\IdGenerator;
 
 final readonly class WordPressIdGenerator implements IdGenerator
 {

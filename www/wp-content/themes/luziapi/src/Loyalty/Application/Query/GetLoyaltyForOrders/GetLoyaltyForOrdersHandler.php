@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders;
 
-use LuziApi\Loyalty\Application\Port\OrderContactKeys;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\CustomerLoyaltyView;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
+use LuziApi\Loyalty\Domain\Gateway\OrderContactKeys;
 
 /**
  * État de fidélité d'un client à partir des commandes auxquelles sa session de

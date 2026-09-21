@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Newsletter\Application\Port;
+namespace LuziApi\Newsletter\Domain\Gateway;
 
 use LuziApi\Newsletter\Domain\SubscriptionStatus;
 

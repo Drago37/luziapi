@@ -56,6 +56,6 @@ require_once LUZIAPI_DIR . '/inc/payment-deadline.php';
 require_once LUZIAPI_DIR . '/inc/blog.php';
 
 // La fidélité démarre avant le Pilotage : la fiche client y lit l'état fidélité.
-LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::boot();
+LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::boot();
 LuziApi\Shop\Infrastructure\ShopServiceProvider::boot(LUZIAPI_DIR, LUZIAPI_URI);
-LuziApi\OrderTracking\Bootstrap\OrderTrackingServiceProvider::boot(LUZIAPI_URI);
+LuziApi\OrderTracking\Infrastructure\OrderTrackingServiceProvider::boot(LUZIAPI_URI);

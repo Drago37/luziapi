@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Newsletter\Infrastructure;
 
-use LuziApi\Newsletter\Application\Port\SubscriberDirectory;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberDirectory;
 use LuziApi\Newsletter\Domain\SubscriptionStatus;
 
 /**

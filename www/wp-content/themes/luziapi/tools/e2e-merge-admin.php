@@ -14,7 +14,7 @@
 declare(strict_types=1);
 
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
-use LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider;
+use LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;

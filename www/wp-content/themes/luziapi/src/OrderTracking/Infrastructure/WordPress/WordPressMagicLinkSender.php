@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use DateTimeImmutable;
-use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkSender;
 use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 

@@ -1175,7 +1175,7 @@ function luziapi_offerable_products(): array
  */
 function luziapi_order_available_rewards(\WC_Order $order): int
 {
-    $handler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+    $handler = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler();
     if (null === $handler) {
         return 0;
     }
