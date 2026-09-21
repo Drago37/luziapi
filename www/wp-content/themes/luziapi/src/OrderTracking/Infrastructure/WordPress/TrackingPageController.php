@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\OrderTracking\UserInterface\Web;
+namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use InvalidArgumentException;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\CustomerLoyaltyView;
@@ -11,14 +11,13 @@ use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLin
 use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Command\StartOrderAccess\StartOrderAccessHandler;
-use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
-use LuziApi\OrderTracking\Application\Port\TrackingSessionCookie;
 use LuziApi\OrderTracking\Application\Query\ResolveTrackingSession\ResolveTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\View\PublicOrderPage;
 use LuziApi\OrderTracking\Application\View\PublicOrderView;
+use LuziApi\OrderTracking\Domain\Gateway\TrackingSessionCookie;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
-use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
+use LuziApi\OrderTracking\Domain\Repository\TrackingAccessRepository;
 use LuziApi\Shared\Domain\Clock;
 use LuziApi\Shared\Infrastructure\Wp;
 use Throwable;

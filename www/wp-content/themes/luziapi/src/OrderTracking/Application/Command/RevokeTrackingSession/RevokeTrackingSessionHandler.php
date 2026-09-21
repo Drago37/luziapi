@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Application\Command\RevokeTrackingSession;
 
-use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
+use LuziApi\OrderTracking\Domain\Gateway\AccessFingerprint;
+use LuziApi\OrderTracking\Domain\Repository\TrackingAccessRepository;
 
 final readonly class RevokeTrackingSessionHandler
 {

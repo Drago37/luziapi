@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Application\Command\RequestHistoryLink;
 
 use InvalidArgumentException;
-use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
-use LuziApi\OrderTracking\Application\Port\MagicLinkUrlGenerator;
-use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
-use LuziApi\OrderTracking\Application\Port\TokenGenerator;
-use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
+use LuziApi\OrderTracking\Domain\Gateway\AccessFingerprint;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkSender;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkUrlGenerator;
+use LuziApi\OrderTracking\Domain\Gateway\OrderTrackingGateway;
+use LuziApi\OrderTracking\Domain\Gateway\TokenGenerator;
+use LuziApi\OrderTracking\Domain\Repository\TrackingAccessRepository;
 use LuziApi\Shared\Domain\Clock;
 
 final readonly class RequestHistoryLinkHandler

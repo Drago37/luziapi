@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\OrderTracking\Application\Port;
+namespace LuziApi\OrderTracking\Domain\Gateway;
 
 interface TokenGenerator
 {

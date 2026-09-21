@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
-use LuziApi\OrderTracking\Application\Port\TokenGenerator;
+use LuziApi\OrderTracking\Domain\Gateway\TokenGenerator;
 
 final readonly class RandomTokenGenerator implements TokenGenerator
 {

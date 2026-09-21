@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Application\Query\GetCustomerLoyalty;
 
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Domain\LoyaltyLedger;
 use LuziApi\Loyalty\Domain\LoyaltyProgress;
 

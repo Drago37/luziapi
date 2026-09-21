@@ -141,7 +141,7 @@ try {
         $order2->save();
         $order2Id = (int) $order2->get_id();
     }
-    $forOrders = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyForOrdersHandler();
+    $forOrders = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::loyaltyForOrdersHandler();
     $assert('Le handler de suivi de la fidélité est branché', null !== $forOrders);
     if (null !== $forOrders) {
         $sessionView = $forOrders->handle(array_filter([$orderId, $order2Id]));

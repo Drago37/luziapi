@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Loyalty\Bootstrap;
+namespace LuziApi\Loyalty\Infrastructure;
 
 use LuziApi\Loyalty\Application\Command\AdjustLoyaltyPots\AdjustLoyaltyPotsHandler;
 use LuziApi\Loyalty\Application\Command\MergeLoyaltyIdentities\MergeLoyaltyIdentitiesHandler;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceOrderContactKeys;

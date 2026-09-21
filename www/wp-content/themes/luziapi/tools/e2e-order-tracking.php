@@ -16,7 +16,7 @@ use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLin
 use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Command\StartOrderAccess\StartOrderAccessHandler;
-use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkSender;
 use LuziApi\OrderTracking\Application\Query\ResolveTrackingSession\ResolveTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Service\TrackingSessionIssuer;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;

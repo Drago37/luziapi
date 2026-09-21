@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\Loyalty\Application\Port;
+namespace LuziApi\Loyalty\Domain\Gateway;
 
 /**
  * Liens d'identité fidélité : regroupe les clés d'un même client (ses e-mail(s) et

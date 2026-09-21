@@ -168,7 +168,7 @@ final class ShopServiceProvider
             $clock,
             $activity,
         );
-        $loyaltyHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+        $loyaltyHandler = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler();
         $quickSaleController = new QuickSaleController(
             $products,
             new CreateQuickSaleHandler(new WooCommerceQuickSaleOrderWriter(), $recordReceipt, $clock, $loyaltyHandler),
@@ -206,7 +206,7 @@ final class ShopServiceProvider
             $customerHandler,
             new AssignCustomerCategoryHandler($customerCategories, $clock),
             $activity,
-            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler(),
+            \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler(),
             new ApplyThankYouDiscountHandler(
                 new WooCommerceOrderDiscountWriter(),
                 $recordReceipt,
@@ -214,14 +214,14 @@ final class ShopServiceProvider
                 $activity,
                 $clock,
             ),
-            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
+            \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::loyaltyAdjustmentHandler(),
             $subscribers,
             new SaveCustomerProfileHandler($customerProfiles, $clock),
             $updateSubscription,
-            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::mergeIdentitiesHandler(),
-            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::identityLinks(),
+            \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::mergeIdentitiesHandler(),
+            \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::identityLinks(),
         );
-        $loyaltyRewardsHandler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+        $loyaltyRewardsHandler = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler();
         $loyaltyController = new LoyaltyController(new GetLoyaltyDashboardHandler(
             $orders,
             new CustomerHistoryProjector(),

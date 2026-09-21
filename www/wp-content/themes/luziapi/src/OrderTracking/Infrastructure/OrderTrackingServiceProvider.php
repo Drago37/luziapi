@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LuziApi\OrderTracking\Bootstrap;
+namespace LuziApi\OrderTracking\Infrastructure;
 
 use LuziApi\OrderTracking\Application\Command\RecordOrderStatusChange\RecordOrderStatusChangeHandler;
 use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLinkHandler;
@@ -15,13 +15,13 @@ use LuziApi\OrderTracking\Infrastructure\WooCommerce\WooCommerceOrderTrackingGat
 use LuziApi\OrderTracking\Infrastructure\WooCommerce\WooCommerceStatusHistorySubscriber;
 use LuziApi\OrderTracking\Infrastructure\WordPress\OrderTrackingSchemaManager;
 use LuziApi\OrderTracking\Infrastructure\WordPress\RandomTokenGenerator;
+use LuziApi\OrderTracking\Infrastructure\WordPress\TrackingPageController;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressAccessFingerprint;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressMagicLinkSender;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressStatusHistoryRepository;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingAccessRepository;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingSessionCookie;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingUrlGenerator;
-use LuziApi\OrderTracking\UserInterface\Web\TrackingPageController;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use wpdb;
 
@@ -69,7 +69,7 @@ final class OrderTrackingServiceProvider
             new WordPressTrackingSessionCookie($logger),
             $urls,
             $clock,
-            \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyForOrdersHandler(),
+            \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::loyaltyForOrdersHandler(),
         );
 
         add_action('init', [$schema, 'migrate'], 1);

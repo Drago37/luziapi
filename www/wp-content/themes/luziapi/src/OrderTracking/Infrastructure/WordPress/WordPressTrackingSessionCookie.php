@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
-use LuziApi\OrderTracking\Application\Port\TrackingSessionCookie;
 use LuziApi\OrderTracking\Application\Service\TrackingSession;
+use LuziApi\OrderTracking\Domain\Gateway\TrackingSessionCookie;
 use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 

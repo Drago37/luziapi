@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Loyalty;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyCommand;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
-use LuziApi\Loyalty\Application\Port\IdGenerator;
+use LuziApi\Loyalty\Domain\Gateway\IdGenerator;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
 use PHPUnit\Framework\TestCase;

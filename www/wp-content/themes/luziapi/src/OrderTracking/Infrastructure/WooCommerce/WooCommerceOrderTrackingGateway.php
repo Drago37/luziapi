@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
-use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
 use LuziApi\OrderTracking\Application\View\PublicOrderLine;
 use LuziApi\OrderTracking\Application\View\PublicOrderPage;
 use LuziApi\OrderTracking\Application\View\PublicOrderTotal;
 use LuziApi\OrderTracking\Application\View\PublicOrderUpdate;
 use LuziApi\OrderTracking\Application\View\PublicOrderView;
+use LuziApi\OrderTracking\Domain\Gateway\OrderTrackingGateway;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;

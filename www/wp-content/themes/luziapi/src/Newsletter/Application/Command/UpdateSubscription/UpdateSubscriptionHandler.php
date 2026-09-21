@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Newsletter\Application\Command\UpdateSubscription;
 
 use InvalidArgumentException;
-use LuziApi\Newsletter\Application\Port\SubscriberWriter;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberWriter;
 use LuziApi\Newsletter\Domain\SubscriptionStatus;
 
 final readonly class UpdateSubscriptionHandler
