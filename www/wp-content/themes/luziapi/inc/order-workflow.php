@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Domain\Sales\DeliveryDestination;
+use LuziApi\Shop\Domain\Sales\FulfillmentMode;
+use LuziApi\Shop\Domain\Sales\OrderSource;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -36,35 +38,22 @@ function luziapi_is_local_delivery_destination(array $destination): bool
 
 /**
  * Retourne le mode de remise réellement enregistré dans la commande.
+ * La règle vit dans le domaine (FulfillmentMode) ; on ne lit ici que les
+ * méthodes d'expédition WooCommerce.
  */
 function luziapi_order_fulfillment_mode(\WC_Order $order): string
 {
+    $methodIds = [];
     foreach ($order->get_shipping_methods() as $shippingItem) {
-        if ('free_shipping' === $shippingItem->get_method_id()) {
-            return 'delivery';
-        }
-
-        if ('local_pickup' === $shippingItem->get_method_id()) {
-            return 'pickup';
-        }
+        $methodIds[] = $shippingItem->get_method_id();
     }
 
-    return 'unknown';
+    return FulfillmentMode::fromShippingMethodIds($methodIds);
 }
 
 function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $status): bool
 {
-    $mode = luziapi_order_fulfillment_mode($order);
-
-    if ('out_for_delivery' === $status) {
-        return 'pickup' !== $mode;
-    }
-
-    if ('ready_for_pickup' === $status) {
-        return 'delivery' !== $mode;
-    }
-
-    return true;
+    return FulfillmentMode::statusMatches($status, luziapi_order_fulfillment_mode($order));
 }
 
 /**
@@ -72,14 +61,7 @@ function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $stat
  */
 function luziapi_order_source_options(): array
 {
-    return [
-        'online'     => 'Boutique en ligne',
-        'phone'      => 'Téléphone',
-        'market'     => 'Marché / événement',
-        'email_form' => 'E-mail / formulaire',
-        'social'     => 'Réseaux sociaux',
-        'other'      => 'Autre',
-    ];
+    return OrderSource::options();
 }
 
 /**
@@ -88,12 +70,10 @@ function luziapi_order_source_options(): array
  */
 function luziapi_order_source(\WC_Order $order): string
 {
-    $source = trim(Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)));
-    if (isset(luziapi_order_source_options()[$source])) {
-        return $source;
-    }
-
-    return in_array($order->get_created_via(), ['checkout', 'store-api'], true) ? 'online' : '';
+    return OrderSource::resolve(
+        Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)),
+        $order->get_created_via(),
+    );
 }
 
 function luziapi_order_emails_disabled(\WC_Order $order): bool
