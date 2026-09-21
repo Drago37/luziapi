@@ -143,7 +143,7 @@ Règles d'affichage et de vente :
 - Une remise LuziApi est appliquée automatiquement dès qu'il y a au moins deux pots :
   **−1 € × nombre total de pots**.
 - Exemples : deux pots donnent −2 €, trois pots donnent −3 €.
-- **Règle unique partagée** : `VolumeDiscount` (`src/Pilotage/Domain/Sales/`) calcule cette remise,
+- **Règle unique partagée** : `VolumeDiscount` (`src/Shop/Domain/Sales/`) calcule cette remise,
   utilisée à la fois par le panier du site (`inc/shop.php`) **et** par la Vente du pilotage
   (`WooCommerceQuickSaleOrderWriter`) — les deux chemins ne peuvent donc pas diverger. _Historique :_
   la Vente ne l'appliquait pas (le fee de panier ne se déclenche que sur le checkout du site, pas sur

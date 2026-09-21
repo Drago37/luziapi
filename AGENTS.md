@@ -188,7 +188,7 @@ or prod) at each change of the order workflow.
 The customer tracking without an account additionally has its local integration test
 `make e2e-tracking-local` and its documentation in
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
-Loyalty (`src/Loyalty/`) has its unit tests `tests/Loyalty/`, `tests/Pilotage/`
+Loyalty (`src/Loyalty/`) has its unit tests `tests/Loyalty/`, `tests/Shop/`
 and its local integration tests `make e2e-loyalty-local` (jars/benefits),
 `make e2e-discount-local` (thank-you discount) and `make e2e-vente-loyalty-local`
 (real Sale path: free gift + loyalty + discount + stock), plus a replayable
@@ -358,7 +358,7 @@ fingerprints.
   changes. When a CSS change "does not show up", check the `?ver` actually served.
 - **Interrupted deployment = prod in 500, masked by the cache.** A `make deploy` (mirror of the whole
   theme) cut off in progress (timeout, network, exhausted credits) leaves `src/` **partially** uploaded.
-  Since `functions.php` boots `PilotageServiceProvider::boot()`, a missing class causes a
+  Since `functions.php` boots `ShopServiceProvider::boot()`, a missing class causes a
   **fatal on every page loading the theme** — but PowerBoost keeps serving the home in 200,
   hiding the failure. Diagnosis: test an **uncached URL** (`/wp-login.php`, `/mon-compte/`, or the
   home with `?nocache=…`) and run **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) which
@@ -457,13 +457,13 @@ Decisions made deliberately — do not undo them without discussing:
   category) that **overlays the display** without touching the orders — invoices and order history
   stay intact. To fix one specific order, edit it in WooCommerce (order editing stays enabled; only
   creation is redirected to the Vente). Do not go back to writing customer edits onto the orders.
-  Domain `src/Pilotage/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
+  Domain `src/Shop/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
   / `-prod`.
 - **Address autocomplete = server-side, through a nonce-protected admin-ajax endpoint** (not a direct
   browser call). The `AddressLookup` port + `BanAddressLookup` adapter query the Base Adresse
   Nationale (`api-adresse.data.gouv.fr`, free, no key) server-side and normalize the result; the
   `luziapi_address_search` admin-ajax action (capability `edit_shop_orders` + nonce) feeds the fiche's
-  address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
+  address field. Progressive enhancement — manual entry always works. Domain `src/Shop/.../Address`
   + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
   (BAN calls intercepted, nothing written).
 - **Subscription panel on the fiche = editable, writes DIRECTLY to Brevo** (reverses the earlier
