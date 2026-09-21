@@ -6,6 +6,7 @@ namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 
 use DateTimeImmutable;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Domain\CsvFormulaGuard;
 use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Query\GetActivityLog\GetActivityLogHandler;
@@ -104,7 +105,7 @@ final readonly class ActivityController
                 array_keys($entry->details),
                 array_values($entry->details),
             ));
-            fputcsv($output, array_map($this->csvCell(...), [
+            fputcsv($output, array_map(CsvFormulaGuard::neutralize(...), [
                 $entry->occurredAt->format('d/m/Y H:i:s'),
                 $this->actorLabel($entry->actorId),
                 $entry->category->label(),
@@ -206,10 +207,5 @@ final readonly class ActivityController
         if (! current_user_can('edit_shop_orders')) {
             wp_die(esc_html__('Vous n’avez pas l’autorisation d’accéder à cette page.', 'luziapi'));
         }
-    }
-
-    private function csvCell(string $value): string
-    {
-        return preg_match('/^[=+\-@]/', $value) ? "'" . $value : $value;
     }
 }
