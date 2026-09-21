@@ -7,6 +7,8 @@
 declare(strict_types=1);
 
 use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Legal\LegalDocument;
+use LuziApi\Shop\Domain\Legal\WithdrawalRequest;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -38,17 +40,18 @@ function luziapi_withdrawal_url(): string
     return luziapi_legal_page_url('retractation');
 }
 
+function luziapi_cgv_document(): LegalDocument
+{
+    return new LegalDocument(LUZIAPI_CGV_VERSION, LUZIAPI_CGV_LABEL, 'LuziApi-CGV-');
+}
+
 function luziapi_cgv_pdf_path(?\WC_Order $order = null): string
 {
-    $version = $order instanceof \WC_Order
-        ? trim(Wp::str($order->get_meta('_luziapi_cgv_version')))
+    $accepted = $order instanceof \WC_Order
+        ? Wp::str($order->get_meta('_luziapi_cgv_version'))
         : '';
 
-    if ('' === $version || 1 !== preg_match('/^[a-zA-Z0-9._-]+$/', $version)) {
-        $version = LUZIAPI_CGV_VERSION;
-    }
-
-    return LUZIAPI_DIR . '/assets/docs/LuziApi-CGV-' . $version . '.pdf';
+    return LUZIAPI_DIR . '/assets/docs/' . luziapi_cgv_document()->pdfBasenameForAcceptedVersion($accepted);
 }
 
 function luziapi_cgv_pdf_url(): string
@@ -219,19 +222,13 @@ function luziapi_withdrawal_values(): array
  */
 function luziapi_validate_withdrawal(array $values): array
 {
-    $errors = [];
-
-    if ('' === $values['order_number'] || '' === $values['email']) {
-        $errors[] = 'Renseignez le numéro de commande et l’adresse e-mail utilisée lors de l’achat.';
-    }
-
-    if ('' !== $values['email'] && ! is_email($values['email'])) {
-        $errors[] = 'L’adresse e-mail renseignée n’est pas valide.';
-    }
-
-    if ('part' === $values['scope'] && '' === $values['details']) {
-        $errors[] = 'Précisez les produits concernés par votre demande.';
-    }
+    $request = new WithdrawalRequest(
+        $values['order_number'],
+        $values['email'],
+        $values['scope'],
+        $values['details'],
+    );
+    $errors = $request->fieldErrors(false !== is_email($values['email']));
 
     $order = null;
     if ([] === $errors && ctype_digit($values['order_number'])) {
@@ -266,9 +263,12 @@ function luziapi_record_withdrawal(\WC_Order $order, array $values): array
     $timezone    = new \DateTimeZone('Europe/Paris');
     $now         = new \DateTimeImmutable('now', $timezone);
     $submittedAt = wp_date('d/m/Y à H:i', $now->getTimestamp(), $timezone) ?: '';
-    $scope       = 'part' === $values['scope']
-        ? 'Une partie de la commande : ' . $values['details']
-        : 'La totalité de la commande';
+    $scope       = (new WithdrawalRequest(
+        $values['order_number'],
+        $values['email'],
+        $values['scope'],
+        $values['details'],
+    ))->scopeLabel();
 
     $request = [
         'reference'    => $reference,
