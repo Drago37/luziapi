@@ -373,7 +373,10 @@ fingerprints.
   a schema switched to `NULL` — the repository inserting NULL then filling it, **every receipt
   record failed** silently. For a nullability (or type) change, add an
   explicit `ALTER TABLE … MODIFY` in the versioned migration (`PilotageSchemaManager`), never rely
-  on `dbDelta` alone.
+  on `dbDelta` alone. This is now covered by `make e2e-pilotage-schema-local`, which checks the
+  migration idempotence, the `sequence_number` nullability fix, that the unique constraints reject
+  duplicates, and a backup/restore round-trip — all on `CREATE TEMPORARY TABLE … LIKE` copies, so no
+  real data is touched.
 
 ### Production go-live process since 6 September 2026
 
