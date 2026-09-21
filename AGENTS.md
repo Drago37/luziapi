@@ -311,9 +311,17 @@ Observed on 10 September 2026 while deploying Monolog: prod threw a 500 because 
 
 > **Dev/test artifacts never deployed.** The `make deploy` mirror excludes, via the
 > `DEPLOY_EXCLUDES` variable of the `Makefile`, everything that does not serve the runtime: `tools/`, `tests-js/`,
-> `node_modules/`, `package.json` / `package-lock.json`, CS-Fixer / PHPStan config, `README.md`.
-> Add any new tool or test folder to this list. (Make pitfall fixed in passing: a
-> glob containing `#` must be escaped `\#`, otherwise make comments out the rest of the line.)
+> `tests-browser/`, `playwright.config.js`, `node_modules/`, `package.json` / `package-lock.json`, CS-Fixer /
+> PHPStan config, `README.md`. The same exclusions live in `scripts/deploy-files.sh` and
+> `scripts/verify-prod-integrity.sh` — keep the three in sync when adding a tool or test folder.
+> (Make pitfall fixed in passing: a glob containing `#` must be escaped `\#`, otherwise make comments
+> out the rest of the line.)
+
+**Admin navigation smoke (Playwright).** `make browser-local` runs a headless-browser smoke of the
+pilotage dashboard against the local WordPress (`http://localhost:8080`): it logs in as admin, opens
+every pilotage view and checks it renders without a PHP fatal or an uncaught JS error, and that the
+Vente form is present. It runs in CI inside the e2e job (Node 22 + `npx playwright install`). Deeper
+JS behaviour (e.g. the Vente anti-double-click) stays covered by the jsdom unit tests in `tests-js/`.
 
 ### A mu-plugin changes
 

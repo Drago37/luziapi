@@ -19,6 +19,7 @@ DEPLOY_FTP_VERIFY ?= yes
 THEME_SRC := www/wp-content/themes/luziapi/
 # Exclusions (globs lftp) : outils de dev, dépôt git, modules.
 DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' -X 'tests-js/' \
+	-X 'tests-browser/' -X 'playwright.config.js' \
 	-X '.php-cs-fixer.dist.php' -X '.php-cs-fixer.cache' \
 	-X 'phpstan.neon.dist' -X 'README.md' \
 	-X 'package.json' -X 'package-lock.json' -X '.~lock.*\#'
@@ -195,6 +196,10 @@ e2e-pilotage-schema-local: ## Teste le schéma du pilotage (migration idempotent
 .PHONY: e2e-pilotage-perf-local
 e2e-pilotage-perf-local: ## Teste la performance du registre des recettes sur un historique volumineux (20 000 lignes) — copie temporaire, index vérifié, rien de réel touché
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-perf-local.php';" --user=admin
+
+.PHONY: browser-local
+browser-local: ## Smoke de navigation du pilotage (Playwright headless, sur l'hôte) contre le WP local — connexion admin puis chargement de toutes les vues
+	cd www/$(THEME) && npm install --no-audit --no-fund && npx playwright install chromium && npm run test:browser
 
 .PHONY: e2e-address-lookup-local
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit

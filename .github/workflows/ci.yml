@@ -156,6 +156,18 @@ jobs:
       - name: Jouer toutes les suites e2e locales
         run: bash scripts/e2e-ci.sh
 
+      - name: Setup Node (smoke navigateur)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Smoke de navigation du pilotage (Playwright)
+        working-directory: www/wp-content/themes/luziapi
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:browser
+
       - name: Journaux des conteneurs (en cas d'échec)
         if: failure()
         run: docker compose logs --tail=300
