@@ -7,6 +7,7 @@ namespace LuziApi\Shop\Infrastructure\WordPress\Admin;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use LuziApi\Shared\Domain\Clock;
+use LuziApi\Shared\Domain\CsvFormulaGuard;
 use LuziApi\Shared\Infrastructure\Wp;
 use LuziApi\Shop\Application\Activity\ActivityRecorder;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
@@ -191,7 +192,7 @@ final readonly class ReceiptsController
                 $entry->orderId ?? '',
                 self::PAYMENT_METHODS[$entry->paymentMethod] ?? $entry->paymentMethod,
                 number_format($entry->amount->cents() / 100, 2, ',', ''),
-                $this->csvCell($entry->description),
+                CsvFormulaGuard::neutralize($entry->description),
                 $entry->reversalOfId ?? '',
             ], ';');
         }
@@ -260,11 +261,6 @@ final readonly class ReceiptsController
         if (! current_user_can('edit_shop_orders')) {
             wp_die(esc_html__('Vous n’avez pas l’autorisation d’accéder à cette page.', 'luziapi'));
         }
-    }
-
-    private function csvCell(string $value): string
-    {
-        return preg_match('/^[=+\-@]/', $value) ? "'" . $value : $value;
     }
 
     private function formatMoney(int $cents): string
