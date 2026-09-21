@@ -7,6 +7,7 @@
 declare(strict_types=1);
 
 use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Sales\DeliveryDestination;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -17,31 +18,20 @@ const LUZIAPI_ORDER_EMAILS_DISABLED_META = '_luziapi_order_emails_disabled';
 const LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META = '_wc_order_attribution_source_type';
 
 /**
- * Normalise une ville saisie librement pour comparer Bléré/Luzillé sans tenir
- * compte des accents, des espaces ou de la casse.
- */
-function luziapi_normalize_city(string $city): string
-{
-    $city = mb_strtolower(remove_accents(sanitize_text_field($city)));
-
-    return (string) preg_replace('/[^a-z]/', '', $city);
-}
-
-/**
  * La livraison gratuite est strictement réservée à Bléré et Luzillé.
- * Le code postal seul ne suffit pas car plusieurs communes utilisent 37150.
+ *
+ * La règle vit désormais dans le domaine (DeliveryDestination) ; cette fonction
+ * n'est plus qu'un adaptateur WordPress qui lui transmet la destination.
  *
  * @param array<string, mixed> $destination
  */
 function luziapi_is_local_delivery_destination(array $destination): bool
 {
-    $country  = strtoupper(Wp::str($destination['country'] ?? ''));
-    $postcode = preg_replace('/\s+/', '', Wp::str($destination['postcode'] ?? ''));
-    $city     = luziapi_normalize_city(Wp::str($destination['city'] ?? ''));
-
-    return 'FR' === $country
-        && '37150' === $postcode
-        && in_array($city, ['blere', 'luzille'], true);
+    return (new DeliveryDestination(
+        Wp::str($destination['country'] ?? ''),
+        Wp::str($destination['postcode'] ?? ''),
+        Wp::str($destination['city'] ?? ''),
+    ))->qualifiesForFreeDelivery();
 }
 
 /**
