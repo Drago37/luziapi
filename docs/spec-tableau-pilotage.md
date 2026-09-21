@@ -228,8 +228,8 @@ l'opération métier observée.
 - Domain sans dépendance WordPress ou WooCommerce ;
 - cas d'utilisation dans Application ;
 - adaptateurs HPOS, WordPress, exports et cache dans Infrastructure ;
-- contrôleurs d'administration minces dans UserInterface ;
-- assemblage explicite dans Bootstrap, sans conteneur de dépendances supplémentaire ;
+- contrôleurs d'administration minces dans Infrastructure (adaptateurs entrants) ;
+- assemblage explicite dans un ServiceProvider d'Infrastructure, sans conteneur de dépendances supplémentaire ;
 - vues Twig séparées du PHP ;
 - Chart.js versionné localement, sans CDN ni transfert de données externe ;
 - JavaScript natif et styles chargés uniquement sur les écrans du module.
