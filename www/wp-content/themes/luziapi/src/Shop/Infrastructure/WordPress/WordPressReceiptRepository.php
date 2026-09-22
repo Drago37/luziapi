@@ -19,7 +19,7 @@ final readonly class WordPressReceiptRepository implements ReceiptRepository
 {
     public function __construct(
         private wpdb $database,
-        private PilotageSchemaManager $schema,
+        private ShopSchemaManager $schema,
         private DateTimeZone $timezone,
     ) {
     }

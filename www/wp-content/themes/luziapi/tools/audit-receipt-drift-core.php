@@ -20,7 +20,7 @@ use LuziApi\Shop\Domain\Receipt\ReceiptDriftAuditor;
 use LuziApi\Shop\Domain\Receipt\ReceiptReconciliation;
 use LuziApi\Shop\Domain\Receipt\ReceiptReconciliationProjector;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
@@ -41,7 +41,7 @@ if (! function_exists('luziapi_audit_receipt_drift_data')) {
         global $wpdb;
 
         $clock = new WordPressClock();
-        $schema = new PilotageSchemaManager($wpdb);
+        $schema = new ShopSchemaManager($wpdb);
         $handler = new AuditReceiptDriftHandler(
             new WordPressReceiptRepository($wpdb, $schema, $clock->timezone()),
             new WooCommerceOrderRepository($clock->timezone()),

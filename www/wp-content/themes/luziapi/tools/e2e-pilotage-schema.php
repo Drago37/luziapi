@@ -30,7 +30,7 @@ if (! function_exists('luziapi_e2e_pilotage_schema_run')) {
         $cleanup = 'non exécuté';
         $tempTables = [];
 
-        $schema = new \LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
+        $schema = new \LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager($wpdb);
 
         try {
             // 1. Migration idempotente : rejouer ne doit rien casser, les 6 tables existent.

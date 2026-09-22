@@ -21,7 +21,7 @@ final readonly class WordPressInventoryRepository implements InventoryRepository
 {
     public function __construct(
         private wpdb $database,
-        private PilotageSchemaManager $schema,
+        private ShopSchemaManager $schema,
         private DateTimeZone $timezone,
     ) {
     }

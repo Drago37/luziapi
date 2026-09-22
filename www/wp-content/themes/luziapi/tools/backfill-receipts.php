@@ -17,7 +17,7 @@ use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptComman
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
@@ -33,7 +33,7 @@ $dryRun = (string) getenv('LUZIAPI_BACKFILL_DRY') === '1';
 
 global $wpdb;
 $clock = new WordPressClock();
-$schema = new PilotageSchemaManager($wpdb);
+$schema = new ShopSchemaManager($wpdb);
 $activity = new ActivityRecorder(new WordPressActivityRepository($wpdb, $schema, $clock->timezone()), $clock);
 $receipts = new AuditedReceiptRepository(new WordPressReceiptRepository($wpdb, $schema, $clock->timezone()), $activity);
 $handler = new RecordOrderReceiptHandler($receipts, new RecordReceiptHandler($receipts, $clock));

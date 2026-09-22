@@ -31,7 +31,7 @@ use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Shop\Domain\Sales\VolumeDiscount;
 use LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
@@ -52,7 +52,7 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
 
         global $wpdb;
         $clock = new WordPressClock();
-        $pilotageSchema = new PilotageSchemaManager($wpdb);
+        $pilotageSchema = new ShopSchemaManager($wpdb);
         $pilotageSchema->migrate();
         // Dépôt NON audité : sert au SEED de la recette de départ et à la LECTURE du
         // net ; la correction, elle, passe par l'abonné branché (dépôt audité).

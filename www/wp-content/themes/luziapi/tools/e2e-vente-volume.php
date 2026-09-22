@@ -23,7 +23,7 @@ use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
 use LuziApi\Shop\Application\Command\CreateQuickSale\QuickSaleLine;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
@@ -39,7 +39,7 @@ add_filter('pre_wp_mail', '__return_false', 999);
 global $wpdb;
 $loyaltySchema = new LoyaltySchemaManager($wpdb);
 $loyaltySchema->migrate();
-$pilotageSchema = new PilotageSchemaManager($wpdb);
+$pilotageSchema = new ShopSchemaManager($wpdb);
 $pilotageSchema->migrate();
 $clock = new WordPressClock();
 // Dépôt de recettes NON audité (pas d'écriture au journal d'activité pour un test).

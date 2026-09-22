@@ -36,7 +36,7 @@ if (! function_exists('luziapi_e2e_pilotage_perf_run')) {
         $temp = '';
         $realTouched = false;
 
-        $schema = new \LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
+        $schema = new \LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager($wpdb);
 
         try {
             $schema->migrate();
