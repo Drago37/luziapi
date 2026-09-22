@@ -20,7 +20,7 @@ final readonly class WordPressActivityRepository implements ActivityRepository
 {
     public function __construct(
         private wpdb $database,
-        private PilotageSchemaManager $schema,
+        private ShopSchemaManager $schema,
         private DateTimeZone $timezone,
     ) {
     }

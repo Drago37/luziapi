@@ -15,7 +15,7 @@ final readonly class WordPressCustomerCategoryRepository implements CustomerCate
 {
     public function __construct(
         private wpdb $database,
-        private PilotageSchemaManager $schema,
+        private ShopSchemaManager $schema,
     ) {
     }
 

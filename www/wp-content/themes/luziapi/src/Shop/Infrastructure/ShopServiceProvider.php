@@ -72,7 +72,7 @@ use LuziApi\Shop\Infrastructure\WordPress\Admin\TaxDeclarationController;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedInventoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository;
@@ -108,7 +108,7 @@ final class ShopServiceProvider
         if (! $wpdb instanceof wpdb) {
             return;
         }
-        $schema = new PilotageSchemaManager($wpdb);
+        $schema = new ShopSchemaManager($wpdb);
         $activityRepository = new WordPressActivityRepository($wpdb, $schema, $clock->timezone());
         $activity = new ActivityRecorder($activityRepository, $clock);
         $customerCategories = new AuditedCustomerCategoryRepository(

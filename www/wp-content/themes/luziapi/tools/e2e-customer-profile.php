@@ -32,7 +32,7 @@ if (! function_exists('luziapi_e2e_customer_profile_run')) {
         $tag = 'e2e-profile-' . uniqid();
         $email = $tag . '@e2e-profile.test';
 
-        $schema = new \LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
+        $schema = new \LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager($wpdb);
         $projector = new \LuziApi\Shop\Domain\Customer\CustomerHistoryProjector();
         $repoOrders = new \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository(wp_timezone());
         $profiles = new \LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository($wpdb, $schema);

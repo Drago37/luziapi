@@ -25,7 +25,7 @@ use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscount
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
@@ -44,7 +44,7 @@ update_option('woocommerce_price_num_decimals', '2');
 global $wpdb;
 $loyaltySchema = new LoyaltySchemaManager($wpdb);
 $loyaltySchema->migrate();
-$pilotageSchema = new PilotageSchemaManager($wpdb);
+$pilotageSchema = new ShopSchemaManager($wpdb);
 $pilotageSchema->migrate();
 $timezone = wp_timezone();
 $clock = new WordPressClock();

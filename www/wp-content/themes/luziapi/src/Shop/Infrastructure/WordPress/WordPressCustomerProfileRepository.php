@@ -14,7 +14,7 @@ final readonly class WordPressCustomerProfileRepository implements CustomerProfi
 {
     public function __construct(
         private wpdb $database,
-        private PilotageSchemaManager $schema,
+        private ShopSchemaManager $schema,
     ) {
     }
 

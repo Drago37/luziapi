@@ -6,7 +6,7 @@ namespace LuziApi\Shop\Infrastructure\WordPress;
 
 use wpdb;
 
-final readonly class PilotageSchemaManager
+final readonly class ShopSchemaManager
 {
     public const VERSION = '9';
     private const OPTION = 'luziapi_pilotage_receipts_schema_version';

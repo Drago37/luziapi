@@ -19,7 +19,7 @@ declare(strict_types=1);
 use LuziApi\Shop\Application\Command\RecordOrderReceipt\RecordOrderReceiptHandler;
 use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
 use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceReceiptSubscriber;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
@@ -48,7 +48,7 @@ if (! function_exists('wc_create_order')) {
 
 global $wpdb;
 $clock = new WordPressClock();
-$schema = new PilotageSchemaManager($wpdb);
+$schema = new ShopSchemaManager($wpdb);
 // Dépôt NON audité : n'écrit que la table des recettes (aucun journal d'activité).
 $receipts = new WordPressReceiptRepository($wpdb, $schema, $clock->timezone());
 $subscriber = new WooCommerceReceiptSubscriber(

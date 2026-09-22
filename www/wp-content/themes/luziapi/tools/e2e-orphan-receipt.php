@@ -23,7 +23,7 @@ declare(strict_types=1);
 use LuziApi\Shop\Domain\Receipt\NewReceiptEntry;
 use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
 use LuziApi\Shared\Domain\ValueObject\Money;
-use LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
 use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_e2e_orphan_receipt_run')) {
@@ -42,7 +42,7 @@ if (! function_exists('luziapi_e2e_orphan_receipt_run')) {
         $cleanup = 'non exécuté';
 
         global $wpdb;
-        $schema = new PilotageSchemaManager($wpdb);
+        $schema = new ShopSchemaManager($wpdb);
         $receipts = new WordPressReceiptRepository($wpdb, $schema, wp_timezone());
         $table = $schema->tableName();
 
