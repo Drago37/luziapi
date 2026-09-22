@@ -323,6 +323,14 @@ every pilotage view and checks it renders without a PHP fatal or an uncaught JS 
 Vente form is present. It runs in CI inside the e2e job (Node 22 + `npx playwright install`). Deeper
 JS behaviour (e.g. the Vente anti-double-click) stays covered by the jsdom unit tests in `tests-js/`.
 
+**Dashboard test hardening (issue #3, closed).** Beyond the schema and browser tests above, the
+dashboard is covered by: `CsvFormulaGuardTest` (CSV exports neutralise formula injection, via the
+shared `Shared\Domain\CsvFormulaGuard`); `AdminActionsAreGuardedTest` (a reflection guard asserting
+**every** `admin_post_*` / `wp_ajax_*` pilotage action checks a nonce **and** a capability — a new
+unguarded action fails the suite); and `make e2e-pilotage-perf-local` (the receipt register stays
+correct and index-backed — `EXPLAIN` — over a 20 000-row history). Visual-regression screenshots were
+deliberately left out in favour of the navigation smoke.
+
 ### A mu-plugin changes
 
 The FTP account is chrooted to the theme and does **not** see `wp-content/mu-plugins/`. Deployment
