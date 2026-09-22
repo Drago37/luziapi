@@ -449,3 +449,11 @@ deploy-check-live: ## Vérifie que la prod répond (URL non cachées) — à lan
 .PHONY: verify-prod
 verify-prod: ## Vérifie l'intégrité de TOUT le thème en prod (SHA-256 local↔prod, fichiers manquants/divergents)
 	@bash scripts/verify-prod-integrity.sh
+
+.PHONY: deploy-prune-prod
+deploy-prune-prod: ## DRY-RUN : liste les orphelins src/ sur la prod (présents mais plus suivis en git) — rien supprimé
+	@bash scripts/prune-prod-orphans.sh
+
+.PHONY: deploy-prune-prod-apply
+deploy-prune-prod-apply: ## Supprime les orphelins src/ de la prod (confirmation) — à lancer APRÈS un déploiement qui renomme/supprime
+	@bash scripts/prune-prod-orphans.sh --apply

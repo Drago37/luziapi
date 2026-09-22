@@ -269,6 +269,14 @@ unversioned file `scripts/.last-deploy`, or passed as an argument), upload of on
 code files, OPcache cleared + SHA-256 comparison local ↔ prod via the token-based script, then
 `post-deploy-check.sh`. In case of doubt, the manual procedure remains below.
 
+**A release that renames or deletes many files** (e.g. `Pilotage → Shop` in 1.4.0): `deploy-files.sh`
+uploads the new/renamed paths but **does not remove** the old ones — it warns about explicit deletions
+and leaves the old renamed paths as orphans on prod (harmless dead code, but stale). After the upload,
+run **`make deploy-prune-prod`** (dry-run — lists the `src/` files present on prod but no longer tracked
+in git), then **`make deploy-prune-prod-apply`** to remove them, and finish with **`make verify-prod`**.
+`scripts/prune-prod-orphans.sh` is scoped strictly to `src/`, token-secured and path-validated; empty
+directories left behind are harmless.
+
 _Why:_ `make deploy` runs `composer-prod` **in the `wordpress` Docker container** (so it
 fails if Docker is not started: "service wordpress is not running"), then an
 `lftp mirror -R --delete` of **the whole theme, `vendor/` included** → thousands of files over
