@@ -322,6 +322,10 @@ pilotage dashboard against the local WordPress (`http://localhost:8080`): it log
 every pilotage view and checks it renders without a PHP fatal or an uncaught JS error, and that the
 Vente form is present. It runs in CI inside the e2e job (Node 22 + `npx playwright install`). Deeper
 JS behaviour (e.g. the Vente anti-double-click) stays covered by the jsdom unit tests in `tests-js/`.
+If every `/wp-admin/` page returns **403** locally (a copy-of-prod database whose `{prefix}user_roles`
+option drifted, so the `administrator` role has no capabilities), run **`make doctor`** — it recreates
+the standard roles + WooCommerce caps and restores `admin` to administrator. It is local-only (the
+`tools/` folder is never deployed).
 
 **Dashboard test hardening (issue #3, closed).** Beyond the schema and browser tests above, the
 dashboard is covered by: `CsvFormulaGuardTest` (CSV exports neutralise formula injection, via the

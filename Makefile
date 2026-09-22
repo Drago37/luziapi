@@ -201,6 +201,10 @@ e2e-pilotage-perf-local: ## Teste la performance du registre des recettes sur un
 browser-local: ## Smoke de navigation du pilotage (Playwright headless, sur l'hôte) contre le WP local — connexion admin puis chargement de toutes les vues
 	cd www/$(THEME) && npm install --no-audit --no-fund && npx playwright install chromium && npm run test:browser
 
+.PHONY: doctor
+doctor: ## Répare l'environnement LOCAL si l'admin a perdu ses droits (403 sur /wp-admin/) : rôles standards + capacités WooCommerce
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/local-doctor.php';" --user=admin
+
 .PHONY: e2e-address-lookup-local
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-address-lookup-local.php';" --user=admin
