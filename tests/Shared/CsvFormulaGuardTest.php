@@ -25,6 +25,8 @@ final class CsvFormulaGuardTest extends TestCase
         yield 'formule +' => ['+1+1', "'+1+1"];
         yield 'formule @' => ['@cmd', "'@cmd"];
         yield 'tiret en tête (y compris nombre négatif) neutralisé' => ['-5', "'-5"];
+        yield 'tabulation de tête neutralisée' => ["\t=1+1", "'\t=1+1"];
+        yield 'retour chariot de tête neutralisé' => ["\r@cmd", "'\r@cmd"];
         yield 'texte normal inchangé' => ['Miel de printemps', 'Miel de printemps'];
         yield 'chaîne vide inchangée' => ['', ''];
         yield 'signe égal non initial inchangé' => ['a=b', 'a=b'];
