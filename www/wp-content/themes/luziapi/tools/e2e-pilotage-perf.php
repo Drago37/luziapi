@@ -10,9 +10,12 @@
  * (`WHERE occurred_at BETWEEN … ORDER BY …`) sur une fenêtre sélective. On
  * vérifie : la correction à l'échelle, que le plan d'exécution utilise l'index
  * `occurred_at` (donc pas de balayage complet — la requête passe à l'échelle),
- * et une borne de temps généreuse (garde-fou contre une régression O(n²)).
+ * et une borne de temps généreuse (garde-fou contre une régression O(n²)). On
+ * exerce ensuite le VRAI dépôt (`WordPressReceiptRepository::occurredBetween`,
+ * mapping en `ReceiptEntry`) sur un petit jeu tagué.
  *
- * Sûreté : uniquement une table temporaire, aucune donnée réelle touchée.
+ * Sûreté : le volume vit sur une table temporaire ; le chemin réel n'insère que
+ * 5 lignes taguées de l'année 2099 (aucune vraie donnée), supprimées ensuite.
  */
 
 declare(strict_types=1);
@@ -31,6 +34,7 @@ if (! function_exists('luziapi_e2e_pilotage_perf_run')) {
         $fatal = null;
         $cleanup = 'non exécuté';
         $temp = '';
+        $realTouched = false;
 
         $schema = new \LuziApi\Shop\Infrastructure\WordPress\PilotageSchemaManager($wpdb);
 
@@ -84,12 +88,45 @@ if (! function_exists('luziapi_e2e_pilotage_perf_run')) {
             // Garde-fou de temps (généreux) contre une régression catastrophique.
             $assert('Temps de requête raisonnable (< 1 s sur 20 000 lignes)', $elapsed < 1.0, sprintf('%.3f s', $elapsed));
 
-            $cleanup = 'ok (table temporaire uniquement, aucune donnée réelle touchée)';
+            // Chemin RÉEL : on exerce le vrai dépôt (occurredBetween → mapping en
+            // ReceiptEntry) sur un petit jeu tagué dans la vraie table, année 2099,
+            // hors de toute donnée réelle. Nettoyé dans le finally.
+            $realTable = $schema->tableName();
+            $realTouched = true;
+            for ($i = 0; $i < 5; ++$i) {
+                $wpdb->insert($realTable, [
+                    'occurred_at'    => '2099-12-31 12:00:00',
+                    'amount_cents'   => 100,
+                    'payment_method' => 'cash',
+                    'entry_type'     => 'collection',
+                    'description'    => 'e2e-perf-real',
+                    'created_by'     => 1,
+                    'created_at'     => '2099-12-31 12:00:00',
+                ]);
+            }
+            $repository = new \LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository($wpdb, $schema, wp_timezone());
+            $entries = $repository->occurredBetween(
+                new \DateTimeImmutable('2099-12-31 00:00:00', wp_timezone()),
+                new \DateTimeImmutable('2099-12-31 23:59:59', wp_timezone()),
+            );
+            $entriesSum = array_sum(array_map(static fn (\LuziApi\Shop\Domain\Receipt\ReceiptEntry $e): int => $e->amount->cents(), $entries));
+            $assert(
+                'Vrai dépôt WordPressReceiptRepository::occurredBetween : les 5 lignes taguées sont lues et mappées',
+                5 === count($entries) && 500 === $entriesSum,
+                'n=' . count($entries) . " somme={$entriesSum}",
+            );
+
+            $cleanup = 'ok (volume sur table temporaire ; 5 lignes réelles taguées année 2099 supprimées)';
         } catch (\Throwable $exception) {
             $fatal = $exception->getMessage();
         } finally {
             if ('' !== $temp) {
                 $wpdb->query("DROP TEMPORARY TABLE IF EXISTS {$temp}");
+            }
+            if ($realTouched) {
+                // Supprime toute ligne de test de l'année 2099 dans la vraie table
+                // (robuste même après un échec en cours de route).
+                $wpdb->query("DELETE FROM {$schema->tableName()} WHERE occurred_at >= '2099-01-01 00:00:00' AND occurred_at <= '2099-12-31 23:59:59'");
             }
         }
 
