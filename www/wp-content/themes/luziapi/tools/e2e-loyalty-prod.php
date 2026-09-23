@@ -61,7 +61,7 @@ global $wpdb;
 $schema = new LoyaltySchemaManager($wpdb);
 $ledger = new WordPressLoyaltyLedger($wpdb, $schema, wp_timezone());
 $counter = new WooCommerceEligiblePotCounter();
-$query = new GetCustomerLoyaltyHandler($ledger, new WordPressClock());
+$query = new GetCustomerLoyaltyHandler($ledger);
 $subscriber = new WooCommerceLoyaltyEarningSubscriber(
     new ReconcileOrderLoyaltyHandler($ledger, new WordPressClock(), new WordPressIdGenerator()),
     $counter,
@@ -132,7 +132,7 @@ try {
     $assert('Réconciliation « Terminée » : 1 avantage consommé', -1 === $totals['rights']);
 
     $view = $query->handle(new GetCustomerLoyaltyQuery([$key]));
-    $assert('Lecture fiche client : 3 pots (expiration active)', 3 === $view->netPots);
+    $assert('Lecture fiche client : 3 pots nets', 3 === $view->netPots);
     $publicView = (new GetLoyaltyForOrdersHandler(new WooCommerceOrderContactKeys(), $query))->handle([$orderId]);
     $assert('Lecture suivi client (sans compte) : 3 pots', 3 === $publicView->netPots);
 
