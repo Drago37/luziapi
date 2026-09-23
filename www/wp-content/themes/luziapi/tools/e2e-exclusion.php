@@ -61,6 +61,9 @@ if (! function_exists('luziapi_e2e_exclusion_run')) {
         $orderId = 0;
         $key = '';
         $email = 'e2e-exclusion-' . bin2hex(random_bytes(5)) . '@example.test';
+        // Téléphone UNIQUE par run (autoLink lie e-mail↔téléphone ; un numéro fixe
+        // rattacherait plusieurs runs entre eux — résidu ré-agrégé sur base persistante).
+        $phone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
         // Garantit `edit_shop_orders` le temps du test (un vrai opérateur l'a en
         // prod ; l'install de dev locale ne provisionne pas toujours les rôles WC).
@@ -93,13 +96,13 @@ if (! function_exists('luziapi_e2e_exclusion_run')) {
             $order = wc_create_order(['status' => 'pending']);
             $order->set_billing_first_name('E2E');
             $order->set_billing_email($email);
-            $order->set_billing_phone('0600000000');
+            $order->set_billing_phone($phone);
             $order->add_product(wc_get_product($productId), 3);
             $order->calculate_totals();
             $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
             $order->save();
             $orderId = (int) $order->get_id();
-            $key = LoyaltyIdentity::fromContact($email, '0600000000')?->key ?? '';
+            $key = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
 
             // Crédit de base, comme au passage « Terminée ».
             $subscriber->reconcile($orderId, wc_get_order($orderId));
@@ -142,8 +145,12 @@ if (! function_exists('luziapi_e2e_exclusion_run')) {
         } finally {
             remove_filter('user_has_cap', $grantCap);
             $_POST = [];
-            if ('' !== $key) {
-                $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $key], ['%s']);
+            // Nettoyage JOURNAL + LIENS d'identité pour toutes les clés du contact.
+            $contactKeys = LoyaltyIdentity::keysForContact($email, $phone);
+            if ([] !== $contactKeys) {
+                $inClause = implode(', ', array_fill(0, count($contactKeys), '%s'));
+                $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$contactKeys));
+                $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->identityLinksTableName() . " WHERE identity_key IN ({$inClause})", ...$contactKeys));
             }
             if ($orderId > 0) {
                 $order = wc_get_order($orderId);
@@ -154,8 +161,8 @@ if (! function_exists('luziapi_e2e_exclusion_run')) {
             if ($productId > 0) {
                 wp_delete_post($productId, true);
             }
-            $left = '' !== $key
-                ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . ' WHERE customer_key = %s', $key))
+            $left = [] !== $contactKeys
+                ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$contactKeys))
                 : 0;
             $cleanup = 0 === $left ? 'ok (aucune ligne résiduelle)' : ($left . ' ligne(s) résiduelle(s) !');
             $assert('Nettoyage : aucune ligne de journal résiduelle', 0 === $left);

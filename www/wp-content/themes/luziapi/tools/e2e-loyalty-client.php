@@ -69,7 +69,8 @@ $order2Id = 0;
 $customerKey = '';
 $suffix = strtolower(wp_generate_password(10, false, false));
 $email = 'fidelite-client-' . $suffix . '@example.test';
-$phone = '0600000000';
+// Téléphone unique par run (évite que autoLink rattache plusieurs runs entre eux).
+$phone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
 try {
     $pot = new WC_Product_Simple();

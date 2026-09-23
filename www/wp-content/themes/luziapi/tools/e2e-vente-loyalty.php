@@ -64,7 +64,8 @@ $extraOrderIds = [];
 $customerKey = '';
 $suffix = strtolower(wp_generate_password(10, false, false));
 $email = 'vente-loyalty-' . $suffix . '@example.test';
-$phone = '0600000000';
+// Téléphone unique par run (évite que autoLink rattache plusieurs runs entre eux).
+$phone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
 try {
     // L'écrivain de la Vente exige un produit achetable (is_purchasable) : publié
