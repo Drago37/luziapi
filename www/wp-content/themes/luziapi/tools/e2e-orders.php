@@ -358,7 +358,7 @@ $makeOrder = static function (
         $shipping = new \WC_Order_Item_Shipping();
         $shipping->set_method_id($shippingMethodId);
         $shipping->set_method_title('local_pickup' === $shippingMethodId ? 'Retrait sur rendez-vous' : 'Livraison locale');
-        $shipping->set_total(0);
+        $shipping->set_total('0');
         $order->add_item($shipping);
     }
 

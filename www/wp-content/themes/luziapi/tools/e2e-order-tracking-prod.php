@@ -109,8 +109,8 @@ try {
     $order->set_billing_email($email);
     $order->add_product(wc_get_product($productId), 1);
     $order->set_payment_method('cod');
-    $order->add_order_note('NOTE PRIVÉE E2E — NE JAMAIS AFFICHER', false);
-    $order->add_order_note('Votre commande sera prête demain.', true);
+    $order->add_order_note('NOTE PRIVÉE E2E — NE JAMAIS AFFICHER', 0);
+    $order->add_order_note('Votre commande sera prête demain.', 1);
     $order->update_meta_data(LUZIAPI_TRACKING_E2E_META, 'yes');
     $order->calculate_totals();
     $order->save();

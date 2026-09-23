@@ -73,6 +73,9 @@ $productId = 0;
 $orderId = 0;
 $key = '';
 $email = 'e2e-prod-' . bin2hex(random_bytes(5)) . '@example.test';
+// Téléphone UNIQUE par run : la fidélité lie l'e-mail au téléphone (autoLink), un
+// numéro fixe rattacherait à vie plusieurs runs entre eux (résidu ré-agrégé).
+$phone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
 try {
     $pot = new WC_Product_Simple();
@@ -89,7 +92,7 @@ try {
     $order = wc_create_order(['status' => 'pending']);
     $order->set_billing_first_name('E2E');
     $order->set_billing_email($email);
-    $order->set_billing_phone('0600000000');
+    $order->set_billing_phone($phone);
     $order->add_product(wc_get_product($productId), 3);
     $gift = new WC_Order_Item_Product();
     $gift->set_product(wc_get_product($productId));
@@ -110,7 +113,7 @@ try {
     $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
     $order->save();
     $orderId = (int) $order->get_id();
-    $key = LoyaltyIdentity::fromContact($email, '0600000000')?->key ?? '';
+    $key = LoyaltyIdentity::fromContact($email, $phone)->key;
 
     $potItemId = 0;
     foreach ($order->get_items() as $itemId => $item) {
@@ -155,8 +158,13 @@ try {
 } catch (Throwable $exception) {
     $fatal = $exception->getMessage();
 } finally {
-    if ('' !== $key) {
-        $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $key], ['%s']);
+    // Nettoyage JOURNAL + LIENS d'identité pour toutes les clés du contact (e-mail
+    // ET téléphone) : le journal seul laisserait des liens orphelins dans la table.
+    $contactKeys = LoyaltyIdentity::keysForContact($email, $phone);
+    if ([] !== $contactKeys) {
+        $inClause = implode(', ', array_fill(0, count($contactKeys), '%s'));
+        $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$contactKeys));
+        $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->identityLinksTableName() . " WHERE identity_key IN ({$inClause})", ...$contactKeys));
     }
     if ($orderId > 0) {
         $order = wc_get_order($orderId);
@@ -167,8 +175,8 @@ try {
     if ($productId > 0) {
         wp_delete_post($productId, true);
     }
-    $left = '' !== $key
-        ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . ' WHERE customer_key = %s', $key))
+    $left = [] !== $contactKeys
+        ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$contactKeys))
         : 0;
     $cleanup = 0 === $left ? 'ok (aucune ligne résiduelle)' : ($left . ' ligne(s) résiduelle(s) !');
     $assert('Nettoyage : aucune ligne de journal résiduelle', 0 === $left);

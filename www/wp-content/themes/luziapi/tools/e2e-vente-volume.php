@@ -57,7 +57,7 @@ $orderIds = [];
 $suffix = strtolower(wp_generate_password(10, false, false));
 $email = 'vente-volume-' . $suffix . '@example.test';
 $phone = '0699' . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-$customerKey = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+$customerKey = LoyaltyIdentity::fromContact($email, $phone)->key;
 $phoneKey = LoyaltyIdentity::contactKeys('', $phone)['phone'] ?? '';
 
 try {

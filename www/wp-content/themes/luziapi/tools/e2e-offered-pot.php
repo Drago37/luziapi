@@ -69,6 +69,11 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
         $key2 = '';
         $email = 'e2e-offered-' . bin2hex(random_bytes(5)) . '@example.test';
         $email2 = 'e2e-offered-multi-' . bin2hex(random_bytes(5)) . '@example.test';
+        // Téléphones UNIQUES par run (autoLink lie e-mail↔téléphone ; un numéro fixe
+        // rattacherait plusieurs runs). Préfixes 06/07 distincts : les deux identités
+        // du test multi ne peuvent pas entrer en collision.
+        $phone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $phone2 = '07' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
         $grantCap = static function (array $allcaps): array {
             $allcaps['edit_shop_orders'] = true;
@@ -127,13 +132,13 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             $order = wc_create_order(['status' => 'pending']);
             $order->set_billing_first_name('E2E');
             $order->set_billing_email($email);
-            $order->set_billing_phone('0600000000');
+            $order->set_billing_phone($phone);
             $order->add_product(wc_get_product($productId), $potsForOneReward);
             $order->calculate_totals();
             $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
             $order->save();
             $orderId = (int) $order->get_id();
-            $key = LoyaltyIdentity::fromContact($email, '0600000000')?->key ?? '';
+            $key = LoyaltyIdentity::fromContact($email, $phone)->key;
 
             $subscriber->reconcile($orderId, wc_get_order($orderId));
             $assert('Base : ' . $potsForOneReward . ' pots crédités', $potsForOneReward === $ledger->orderTotals($orderId)['pots']);
@@ -199,13 +204,13 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             $order2 = wc_create_order(['status' => 'pending']);
             $order2->set_billing_first_name('E2E Multi');
             $order2->set_billing_email($email2);
-            $order2->set_billing_phone('0600000001');
+            $order2->set_billing_phone($phone2);
             $order2->add_product(wc_get_product($productId), $potsForOneReward * 2); // 30 pots => 2 avantages
             $order2->calculate_totals();
             $order2->set_status('completed');
             $order2->save();
             $order2Id = (int) $order2->get_id();
-            $key2 = LoyaltyIdentity::fromContact($email2, '0600000001')?->key ?? '';
+            $key2 = LoyaltyIdentity::fromContact($email2, $phone2)->key;
             $subscriber->reconcile($order2Id, wc_get_order($order2Id));
             $assert('Multi : 2 avantages disponibles au départ', 2 === luziapi_order_available_rewards(wc_get_order($order2Id)));
 
@@ -245,10 +250,16 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
         } finally {
             remove_filter('user_has_cap', $grantCap);
             $_POST = [];
-            foreach ([$key, $key2] as $customerKey) {
-                if ('' !== $customerKey) {
-                    $wpdb->delete($schema->ledgerTableName(), ['customer_key' => $customerKey], ['%s']);
-                }
+            // Toutes les clés d'identité des deux contacts (e-mail ET téléphone), pour
+            // nettoyer JOURNAL + LIENS (les liens seuls s'accumuleraient sinon).
+            $allKeys = array_values(array_unique(array_merge(
+                LoyaltyIdentity::keysForContact($email, $phone),
+                LoyaltyIdentity::keysForContact($email2, $phone2),
+            )));
+            if ([] !== $allKeys) {
+                $inClause = implode(', ', array_fill(0, count($allKeys), '%s'));
+                $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$allKeys));
+                $wpdb->query($wpdb->prepare('DELETE FROM ' . $schema->identityLinksTableName() . " WHERE identity_key IN ({$inClause})", ...$allKeys));
             }
             foreach ([$orderId, $order2Id] as $oid) {
                 if ($oid > 0) {
@@ -263,12 +274,9 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
                     wp_delete_post($pid, true);
                 }
             }
-            $left = 0;
-            foreach ([$key, $key2] as $customerKey) {
-                if ('' !== $customerKey) {
-                    $left += (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . ' WHERE customer_key = %s', $customerKey));
-                }
-            }
+            $left = [] !== $allKeys
+                ? (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . $schema->ledgerTableName() . " WHERE customer_key IN ({$inClause})", ...$allKeys))
+                : 0;
             $cleanup = 0 === $left ? 'ok (aucune ligne résiduelle)' : ($left . ' ligne(s) résiduelle(s) !');
             $assert('Nettoyage : aucune ligne de journal résiduelle', 0 === $left);
         }

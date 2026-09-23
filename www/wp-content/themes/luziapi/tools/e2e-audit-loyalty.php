@@ -48,7 +48,8 @@ $orderIds = [];
 $customerKey = '';
 $testSuffix = strtolower(wp_generate_password(10, false, false));
 $customerEmail = 'audit-' . $testSuffix . '@example.test';
-$customerPhone = '0600000000';
+// Téléphone unique par run (évite que autoLink rattache plusieurs runs entre eux).
+$customerPhone = '06' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
 try {
     $pot = new WC_Product_Simple();
@@ -60,7 +61,7 @@ try {
     $pot->update_meta_data(WooCommerceEligiblePotCounter::PRODUCT_ELIGIBLE_META, 'yes');
     $productId = (int) $pot->save();
 
-    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)->key;
     $assert('L\'identité fidélité de test est résolue', '' !== $customerKey);
 
     // Fabrique une commande « Terminée » avec $qty pots admissibles. Le passage à
