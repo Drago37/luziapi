@@ -19,6 +19,7 @@ DEPLOY_FTP_VERIFY ?= yes
 THEME_SRC := www/wp-content/themes/luziapi/
 # Exclusions (globs lftp) : outils de dev, dépôt git, modules.
 DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' -X 'tests-js/' \
+	-X 'tests-browser/' -X 'playwright.config.js' \
 	-X '.php-cs-fixer.dist.php' -X '.php-cs-fixer.cache' \
 	-X 'phpstan.neon.dist' -X 'README.md' \
 	-X 'package.json' -X 'package-lock.json' -X '.~lock.*\#'
@@ -128,6 +129,18 @@ loyalty-customer-inspect-local: ## Inspecte la fidélité d'un client en local (
 loyalty-customer-inspect-prod: ## Inspecte la fidélité d'un client sur la PROD (lecture seule) — ex : make loyalty-customer-inspect-prod Q="gaultier"
 	@LUZIAPI_INSPECT_QUERY="$(Q)" bash scripts/loyalty-customer-inspect-prod.sh
 
+.PHONY: reset-test-loyalty-local
+reset-test-loyalty-local: ## Purge l'isolation fidélité des e2e en local (DRY-RUN ; APPLY=1 pour supprimer)
+	$(DC) run --rm -e LUZIAPI_RESET_APPLY="$(APPLY)" wpcli wp eval "require ABSPATH . '$(THEME)/tools/reset-test-loyalty.php';" --user=admin
+
+.PHONY: reset-test-loyalty-prod
+reset-test-loyalty-prod: ## Rapporte le cluster d'identité des tests fidélité sur la PROD (DRY-RUN, lecture seule)
+	@bash scripts/reset-test-loyalty-prod.sh
+
+.PHONY: reset-test-loyalty-prod-apply
+reset-test-loyalty-prod-apply: ## Purge le cluster d'identité des tests fidélité sur la PROD (liens + journal résiduel)
+	@bash scripts/reset-test-loyalty-prod.sh --apply
+
 .PHONY: directory-inspect-prod
 directory-inspect-prod: ## Inspecte les listes Brevo + les groupes du répertoire client sur la PROD (lecture seule)
 	@bash scripts/directory-inspect-prod.sh
@@ -187,6 +200,22 @@ e2e-subscribers-local: ## Teste le répertoire d'abonnés Brevo (lecture seule, 
 .PHONY: e2e-customer-profile-local
 e2e-customer-profile-local: ## Teste la fiche client dédiée (dépôt réel + schéma + surcharge d'affichage), tout nettoyé
 	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-customer-profile-local.php';" --user=admin
+
+.PHONY: e2e-pilotage-schema-local
+e2e-pilotage-schema-local: ## Teste le schéma du pilotage (migration idempotente, nullabilité, contraintes uniques, sauvegarde/restauration) — copies temporaires, rien de réel touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-schema-local.php';" --user=admin
+
+.PHONY: e2e-pilotage-perf-local
+e2e-pilotage-perf-local: ## Teste la performance du registre des recettes sur un historique volumineux (20 000 lignes) — copie temporaire, index vérifié, rien de réel touché
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/e2e-pilotage-perf-local.php';" --user=admin
+
+.PHONY: browser-local
+browser-local: ## Smoke de navigation du pilotage (Playwright headless, sur l'hôte) contre le WP local — connexion admin puis chargement de toutes les vues
+	cd www/$(THEME) && npm install --no-audit --no-fund && npx playwright install chromium && npm run test:browser
+
+.PHONY: doctor
+doctor: ## Répare l'environnement LOCAL si l'admin a perdu ses droits (403 sur /wp-admin/) : rôles standards + capacités WooCommerce
+	$(DC) run --rm wpcli wp eval "require ABSPATH . '$(THEME)/tools/local-doctor.php';" --user=admin
 
 .PHONY: e2e-address-lookup-local
 e2e-address-lookup-local: ## Teste l'autocomplétion d'adresse (BAN, appels interceptés, endpoint câblé), rien d'écrit
@@ -432,3 +461,11 @@ deploy-check-live: ## Vérifie que la prod répond (URL non cachées) — à lan
 .PHONY: verify-prod
 verify-prod: ## Vérifie l'intégrité de TOUT le thème en prod (SHA-256 local↔prod, fichiers manquants/divergents)
 	@bash scripts/verify-prod-integrity.sh
+
+.PHONY: deploy-prune-prod
+deploy-prune-prod: ## DRY-RUN : liste les orphelins src/ sur la prod (présents mais plus suivis en git) — rien supprimé
+	@bash scripts/prune-prod-orphans.sh
+
+.PHONY: deploy-prune-prod-apply
+deploy-prune-prod-apply: ## Supprime les orphelins src/ de la prod (confirmation) — à lancer APRÈS un déploiement qui renomme/supprime
+	@bash scripts/prune-prod-orphans.sh --apply

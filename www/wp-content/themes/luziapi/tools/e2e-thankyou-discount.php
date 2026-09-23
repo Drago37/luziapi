@@ -14,9 +14,9 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceThankYouDiscount;
+use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceThankYouDiscount;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;

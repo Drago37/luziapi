@@ -27,6 +27,10 @@ node_modules/
 
 # --- Tests ---
 /.phpunit.cache/
+# Artefacts Playwright (smoke de navigation du pilotage).
+/www/wp-content/themes/luziapi/test-results/
+/www/wp-content/themes/luziapi/playwright-report/
+/www/wp-content/themes/luziapi/tests-browser/.auth/
 
 # --- Déploiement ---
 # Dernier commit déployé en prod (repère local de scripts/deploy-files.sh), par poste.

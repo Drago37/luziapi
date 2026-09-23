@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace LuziApi\Tests\Loyalty;
 
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
-use LuziApi\Pilotage\Domain\Customer\NormalizedPhone;
+use LuziApi\Shared\Domain\ValueObject\NormalizedPhone;
 use PHPUnit\Framework\TestCase;
 
 /**

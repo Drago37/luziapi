@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Tests\Loyalty;
 
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
 
 /**
  * Liens d'identité en mémoire pour les tests. Reproduit fidèlement la sémantique

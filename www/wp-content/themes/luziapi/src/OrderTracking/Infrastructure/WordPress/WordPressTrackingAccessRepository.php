@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Infrastructure\WordPress;
 
 use DateTimeImmutable;
-use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
+use LuziApi\OrderTracking\Domain\Repository\TrackingAccessRepository;
+use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use wpdb;
@@ -29,7 +30,8 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
         $table = $this->schema->limitsTableName();
         $this->database->query('START TRANSACTION');
         try {
-            $row = $this->database->get_row($this->database->prepare(
+            $row = $this->database->get_row(Wp::prepared(
+                $this->database,
                 "SELECT window_started_at, attempts FROM {$table} WHERE scope = %s AND subject_hash = %s FOR UPDATE",
                 $scope,
                 $subjectFingerprint,
@@ -40,7 +42,7 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
                 throw new RuntimeException('Unable to read order tracking rate limit: ' . $this->database->last_error);
             }
             $windowCutoff = $at->modify('-' . max(1, $windowSeconds) . ' seconds')->format('Y-m-d H:i:s');
-            if (! is_array($row) || (string) $row['window_started_at'] <= $windowCutoff) {
+            if (! is_array($row) || Wp::str($row['window_started_at']) <= $windowCutoff) {
                 $saved = $this->database->replace($table, [
                     'scope' => $scope,
                     'subject_hash' => $subjectFingerprint,
@@ -55,13 +57,14 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
                 return true;
             }
 
-            if ((int) $row['attempts'] >= max(1, $limit)) {
+            if (Wp::int($row['attempts']) >= max(1, $limit)) {
                 $this->database->query('COMMIT');
 
                 return false;
             }
 
-            $updated = $this->database->query($this->database->prepare(
+            $updated = $this->database->query(Wp::prepared(
+                $this->database,
                 "UPDATE {$table} SET attempts = attempts + 1 WHERE scope = %s AND subject_hash = %s",
                 $scope,
                 $subjectFingerprint,
@@ -101,13 +104,14 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
         $table = $this->schema->grantsTableName();
         $this->database->query('START TRANSACTION');
         try {
-            $row = $this->database->get_row($this->database->prepare(
+            $row = $this->database->get_row(Wp::prepared(
+                $this->database,
                 "SELECT order_ids, expires_at, consumed_at FROM {$table} WHERE token_hash = %s FOR UPDATE",
                 $tokenFingerprint,
             ), ARRAY_A);
             if (! is_array($row)
                 || null !== $row['consumed_at']
-                || (string) $row['expires_at'] < $at->format('Y-m-d H:i:s')) {
+                || Wp::str($row['expires_at']) < $at->format('Y-m-d H:i:s')) {
                 $this->database->query('COMMIT');
 
                 return null;
@@ -127,7 +131,7 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
             }
             $this->database->query('COMMIT');
 
-            return $this->decodeOrderIds((string) $row['order_ids']);
+            return $this->decodeOrderIds(Wp::str($row['order_ids']));
         } catch (\Throwable $exception) {
             $this->database->query('ROLLBACK');
             throw $exception;
@@ -152,13 +156,14 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
     public function sessionOrderIds(string $tokenFingerprint, DateTimeImmutable $at): ?array
     {
         $table = $this->schema->sessionsTableName();
-        $row = $this->database->get_row($this->database->prepare(
+        $row = $this->database->get_row(Wp::prepared(
+            $this->database,
             "SELECT order_ids FROM {$table} WHERE token_hash = %s AND expires_at >= %s",
             $tokenFingerprint,
             $at->format('Y-m-d H:i:s'),
         ), ARRAY_A);
 
-        return is_array($row) ? $this->decodeOrderIds((string) $row['order_ids']) : null;
+        return is_array($row) ? $this->decodeOrderIds(Wp::str($row['order_ids'])) : null;
     }
 
     public function revokeSession(string $tokenFingerprint): void
@@ -174,15 +179,18 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
     public function purgeExpired(DateTimeImmutable $at): void
     {
         $now = $at->format('Y-m-d H:i:s');
-        $ok = false !== $this->database->query($this->database->prepare(
+        $ok = false !== $this->database->query(Wp::prepared(
+            $this->database,
             'DELETE FROM ' . $this->schema->grantsTableName() . ' WHERE expires_at < %s',
             $now,
         ));
-        $ok = (false !== $this->database->query($this->database->prepare(
+        $ok = (false !== $this->database->query(Wp::prepared(
+            $this->database,
             'DELETE FROM ' . $this->schema->sessionsTableName() . ' WHERE expires_at < %s',
             $now,
         ))) && $ok;
-        $ok = (false !== $this->database->query($this->database->prepare(
+        $ok = (false !== $this->database->query(Wp::prepared(
+            $this->database,
             'DELETE FROM ' . $this->schema->limitsTableName() . ' WHERE window_started_at < %s',
             $at->modify('-1 day')->format('Y-m-d H:i:s'),
         ))) && $ok;
@@ -224,7 +232,7 @@ final readonly class WordPressTrackingAccessRepository implements TrackingAccess
             return null;
         }
         $orderIds = array_values(array_unique(array_filter(
-            array_map('intval', $decoded),
+            array_map(static fn (mixed $value): int => Wp::int($value), $decoded),
             static fn (int $orderId): bool => $orderId > 0,
         )));
 

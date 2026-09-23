@@ -133,7 +133,7 @@ les valeurs pour l'empêcher.
 
 ## Tests
 
-- **Unitaires / intégration légère** (`tests/Loyalty/`, `tests/Pilotage/`,
+- **Unitaires / intégration légère** (`tests/Loyalty/`, `tests/Shop/`,
   `make test`) : progression, identité (golden), crédit / contre-passation,
   consommation / restitution d'avantage, agrégation, disponibilités, garde-fou de
   la Vente, calcul et plafond de la remise remerciement, et correction de recette

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace LuziApi\OrderTracking\Application\Command\StartOrderAccess;
 
-use LuziApi\OrderTracking\Application\Port\AccessFingerprint;
-use LuziApi\OrderTracking\Application\Port\Clock;
-use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
-use LuziApi\OrderTracking\Application\Port\TrackingAccessRepository;
 use LuziApi\OrderTracking\Application\Service\TrackingSessionIssuer;
+use LuziApi\OrderTracking\Domain\Gateway\AccessFingerprint;
+use LuziApi\OrderTracking\Domain\Gateway\OrderTrackingGateway;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
+use LuziApi\OrderTracking\Domain\Repository\TrackingAccessRepository;
+use LuziApi\Shared\Domain\Clock;
 
 final readonly class StartOrderAccessHandler
 {

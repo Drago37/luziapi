@@ -18,14 +18,14 @@ declare(strict_types=1);
 
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
-use LuziApi\Pilotage\Application\Command\CreateQuickSale\QuickSaleLine;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleCommand;
+use LuziApi\Shop\Application\Command\CreateQuickSale\CreateQuickSaleHandler;
+use LuziApi\Shop\Application\Command\CreateQuickSale\QuickSaleLine;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceQuickSaleOrderWriter;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;
@@ -39,7 +39,7 @@ add_filter('pre_wp_mail', '__return_false', 999);
 global $wpdb;
 $loyaltySchema = new LoyaltySchemaManager($wpdb);
 $loyaltySchema->migrate();
-$pilotageSchema = new PilotageSchemaManager($wpdb);
+$pilotageSchema = new ShopSchemaManager($wpdb);
 $pilotageSchema->migrate();
 $clock = new WordPressClock();
 // Dépôt de recettes NON audité (pas d'écriture au journal d'activité pour un test).

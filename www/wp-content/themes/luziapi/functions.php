@@ -15,7 +15,7 @@ if (! defined('ABSPATH')) {
 
 define('LUZIAPI_DIR', get_template_directory());
 define('LUZIAPI_URI', get_template_directory_uri());
-define('LUZIAPI_VERSION', '1.3.1');
+define('LUZIAPI_VERSION', '1.4.0');
 
 // Autoload Composer (Timber). Lancer `composer install` à la racine du thème.
 $autoload = LUZIAPI_DIR . '/vendor/autoload.php';
@@ -56,6 +56,6 @@ require_once LUZIAPI_DIR . '/inc/payment-deadline.php';
 require_once LUZIAPI_DIR . '/inc/blog.php';
 
 // La fidélité démarre avant le Pilotage : la fiche client y lit l'état fidélité.
-LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::boot();
-LuziApi\Pilotage\Bootstrap\PilotageServiceProvider::boot(LUZIAPI_DIR, LUZIAPI_URI);
-LuziApi\OrderTracking\Bootstrap\OrderTrackingServiceProvider::boot(LUZIAPI_URI);
+LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::boot();
+LuziApi\Shop\Infrastructure\ShopServiceProvider::boot(LUZIAPI_DIR, LUZIAPI_URI);
+LuziApi\OrderTracking\Infrastructure\OrderTrackingServiceProvider::boot(LUZIAPI_URI);

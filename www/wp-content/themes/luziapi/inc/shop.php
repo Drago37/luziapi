@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Shared\Infrastructure\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -57,7 +59,7 @@ function luziapi_is_no_harvest(\WC_Product $product): bool
  */
 function luziapi_no_harvest_label(\WC_Product $product): string
 {
-    $custom = trim((string) get_post_meta($product->get_id(), '_luziapi_no_harvest_label', true));
+    $custom = trim(Wp::str(get_post_meta($product->get_id(), '_luziapi_no_harvest_label', true)));
 
     return '' !== $custom ? $custom : __('Récolte annulée (sécheresse)', 'luziapi');
 }
@@ -75,7 +77,7 @@ function luziapi_no_harvest_label_short(\WC_Product $product): string
  */
 function luziapi_no_harvest_url(\WC_Product $product): string
 {
-    return trim((string) get_post_meta($product->get_id(), '_luziapi_no_harvest_url', true));
+    return trim(Wp::str(get_post_meta($product->get_id(), '_luziapi_no_harvest_url', true)));
 }
 
 /**
@@ -130,7 +132,7 @@ function luziapi_get_honeys(int $limit = 8): array
             'permalink'   => get_permalink($product->get_id()),
             'price_html'  => $product->get_price_html(),
             'desc'        => wp_strip_all_tags($product->get_short_description()),
-            'tag'         => (string) get_post_meta($product->get_id(), '_luziapi_tag', true),
+            'tag'         => Wp::str(get_post_meta($product->get_id(), '_luziapi_tag', true)),
             'coming'      => luziapi_is_coming_soon($product),
             'no_harvest'  => $noHarvest,
             // Libellé du ruban et du bouton désactivé : court, selon l'état.
@@ -179,7 +181,10 @@ function luziapi_get_honeys_en(int $limit = 8): array
     ]);
 
     $out = [];
-    foreach ($products as $product) {
+    foreach (is_array($products) ? $products : [] as $product) {
+        if (! $product instanceof \WC_Product) {
+            continue;
+        }
         $slug    = $product->get_slug();
         $colors  = luziapi_jar_colors($slug);
         $en      = $map[$slug] ?? [$product->get_name(), ''];
@@ -223,10 +228,10 @@ add_action('woocommerce_cart_calculate_fees', static function (\WC_Cart $cart): 
     }
 
     $qty = (int) $cart->get_cart_contents_count();
-    $euros = \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::euros($qty);
+    $euros = \LuziApi\Shop\Domain\Sales\VolumeDiscount::euros($qty);
     if ($euros > 0) {
         $cart->add_fee(
-            \LuziApi\Pilotage\Domain\Sales\VolumeDiscount::label($qty),
+            \LuziApi\Shop\Domain\Sales\VolumeDiscount::label($qty),
             -1 * $euros,
         );
     }
@@ -250,10 +255,10 @@ function luziapi_product_metabox(\WP_Post $post): void
 {
     wp_nonce_field('luziapi_product_options', 'luziapi_product_nonce');
     $a_venir     = get_post_meta($post->ID, '_luziapi_a_venir', true);
-    $tag         = (string) get_post_meta($post->ID, '_luziapi_tag', true);
+    $tag         = Wp::str(get_post_meta($post->ID, '_luziapi_tag', true));
     $no_harvest  = get_post_meta($post->ID, '_luziapi_no_harvest', true);
-    $nh_label    = (string) get_post_meta($post->ID, '_luziapi_no_harvest_label', true);
-    $nh_url      = (string) get_post_meta($post->ID, '_luziapi_no_harvest_url', true);
+    $nh_label    = Wp::str(get_post_meta($post->ID, '_luziapi_no_harvest_label', true));
+    $nh_url      = Wp::str(get_post_meta($post->ID, '_luziapi_no_harvest_url', true));
     $pot_admissible = get_post_meta($post->ID, '_luziapi_pot_admissible', true);
     ?>
     <p>
@@ -305,7 +310,7 @@ function luziapi_product_metabox(\WP_Post $post): void
 
 add_action('save_post_product', static function (int $post_id): void {
     if (! isset($_POST['luziapi_product_nonce'])
-        || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['luziapi_product_nonce'])), 'luziapi_product_options')) {
+        || ! wp_verify_nonce(sanitize_text_field(Wp::str(wp_unslash($_POST['luziapi_product_nonce']))), 'luziapi_product_options')) {
         return;
     }
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -323,7 +328,7 @@ add_action('save_post_product', static function (int $post_id): void {
     update_post_meta(
         $post_id,
         '_luziapi_tag',
-        sanitize_text_field(wp_unslash($_POST['luziapi_tag'] ?? ''))
+        sanitize_text_field(Wp::str(wp_unslash($_POST['luziapi_tag'] ?? '')))
     );
     update_post_meta(
         $post_id,
@@ -333,12 +338,12 @@ add_action('save_post_product', static function (int $post_id): void {
     update_post_meta(
         $post_id,
         '_luziapi_no_harvest_label',
-        sanitize_text_field(wp_unslash($_POST['luziapi_no_harvest_label'] ?? ''))
+        sanitize_text_field(Wp::str(wp_unslash($_POST['luziapi_no_harvest_label'] ?? '')))
     );
     update_post_meta(
         $post_id,
         '_luziapi_no_harvest_url',
-        esc_url_raw(wp_unslash($_POST['luziapi_no_harvest_url'] ?? ''))
+        esc_url_raw(Wp::str(wp_unslash($_POST['luziapi_no_harvest_url'] ?? '')))
     );
     update_post_meta(
         $post_id,

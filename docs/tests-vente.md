@@ -23,7 +23,7 @@ make test          # toute la suite PHPUnit
 ```
 
 Couvre notamment `CustomerProfile::primaryEmail()/primaryPhone()` (choix du contact principal,
-`tests/Pilotage/CustomerProfileTest.php`) et la création de vente au niveau domaine
+`tests/Shop/CustomerProfileTest.php`) et la création de vente au niveau domaine
 (`CreateQuickSaleHandlerTest`).
 
 ## Intégration WordPress, WooCommerce et HPOS

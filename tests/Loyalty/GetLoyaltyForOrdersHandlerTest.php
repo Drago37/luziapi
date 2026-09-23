@@ -6,7 +6,7 @@ namespace LuziApi\Tests\Loyalty;
 
 use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderCommand;
 use LuziApi\Loyalty\Application\Command\RecordCompletedOrder\RecordCompletedOrderHandler;
-use LuziApi\Loyalty\Application\Port\OrderContactKeys;
+use LuziApi\Loyalty\Domain\Gateway\OrderContactKeys;
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyHandler;
 use LuziApi\Loyalty\Application\Query\GetLoyaltyForOrders\GetLoyaltyForOrdersHandler;
 use PHPUnit\Framework\TestCase;

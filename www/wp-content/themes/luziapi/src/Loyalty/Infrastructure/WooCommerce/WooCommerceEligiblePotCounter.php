@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
+use LuziApi\Shared\Infrastructure\Wp;
 use WC_Order;
 use WC_Order_Item_Product;
 
@@ -79,7 +80,7 @@ final readonly class WooCommerceEligiblePotCounter implements EligiblePotCounter
             if (! $item instanceof WC_Order_Item_Product) {
                 continue;
             }
-            if ('yes' !== (string) $item->get_meta($meta)) {
+            if ('yes' !== Wp::str($item->get_meta($meta))) {
                 continue;
             }
             $netQuantity = (int) $item->get_quantity() + (int) $order->get_qty_refunded_for_item((int) $itemId);
@@ -93,8 +94,8 @@ final readonly class WooCommerceEligiblePotCounter implements EligiblePotCounter
 
     private function isOffered(WC_Order_Item_Product $item): bool
     {
-        return 'yes' === (string) $item->get_meta(self::OFFERT_LINE_META)
-            || 'yes' === (string) $item->get_meta(self::REWARD_LINE_META);
+        return 'yes' === Wp::str($item->get_meta(self::OFFERT_LINE_META))
+            || 'yes' === Wp::str($item->get_meta(self::REWARD_LINE_META));
     }
 
     private function isEligibleProduct(WC_Order_Item_Product $item): bool

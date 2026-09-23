@@ -25,15 +25,15 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptCommand;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Domain\Receipt\ReceiptEntryType;
-use LuziApi\Pilotage\Domain\Sales\VolumeDiscount;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptCommand;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Domain\Receipt\ReceiptEntryType;
+use LuziApi\Shop\Domain\Sales\VolumeDiscount;
+use LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
     /**
@@ -52,7 +52,7 @@ if (! function_exists('luziapi_e2e_vente_volume_rattrapage_run')) {
 
         global $wpdb;
         $clock = new WordPressClock();
-        $pilotageSchema = new PilotageSchemaManager($wpdb);
+        $pilotageSchema = new ShopSchemaManager($wpdb);
         $pilotageSchema->migrate();
         // Dépôt NON audité : sert au SEED de la recette de départ et à la LECTURE du
         // net ; la correction, elle, passe par l'abonné branché (dépôt audité).

@@ -21,7 +21,7 @@ use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoya
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
-use LuziApi\Loyalty\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressIdGenerator;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;

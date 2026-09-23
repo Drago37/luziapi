@@ -29,13 +29,14 @@ function luziapi_is_admin_order_email($email): bool
  */
 add_filter('woocommerce_email_classes', static function (array $emails): array {
     foreach (['WC_Email_New_Order', 'WC_Email_Cancelled_Order', 'WC_Email_Failed_Order'] as $className) {
-        if (! isset($emails[$className])) {
+        $email = $emails[$className] ?? null;
+        if (! $email instanceof \WC_Email) {
             continue;
         }
 
-        $emails[$className]->template_html  = 'emails/luziapi-admin-order.php';
-        $emails[$className]->template_plain = 'emails/plain/luziapi-admin-order.php';
-        $emails[$className]->template_base  = LUZIAPI_DIR . '/woocommerce/';
+        $email->template_html  = 'emails/luziapi-admin-order.php';
+        $email->template_plain = 'emails/plain/luziapi-admin-order.php';
+        $email->template_base  = LUZIAPI_DIR . '/woocommerce/';
     }
 
     return $emails;

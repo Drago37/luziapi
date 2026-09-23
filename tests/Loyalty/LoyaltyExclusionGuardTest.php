@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace LuziApi\Tests\Loyalty;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
-use LuziApi\Loyalty\Application\Port\IdGenerator;
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
+use LuziApi\Loyalty\Domain\Gateway\IdGenerator;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\EligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\OrderIdentityResolver;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber;

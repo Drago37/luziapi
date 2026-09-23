@@ -16,14 +16,14 @@ declare(strict_types=1);
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
 use LuziApi\Loyalty\Infrastructure\WordPress\WordPressLoyaltyLedger;
-use LuziApi\Pilotage\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftHandler;
-use LuziApi\Pilotage\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftQuery;
-use LuziApi\Pilotage\Domain\Loyalty\LoyaltyCreditGap;
-use LuziApi\Pilotage\Domain\Loyalty\OrphanLoyaltyCredit;
-use LuziApi\Pilotage\Infrastructure\Loyalty\LoyaltyModuleLedgerReader;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceEligiblePotReader;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftHandler;
+use LuziApi\Shop\Application\Query\AuditLoyaltyDrift\AuditLoyaltyDriftQuery;
+use LuziApi\Shop\Domain\Loyalty\LoyaltyCreditGap;
+use LuziApi\Shop\Domain\Loyalty\OrphanLoyaltyCredit;
+use LuziApi\Shop\Infrastructure\Loyalty\LoyaltyModuleLedgerReader;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceEligiblePotReader;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 
 if (! function_exists('luziapi_audit_loyalty_drift_data')) {
     /**

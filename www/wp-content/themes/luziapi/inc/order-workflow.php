@@ -6,6 +6,11 @@
 
 declare(strict_types=1);
 
+use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Sales\DeliveryDestination;
+use LuziApi\Shop\Domain\Sales\FulfillmentMode;
+use LuziApi\Shop\Domain\Sales\OrderSource;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -15,64 +20,46 @@ const LUZIAPI_ORDER_EMAILS_DISABLED_META = '_luziapi_order_emails_disabled';
 const LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META = '_wc_order_attribution_source_type';
 
 /**
- * Normalise une ville saisie librement pour comparer Bléré/Luzillé sans tenir
- * compte des accents, des espaces ou de la casse.
- */
-function luziapi_normalize_city(string $city): string
-{
-    $city = mb_strtolower(remove_accents(sanitize_text_field($city)));
-
-    return (string) preg_replace('/[^a-z]/', '', $city);
-}
-
-/**
  * La livraison gratuite est strictement réservée à Bléré et Luzillé.
- * Le code postal seul ne suffit pas car plusieurs communes utilisent 37150.
+ *
+ * La règle vit désormais dans le domaine (DeliveryDestination) ; cette fonction
+ * n'est plus qu'un adaptateur WordPress qui lui transmet la destination.
  *
  * @param array<string, mixed> $destination
  */
 function luziapi_is_local_delivery_destination(array $destination): bool
 {
-    $country  = strtoupper((string) ($destination['country'] ?? ''));
-    $postcode = preg_replace('/\s+/', '', (string) ($destination['postcode'] ?? ''));
-    $city     = luziapi_normalize_city((string) ($destination['city'] ?? ''));
+    $normalizedCity = (string) preg_replace(
+        '/[^a-z]/',
+        '',
+        mb_strtolower(remove_accents(sanitize_text_field(Wp::str($destination['city'] ?? ''))))
+    );
 
-    return 'FR' === $country
-        && '37150' === $postcode
-        && in_array($city, ['blere', 'luzille'], true);
+    return (new DeliveryDestination(
+        Wp::str($destination['country'] ?? ''),
+        Wp::str($destination['postcode'] ?? ''),
+        $normalizedCity,
+    ))->qualifiesForFreeDelivery();
 }
 
 /**
  * Retourne le mode de remise réellement enregistré dans la commande.
+ * La règle vit dans le domaine (FulfillmentMode) ; on ne lit ici que les
+ * méthodes d'expédition WooCommerce.
  */
 function luziapi_order_fulfillment_mode(\WC_Order $order): string
 {
+    $methodIds = [];
     foreach ($order->get_shipping_methods() as $shippingItem) {
-        if ('free_shipping' === $shippingItem->get_method_id()) {
-            return 'delivery';
-        }
-
-        if ('local_pickup' === $shippingItem->get_method_id()) {
-            return 'pickup';
-        }
+        $methodIds[] = $shippingItem->get_method_id();
     }
 
-    return 'unknown';
+    return FulfillmentMode::fromShippingMethodIds($methodIds);
 }
 
 function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $status): bool
 {
-    $mode = luziapi_order_fulfillment_mode($order);
-
-    if ('out_for_delivery' === $status) {
-        return 'pickup' !== $mode;
-    }
-
-    if ('ready_for_pickup' === $status) {
-        return 'delivery' !== $mode;
-    }
-
-    return true;
+    return FulfillmentMode::statusMatches($status, luziapi_order_fulfillment_mode($order));
 }
 
 /**
@@ -80,14 +67,7 @@ function luziapi_order_status_matches_fulfillment(\WC_Order $order, string $stat
  */
 function luziapi_order_source_options(): array
 {
-    return [
-        'online'     => 'Boutique en ligne',
-        'phone'      => 'Téléphone',
-        'market'     => 'Marché / événement',
-        'email_form' => 'E-mail / formulaire',
-        'social'     => 'Réseaux sociaux',
-        'other'      => 'Autre',
-    ];
+    return OrderSource::options();
 }
 
 /**
@@ -96,12 +76,10 @@ function luziapi_order_source_options(): array
  */
 function luziapi_order_source(\WC_Order $order): string
 {
-    $source = trim((string) $order->get_meta(LUZIAPI_ORDER_SOURCE_META));
-    if (isset(luziapi_order_source_options()[$source])) {
-        return $source;
-    }
-
-    return in_array($order->get_created_via(), ['checkout', 'store-api'], true) ? 'online' : '';
+    return OrderSource::resolve(
+        Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)),
+        $order->get_created_via(),
+    );
 }
 
 function luziapi_order_emails_disabled(\WC_Order $order): bool
@@ -125,7 +103,7 @@ function luziapi_order_fulfillment_is_locked(\WC_Order $order): bool
  */
 function luziapi_maybe_set_admin_order_attribution(\WC_Order $order): bool
 {
-    if ('' !== trim((string) $order->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META))) {
+    if ('' !== trim(Wp::str($order->get_meta(LUZIAPI_WC_ATTRIBUTION_SOURCE_TYPE_META)))) {
         return false;
     }
 
@@ -149,15 +127,15 @@ function luziapi_maybe_set_admin_order_attribution(\WC_Order $order): bool
  */
 function luziapi_format_unknown_order_attribution($formattedSource, $source): string
 {
-    if (trim((string) $source) === __('Unknown', 'woocommerce')) {
+    if (trim(Wp::str($source)) === __('Unknown', 'woocommerce')) {
         return 'Attribution marketing indisponible';
     }
 
-    if (trim((string) $source) === __('Web admin', 'woocommerce')) {
+    if (trim(Wp::str($source)) === __('Web admin', 'woocommerce')) {
         return 'Administration web';
     }
 
-    return (string) $formattedSource;
+    return Wp::str($formattedSource);
 }
 add_filter(
     'wc_order_attribution_origin_formatted_source',
@@ -182,7 +160,7 @@ function luziapi_cookieadmin_allows_order_attribution(string $cookie): bool
     }
 
     $isAllowed = static function ($value): bool {
-        return true === $value || 1 === $value || in_array(strtolower((string) $value), ['true', '1'], true);
+        return true === $value || 1 === $value || in_array(strtolower(Wp::str($value)), ['true', '1'], true);
     };
 
     return $isAllowed($consent['accept'] ?? false)
@@ -212,7 +190,7 @@ function luziapi_filter_order_attribution_consent($allowTracking): bool
     }
 
     $cookie = isset($_COOKIE['cookieadmin_consent'])
-        ? wp_unslash((string) $_COOKIE['cookieadmin_consent'])
+        ? Wp::str(wp_unslash($_COOKIE['cookieadmin_consent']))
         : '';
 
     return luziapi_cookieadmin_allows_order_attribution($cookie);
@@ -260,7 +238,7 @@ add_action('wp_enqueue_scripts', 'luziapi_add_cookieadmin_order_attribution_brid
  * @param array<string, mixed> $data
  */
 add_action('woocommerce_checkout_create_order', static function (\WC_Order $order, array $data): void {
-    if ('' === trim((string) $order->get_meta(LUZIAPI_ORDER_SOURCE_META))) {
+    if ('' === trim(Wp::str($order->get_meta(LUZIAPI_ORDER_SOURCE_META)))) {
         $order->update_meta_data(LUZIAPI_ORDER_SOURCE_META, 'online');
     }
 }, 20, 2);
@@ -275,10 +253,14 @@ add_action('woocommerce_checkout_create_order', static function (\WC_Order $orde
  * @return array<string, \WC_Shipping_Rate>
  */
 add_filter('woocommerce_package_rates', static function (array $rates, array $package): array {
-    $destination         = is_array($package['destination'] ?? null) ? $package['destination'] : [];
+    $destination         = Wp::row($package['destination'] ?? null);
     $isLocalDestination  = luziapi_is_local_delivery_destination($destination);
 
     foreach ($rates as $rateId => $rate) {
+        if (! $rate instanceof \WC_Shipping_Rate) {
+            continue;
+        }
+
         if ('free_shipping' === $rate->get_method_id()) {
             if (! $isLocalDestination) {
                 unset($rates[$rateId]);
@@ -314,7 +296,7 @@ add_action('woocommerce_after_checkout_validation', static function (array $data
 
     $usesFreeDelivery = (bool) array_filter(
         $chosenMethods,
-        static fn ($method): bool => 'free_shipping' === strtok((string) $method, ':')
+        static fn ($method): bool => 'free_shipping' === strtok(Wp::str($method), ':')
     );
 
     if (! $usesFreeDelivery) {
@@ -384,7 +366,7 @@ add_filter('woocommerce_order_is_paid_statuses', static function (array $statuse
     $statuses[] = 'out-for-delivery';
     $statuses[] = 'ready-for-pickup';
 
-    return array_values(array_unique($statuses));
+    return array_values(array_unique(array_map(static fn ($status): string => Wp::str($status), $statuses)));
 });
 
 add_action('woocommerce_order_status_out-for-delivery', 'wc_maybe_reduce_stock_levels');
@@ -396,7 +378,7 @@ add_filter('woocommerce_email_actions', static function (array $actions): array 
     $actions[] = 'woocommerce_order_status_out-for-delivery';
     $actions[] = 'woocommerce_order_status_ready-for-pickup';
 
-    return array_values(array_unique($actions));
+    return array_values(array_unique(array_map(static fn ($action): string => Wp::str($action), $actions)));
 });
 
 /**
@@ -524,16 +506,16 @@ add_filter('woocommerce_email_classes', static function (array $emails): array {
 add_action('woocommerce_admin_order_data_after_order_details', static function (\WC_Order $order): void {
     $mode           = luziapi_order_fulfillment_mode($order);
     $source         = luziapi_order_source($order);
-    $reason          = (string) $order->get_meta('_luziapi_cancellation_reason');
+    $reason          = Wp::str($order->get_meta('_luziapi_cancellation_reason'));
     $emailsDisabled  = luziapi_order_emails_disabled($order);
     $modeLocked      = luziapi_order_fulfillment_is_locked($order);
-    $loyaltyExcluded = 'yes' === (string) $order->get_meta(
+    $loyaltyExcluded = 'yes' === Wp::str($order->get_meta(
         \LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META
-    );
+    ));
 
     $offerProducts        = luziapi_offerable_products();
     $offerRewardsAvailable = luziapi_order_available_rewards($order);
-    $volumeWriter         = \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
+    $volumeWriter         = \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderVolumeDiscountWriter::class;
     $volumeMissingCents   = $volumeWriter::isCorrectable($order) ? $volumeWriter::missingCents($order) : 0;
 
     wp_nonce_field('luziapi_save_order_workflow', 'luziapi_order_workflow_nonce');
@@ -973,7 +955,7 @@ function luziapi_admin_order_destination(\WC_Order $order): array
 {
     $posted = static function (string $key, string $fallback): string {
         return isset($_POST[$key])
-            ? sanitize_text_field(wp_unslash((string) $_POST[$key]))
+            ? sanitize_text_field(Wp::str(wp_unslash($_POST[$key])))
             : $fallback;
     };
 
@@ -1073,7 +1055,7 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
         || ! current_user_can('edit_shop_orders')
         || ! isset($_POST['luziapi_order_workflow_nonce'])
         || ! wp_verify_nonce(
-            sanitize_text_field(wp_unslash((string) $_POST['luziapi_order_workflow_nonce'])),
+            sanitize_text_field(Wp::str(wp_unslash($_POST['luziapi_order_workflow_nonce']))),
             'luziapi_save_order_workflow'
         )) {
         return;
@@ -1081,7 +1063,7 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
 
     $oldSource = luziapi_order_source($order);
     $newSource = isset($_POST['luziapi_order_source'])
-        ? sanitize_key(wp_unslash((string) $_POST['luziapi_order_source']))
+        ? sanitize_key(Wp::str(wp_unslash($_POST['luziapi_order_source'])))
         : '';
     if (! isset(luziapi_order_source_options()[$newSource])) {
         $newSource = '';
@@ -1089,12 +1071,12 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
 
     $oldEmailsDisabled = luziapi_order_emails_disabled($order);
     $newEmailsDisabled = isset($_POST['luziapi_disable_order_emails'])
-        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_disable_order_emails']));
+        && 'yes' === sanitize_key(Wp::str(wp_unslash($_POST['luziapi_disable_order_emails'])));
 
     $loyaltyExcludedMeta = \LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceLoyaltyEarningSubscriber::LOYALTY_EXCLUDED_META;
-    $oldLoyaltyExcluded  = 'yes' === (string) $order->get_meta($loyaltyExcludedMeta);
+    $oldLoyaltyExcluded  = 'yes' === Wp::str($order->get_meta($loyaltyExcludedMeta));
     $newLoyaltyExcluded  = isset($_POST['luziapi_exclude_from_loyalty'])
-        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_exclude_from_loyalty']));
+        && 'yes' === sanitize_key(Wp::str(wp_unslash($_POST['luziapi_exclude_from_loyalty'])));
 
     if ('' === $newSource) {
         $order->delete_meta_data(LUZIAPI_ORDER_SOURCE_META);
@@ -1140,7 +1122,7 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
     }
 
     if (isset($_POST['luziapi_fulfillment_mode'])) {
-        $newMode = sanitize_key(wp_unslash((string) $_POST['luziapi_fulfillment_mode']));
+        $newMode = sanitize_key(Wp::str(wp_unslash($_POST['luziapi_fulfillment_mode'])));
         if ('' !== $newMode) {
             luziapi_update_order_fulfillment_mode($order, $newMode);
         }
@@ -1152,7 +1134,7 @@ function luziapi_save_admin_order_workflow(int $orderId, $order): void
     // une action dédiée, consommée par le subscriber Pilotage qui applique le fee
     // manquant et corrige la recette : on ne recalcule PAS à chaque édition.
     if (isset($_POST['luziapi_fix_volume_discount'])
-        && 'yes' === sanitize_key(wp_unslash((string) $_POST['luziapi_fix_volume_discount']))) {
+        && 'yes' === sanitize_key(Wp::str(wp_unslash($_POST['luziapi_fix_volume_discount'])))) {
         do_action('luziapi_fix_volume_discount', $orderId, $order);
     }
 }
@@ -1193,7 +1175,7 @@ function luziapi_offerable_products(): array
  */
 function luziapi_order_available_rewards(\WC_Order $order): int
 {
-    $handler = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler();
+    $handler = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler();
     if (null === $handler) {
         return 0;
     }
@@ -1232,8 +1214,8 @@ function luziapi_maybe_add_offered_pot(\WC_Order $order): void
     // Normalise en lignes {productId, qty, loyalty}, en ignorant les lignes vides.
     $rows = [];
     foreach ($rawProducts as $i => $rawProduct) {
-        $productId = absint($rawProduct);
-        $quantity  = absint($rawQty[$i] ?? 0);
+        $productId = absint(Wp::str($rawProduct));
+        $quantity  = absint(Wp::str($rawQty[$i] ?? 0));
         if ($productId <= 0 || $quantity <= 0) {
             continue;
         }
@@ -1278,7 +1260,7 @@ function luziapi_maybe_add_offered_pot(\WC_Order $order): void
             continue;
         }
 
-        $item = \LuziApi\Pilotage\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $row['quantity'], $row['loyalty']);
+        $item = \LuziApi\Shop\Infrastructure\WooCommerce\OfferedOrderItem::addTo($order, $product, $row['quantity'], $row['loyalty']);
         $added[] = ['item' => $item, 'product' => $product, 'quantity' => $row['quantity'], 'loyalty' => $row['loyalty']];
         if ($row['loyalty']) {
             $loyaltyRemaining -= $row['quantity'];
@@ -1351,13 +1333,13 @@ add_action('admin_notices', static function (): void {
     printf(
         '<div class="notice %s is-dismissible"><p>%s</p></div>',
         ! empty($notice['error']) ? 'notice-error' : 'notice-success',
-        esc_html((string) $notice['message']),
+        esc_html(Wp::str($notice['message'])),
     );
 });
 
 /**
  * Affiche l'issue d'un rattrapage de remise de volume déposé par le subscriber
- * {@see \LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
+ * {@see \LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceVolumeDiscountFixSubscriber}.
  */
 add_action('admin_notices', static function (): void {
     $key = 'luziapi_volume_fix_notice_' . get_current_user_id();
@@ -1369,7 +1351,7 @@ add_action('admin_notices', static function (): void {
     printf(
         '<div class="notice %s is-dismissible"><p>%s</p></div>',
         ! empty($notice['error']) ? 'notice-error' : 'notice-success',
-        esc_html((string) $notice['message']),
+        esc_html(Wp::str($notice['message'])),
     );
 });
 
@@ -1380,13 +1362,13 @@ add_action('woocommerce_before_order_object_save', static function ($order): voi
         return;
     }
 
-    $newStatus = sanitize_key(wp_unslash((string) $_POST['order_status']));
+    $newStatus = sanitize_key(Wp::str(wp_unslash($_POST['order_status'])));
     if ('wc-cancelled' !== $newStatus && 'cancelled' !== $newStatus) {
         return;
     }
 
     $reason = isset($_POST['luziapi_cancellation_reason'])
-        ? sanitize_textarea_field(wp_unslash((string) $_POST['luziapi_cancellation_reason']))
+        ? sanitize_textarea_field(Wp::str(wp_unslash($_POST['luziapi_cancellation_reason'])))
         : '';
 
     if ('' === $reason) {
@@ -1407,7 +1389,7 @@ add_action('woocommerce_order_status_cancelled', static function (int $orderId, 
         return;
     }
 
-    $reason = trim((string) $order->get_meta('_luziapi_cancellation_reason'));
+    $reason = trim(Wp::str($order->get_meta('_luziapi_cancellation_reason')));
     $order->add_order_note(
         '' !== $reason
             ? 'Motif d’annulation communiqué au client : ' . $reason

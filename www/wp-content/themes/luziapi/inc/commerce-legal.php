@@ -6,6 +6,10 @@
 
 declare(strict_types=1);
 
+use LuziApi\Shared\Infrastructure\Wp;
+use LuziApi\Shop\Domain\Legal\LegalDocument;
+use LuziApi\Shop\Domain\Legal\WithdrawalRequest;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -36,17 +40,18 @@ function luziapi_withdrawal_url(): string
     return luziapi_legal_page_url('retractation');
 }
 
+function luziapi_cgv_document(): LegalDocument
+{
+    return new LegalDocument(LUZIAPI_CGV_VERSION, LUZIAPI_CGV_LABEL, 'LuziApi-CGV-');
+}
+
 function luziapi_cgv_pdf_path(?\WC_Order $order = null): string
 {
-    $version = $order instanceof \WC_Order
-        ? trim((string) $order->get_meta('_luziapi_cgv_version'))
+    $accepted = $order instanceof \WC_Order
+        ? Wp::str($order->get_meta('_luziapi_cgv_version'))
         : '';
 
-    if ('' === $version || 1 !== preg_match('/^[a-zA-Z0-9._-]+$/', $version)) {
-        $version = LUZIAPI_CGV_VERSION;
-    }
-
-    return LUZIAPI_DIR . '/assets/docs/LuziApi-CGV-' . $version . '.pdf';
+    return LUZIAPI_DIR . '/assets/docs/' . luziapi_cgv_document()->pdfBasenameForAcceptedVersion($accepted);
 }
 
 function luziapi_cgv_pdf_url(): string
@@ -103,8 +108,8 @@ add_action('woocommerce_checkout_create_order', static function (\WC_Order $orde
 
 // Rend la preuve d'acceptation visible depuis l'administration de la commande.
 add_action('woocommerce_admin_order_data_after_billing_address', static function (\WC_Order $order): void {
-    $version = (string) $order->get_meta('_luziapi_cgv_version');
-    $dateUtc = (string) $order->get_meta('_luziapi_cgv_accepted_at');
+    $version = Wp::str($order->get_meta('_luziapi_cgv_version'));
+    $dateUtc = Wp::str($order->get_meta('_luziapi_cgv_accepted_at'));
 
     if ('' === $version) {
         return;
@@ -114,7 +119,10 @@ add_action('woocommerce_admin_order_data_after_billing_address', static function
     if ('' !== $dateUtc) {
         $timestamp = strtotime($dateUtc . ' UTC');
         if (false !== $timestamp) {
-            $date = wp_date('d/m/Y à H:i', $timestamp, new \DateTimeZone('Europe/Paris'));
+            $formatted = wp_date('d/m/Y à H:i', $timestamp, new \DateTimeZone('Europe/Paris'));
+            if (is_string($formatted)) {
+                $date = $formatted;
+            }
         }
     }
 
@@ -158,7 +166,7 @@ add_filter('woocommerce_email_attachments', static function (
         $attachments[] = $path;
     }
 
-    return array_values(array_unique($attachments));
+    return array_values(array_unique(array_map(static fn ($attachment): string => Wp::str($attachment), $attachments)));
 }, 10, 4);
 
 /**
@@ -192,14 +200,14 @@ function luziapi_withdrawal_values(): array
 {
     return [
         'order_number' => isset($_POST['order_number'])
-            ? sanitize_text_field(wp_unslash((string) $_POST['order_number']))
+            ? sanitize_text_field(Wp::str(wp_unslash($_POST['order_number'])))
             : '',
         'email' => isset($_POST['email'])
-            ? sanitize_email(wp_unslash((string) $_POST['email']))
+            ? sanitize_email(Wp::str(wp_unslash($_POST['email'])))
             : '',
         'scope' => isset($_POST['scope']) && 'part' === $_POST['scope'] ? 'part' : 'all',
         'details' => isset($_POST['details'])
-            ? sanitize_textarea_field(wp_unslash((string) $_POST['details']))
+            ? sanitize_textarea_field(Wp::str(wp_unslash($_POST['details'])))
             : '',
     ];
 }
@@ -214,19 +222,13 @@ function luziapi_withdrawal_values(): array
  */
 function luziapi_validate_withdrawal(array $values): array
 {
-    $errors = [];
-
-    if ('' === $values['order_number'] || '' === $values['email']) {
-        $errors[] = 'Renseignez le numéro de commande et l’adresse e-mail utilisée lors de l’achat.';
-    }
-
-    if ('' !== $values['email'] && ! is_email($values['email'])) {
-        $errors[] = 'L’adresse e-mail renseignée n’est pas valide.';
-    }
-
-    if ('part' === $values['scope'] && '' === $values['details']) {
-        $errors[] = 'Précisez les produits concernés par votre demande.';
-    }
+    $request = new WithdrawalRequest(
+        $values['order_number'],
+        $values['email'],
+        $values['scope'],
+        $values['details'],
+    );
+    $errors = $request->fieldErrors(false !== is_email($values['email']));
 
     $order = null;
     if ([] === $errors && ctype_digit($values['order_number'])) {
@@ -260,10 +262,13 @@ function luziapi_record_withdrawal(\WC_Order $order, array $values): array
     $reference   = strtoupper(wp_generate_password(10, false, false));
     $timezone    = new \DateTimeZone('Europe/Paris');
     $now         = new \DateTimeImmutable('now', $timezone);
-    $submittedAt = wp_date('d/m/Y à H:i', $now->getTimestamp(), $timezone);
-    $scope       = 'part' === $values['scope']
-        ? 'Une partie de la commande : ' . $values['details']
-        : 'La totalité de la commande';
+    $submittedAt = wp_date('d/m/Y à H:i', $now->getTimestamp(), $timezone) ?: '';
+    $scope       = (new WithdrawalRequest(
+        $values['order_number'],
+        $values['email'],
+        $values['scope'],
+        $values['details'],
+    ))->scopeLabel();
 
     $request = [
         'reference'    => $reference,
@@ -281,7 +286,7 @@ function luziapi_record_withdrawal(\WC_Order $order, array $values): array
         ),
         0
     );
-    $order->add_meta_data('_luziapi_withdrawal_request', wp_json_encode($request), false);
+    $order->add_meta_data('_luziapi_withdrawal_request', wp_json_encode($request) ?: '', false);
     $order->save();
 
     $customerMessage = implode("\n", [
@@ -349,14 +354,14 @@ function luziapi_withdrawal_page_context(): array
         'result' => null,
     ];
 
-    if ('POST' !== strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'))) {
+    if ('POST' !== strtoupper(Wp::str($_SERVER['REQUEST_METHOD'] ?? 'GET'))) {
         return $context;
     }
 
     $values          = luziapi_withdrawal_values();
     $context['values'] = $values;
     $nonce           = isset($_POST['luziapi_withdrawal_nonce'])
-        ? sanitize_text_field(wp_unslash((string) $_POST['luziapi_withdrawal_nonce']))
+        ? sanitize_text_field(Wp::str(wp_unslash($_POST['luziapi_withdrawal_nonce'])))
         : '';
 
     if (! wp_verify_nonce($nonce, 'luziapi_withdrawal')) {
@@ -379,7 +384,7 @@ function luziapi_withdrawal_page_context(): array
     }
 
     $action = isset($_POST['withdrawal_action'])
-        ? sanitize_key(wp_unslash((string) $_POST['withdrawal_action']))
+        ? sanitize_key(Wp::str(wp_unslash($_POST['withdrawal_action'])))
         : 'review';
 
     if ('confirm' === $action) {

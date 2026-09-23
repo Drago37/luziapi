@@ -16,6 +16,41 @@ stays empty on `develop`.
 
 _Nothing yet._
 
+## [1.4.0] - 2026-09-22
+
+### Changed
+
+- **Internal architecture — hexagonal + pragmatic DDD, no behaviour change.** The business PHP code is
+  reorganised into bounded contexts under `src/` (**Shop** core, **Loyalty**, **Newsletter**,
+  **OrderTracking**) plus a **Shared** kernel, on three layers (Domain / Application / Infrastructure).
+  The former `Pilotage` module becomes the `Shop` context. Pure business rules that lived in `inc/` —
+  free-delivery zone, fulfillment mode ⇄ status and order source, the French business-day calendar
+  (BACS deadline), the order-status e-mail content, CGV/legal versioning and withdrawal validation —
+  move into WordPress-free domain classes covered by unit tests, the `inc/` functions becoming thin
+  adapters. An architecture test forbids WordPress/WooCommerce inside any `Domain/`. The structuring
+  decisions are recorded in `docs/architecture/0001-architecture-hexagonale-cqrs.md`. No functional
+  behaviour changes; the full e2e suite stays green.
+
+### Added
+
+- **Dashboard test hardening.** A schema integrity e2e (migration idempotence, unique constraints,
+  backup/restore on temporary copies), a systematic guard asserting every admin write action checks a
+  nonce **and** a capability, a deterministic performance e2e over a 20 000-row receipt history
+  (index-backed, exercising the real repository), and a Playwright navigation smoke of the admin
+  dashboard — all run in CI.
+- `make doctor` to repair a local dev environment whose WordPress roles/capabilities drifted (403 on
+  `/wp-admin/`).
+- `make reset-test-loyalty-local` / `reset-test-loyalty-prod` (dry-run) / `reset-test-loyalty-prod-apply`
+  to reset the loyalty test-isolation state: the e2e loyalty suites reuse fixed test phones, and
+  identity aggregation can carry residual ledger data from an interrupted run into later runs; the tool
+  purges only the identity cluster reachable from those fake test numbers (links + residual ledger),
+  dry-run by default.
+
+### Security
+
+- CSV exports (Recettes, Journal d'activité) neutralise more formula-injection leads: a leading tab,
+  carriage return or newline, in addition to `= + - @` (OWASP CSV-injection guidance).
+
 ## [1.3.1] - 2026-09-20
 
 ### Changed

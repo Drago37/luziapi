@@ -188,7 +188,7 @@ or prod) at each change of the order workflow.
 The customer tracking without an account additionally has its local integration test
 `make e2e-tracking-local` and its documentation in
 [docs/tests-suivi-commandes.md](docs/tests-suivi-commandes.md).
-Loyalty (`src/Loyalty/`) has its unit tests `tests/Loyalty/`, `tests/Pilotage/`
+Loyalty (`src/Loyalty/`) has its unit tests `tests/Loyalty/`, `tests/Shop/`
 and its local integration tests `make e2e-loyalty-local` (jars/benefits),
 `make e2e-discount-local` (thank-you discount) and `make e2e-vente-loyalty-local`
 (real Sale path: free gift + loyalty + discount + stock), plus a replayable
@@ -269,6 +269,14 @@ unversioned file `scripts/.last-deploy`, or passed as an argument), upload of on
 code files, OPcache cleared + SHA-256 comparison local ↔ prod via the token-based script, then
 `post-deploy-check.sh`. In case of doubt, the manual procedure remains below.
 
+**A release that renames or deletes many files** (e.g. `Pilotage → Shop` in 1.4.0): `deploy-files.sh`
+uploads the new/renamed paths but **does not remove** the old ones — it warns about explicit deletions
+and leaves the old renamed paths as orphans on prod (harmless dead code, but stale). After the upload,
+run **`make deploy-prune-prod`** (dry-run — lists the `src/` files present on prod but no longer tracked
+in git), then **`make deploy-prune-prod-apply`** to remove them, and finish with **`make verify-prod`**.
+`scripts/prune-prod-orphans.sh` is scoped strictly to `src/`, token-secured and path-validated; empty
+directories left behind are harmless.
+
 _Why:_ `make deploy` runs `composer-prod` **in the `wordpress` Docker container** (so it
 fails if Docker is not started: "service wordpress is not running"), then an
 `lftp mirror -R --delete` of **the whole theme, `vendor/` included** → thousands of files over
@@ -311,9 +319,29 @@ Observed on 10 September 2026 while deploying Monolog: prod threw a 500 because 
 
 > **Dev/test artifacts never deployed.** The `make deploy` mirror excludes, via the
 > `DEPLOY_EXCLUDES` variable of the `Makefile`, everything that does not serve the runtime: `tools/`, `tests-js/`,
-> `node_modules/`, `package.json` / `package-lock.json`, CS-Fixer / PHPStan config, `README.md`.
-> Add any new tool or test folder to this list. (Make pitfall fixed in passing: a
-> glob containing `#` must be escaped `\#`, otherwise make comments out the rest of the line.)
+> `tests-browser/`, `playwright.config.js`, `node_modules/`, `package.json` / `package-lock.json`, CS-Fixer /
+> PHPStan config, `README.md`. The same exclusions live in `scripts/deploy-files.sh` and
+> `scripts/verify-prod-integrity.sh` — keep the three in sync when adding a tool or test folder.
+> (Make pitfall fixed in passing: a glob containing `#` must be escaped `\#`, otherwise make comments
+> out the rest of the line.)
+
+**Admin navigation smoke (Playwright).** `make browser-local` runs a headless-browser smoke of the
+pilotage dashboard against the local WordPress (`http://localhost:8080`): it logs in as admin, opens
+every pilotage view and checks it renders without a PHP fatal or an uncaught JS error, and that the
+Vente form is present. It runs in CI inside the e2e job (Node 22 + `npx playwright install`). Deeper
+JS behaviour (e.g. the Vente anti-double-click) stays covered by the jsdom unit tests in `tests-js/`.
+If every `/wp-admin/` page returns **403** locally (a copy-of-prod database whose `{prefix}user_roles`
+option drifted, so the `administrator` role has no capabilities), run **`make doctor`** — it recreates
+the standard roles + WooCommerce caps and restores `admin` to administrator. It is local-only (the
+`tools/` folder is never deployed).
+
+**Dashboard test hardening (issue #3, closed).** Beyond the schema and browser tests above, the
+dashboard is covered by: `CsvFormulaGuardTest` (CSV exports neutralise formula injection, via the
+shared `Shared\Domain\CsvFormulaGuard`); `AdminActionsAreGuardedTest` (a reflection guard asserting
+**every** `admin_post_*` / `wp_ajax_*` pilotage action checks a nonce **and** a capability — a new
+unguarded action fails the suite); and `make e2e-pilotage-perf-local` (the receipt register stays
+correct and index-backed — `EXPLAIN` — over a 20 000-row history). Visual-regression screenshots were
+deliberately left out in favour of the navigation smoke.
 
 ### A mu-plugin changes
 
@@ -358,7 +386,7 @@ fingerprints.
   changes. When a CSS change "does not show up", check the `?ver` actually served.
 - **Interrupted deployment = prod in 500, masked by the cache.** A `make deploy` (mirror of the whole
   theme) cut off in progress (timeout, network, exhausted credits) leaves `src/` **partially** uploaded.
-  Since `functions.php` boots `PilotageServiceProvider::boot()`, a missing class causes a
+  Since `functions.php` boots `ShopServiceProvider::boot()`, a missing class causes a
   **fatal on every page loading the theme** — but PowerBoost keeps serving the home in 200,
   hiding the failure. Diagnosis: test an **uncached URL** (`/wp-login.php`, `/mon-compte/`, or the
   home with `?nocache=…`) and run **`make verify-prod`** (`scripts/verify-prod-integrity.sh`) which
@@ -373,7 +401,10 @@ fingerprints.
   a schema switched to `NULL` — the repository inserting NULL then filling it, **every receipt
   record failed** silently. For a nullability (or type) change, add an
   explicit `ALTER TABLE … MODIFY` in the versioned migration (`PilotageSchemaManager`), never rely
-  on `dbDelta` alone.
+  on `dbDelta` alone. This is now covered by `make e2e-pilotage-schema-local`, which checks the
+  migration idempotence, the `sequence_number` nullability fix, that the unique constraints reject
+  duplicates, and a backup/restore round-trip — all on `CREATE TEMPORARY TABLE … LIKE` copies, so no
+  real data is touched.
 
 ### Production go-live process since 6 September 2026
 
@@ -457,13 +488,13 @@ Decisions made deliberately — do not undo them without discussing:
   category) that **overlays the display** without touching the orders — invoices and order history
   stay intact. To fix one specific order, edit it in WooCommerce (order editing stays enabled; only
   creation is redirected to the Vente). Do not go back to writing customer edits onto the orders.
-  Domain `src/Pilotage/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
+  Domain `src/Shop/.../Customer` + `SaveCustomerProfile`; tests `make e2e-customer-profile-local`
   / `-prod`.
 - **Address autocomplete = server-side, through a nonce-protected admin-ajax endpoint** (not a direct
   browser call). The `AddressLookup` port + `BanAddressLookup` adapter query the Base Adresse
   Nationale (`api-adresse.data.gouv.fr`, free, no key) server-side and normalize the result; the
   `luziapi_address_search` admin-ajax action (capability `edit_shop_orders` + nonce) feeds the fiche's
-  address field. Progressive enhancement — manual entry always works. Domain `src/Pilotage/.../Address`
+  address field. Progressive enhancement — manual entry always works. Domain `src/Shop/.../Address`
   + `SearchAddress` + `Infrastructure/Http`; unit tests + e2e `make e2e-address-lookup-local` / `-prod`
   (BAN calls intercepted, nothing written).
 - **Subscription panel on the fiche = editable, writes DIRECTLY to Brevo** (reverses the earlier

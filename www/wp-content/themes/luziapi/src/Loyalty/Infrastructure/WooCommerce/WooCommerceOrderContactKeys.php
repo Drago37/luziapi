@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
-use LuziApi\Loyalty\Application\Port\OrderContactKeys;
+use LuziApi\Loyalty\Domain\Gateway\OrderContactKeys;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use WC_Order;
 

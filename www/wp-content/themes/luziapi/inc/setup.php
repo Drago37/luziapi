@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Shared\Infrastructure\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -140,8 +142,8 @@ add_action('wpcf7_contact_form', static function ($contactForm): void {
         return;
     }
 
-    $englishFormId = (int) get_option('luziapi_cf7_en_id');
-    if ($englishFormId > 0 && $englishFormId === (int) $contactForm->id()) {
+    $englishFormId = Wp::int(get_option('luziapi_cf7_en_id'));
+    if ($englishFormId > 0 && $englishFormId === Wp::int($contactForm->id())) {
         $contactForm->set_locale('en_GB');
     }
 });

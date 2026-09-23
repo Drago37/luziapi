@@ -16,7 +16,7 @@ use LuziApi\OrderTracking\Application\Command\RedeemHistoryLink\RedeemHistoryLin
 use LuziApi\OrderTracking\Application\Command\RequestHistoryLink\RequestHistoryLinkHandler;
 use LuziApi\OrderTracking\Application\Command\RevokeTrackingSession\RevokeTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Command\StartOrderAccess\StartOrderAccessHandler;
-use LuziApi\OrderTracking\Application\Port\MagicLinkSender;
+use LuziApi\OrderTracking\Domain\Gateway\MagicLinkSender;
 use LuziApi\OrderTracking\Application\Query\ResolveTrackingSession\ResolveTrackingSessionHandler;
 use LuziApi\OrderTracking\Application\Service\TrackingSessionIssuer;
 use LuziApi\OrderTracking\Domain\OrderAccessCredentials;
@@ -24,7 +24,7 @@ use LuziApi\OrderTracking\Infrastructure\WooCommerce\WooCommerceOrderTrackingGat
 use LuziApi\OrderTracking\Infrastructure\WordPress\OrderTrackingSchemaManager;
 use LuziApi\OrderTracking\Infrastructure\WordPress\RandomTokenGenerator;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressAccessFingerprint;
-use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressMagicLinkSender;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressStatusHistoryRepository;
 use LuziApi\OrderTracking\Infrastructure\WordPress\WordPressTrackingAccessRepository;

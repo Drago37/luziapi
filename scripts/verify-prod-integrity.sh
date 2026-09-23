@@ -42,9 +42,9 @@ fi
 # vendor/docs/config (vendor est géré à part ; le trou des 500 concernait src/).
 mapfile -t REL < <(
   git ls-files "${THEME_PREFIX}" \
-    | grep -Ev "^${THEME_PREFIX}/(tools|tests|tests-js|vendor)/" \
+    | grep -Ev "^${THEME_PREFIX}/(tools|tests|tests-js|tests-browser|vendor)/" \
     | grep -Ev '\.(md)$' \
-    | grep -Ev "^${THEME_PREFIX}/(composer\.(json|lock)|package(-lock)?\.json|\.php-cs-fixer.*|phpstan.*)$" \
+    | grep -Ev "^${THEME_PREFIX}/(composer\.(json|lock)|package(-lock)?\.json|playwright\.config\.js|\.php-cs-fixer.*|phpstan.*)$" \
     | sed "s#^${THEME_PREFIX}/##"
 )
 [[ "${#REL[@]}" -gt 0 ]] || die "Aucun fichier de code du thème trouvé — filtre ou dépôt inattendu."

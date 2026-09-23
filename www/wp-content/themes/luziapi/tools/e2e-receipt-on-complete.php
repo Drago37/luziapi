@@ -10,12 +10,12 @@
 
 declare(strict_types=1);
 
-use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Activity\ActivityRecorder;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;
@@ -28,7 +28,7 @@ add_filter('pre_wp_mail', '__return_false', 999);
 
 global $wpdb;
 $clock = new WordPressClock();
-$schema = new PilotageSchemaManager($wpdb);
+$schema = new ShopSchemaManager($wpdb);
 $activity = new ActivityRecorder(new WordPressActivityRepository($wpdb, $schema, $clock->timezone()), $clock);
 $receipts = new AuditedReceiptRepository(new WordPressReceiptRepository($wpdb, $schema, $clock->timezone()), $activity);
 

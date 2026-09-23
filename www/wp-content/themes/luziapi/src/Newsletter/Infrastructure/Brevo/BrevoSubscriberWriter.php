@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LuziApi\Newsletter\Infrastructure\Brevo;
 
-use LuziApi\Newsletter\Application\Port\SubscriberWriter;
+use LuziApi\Newsletter\Domain\Gateway\SubscriberWriter;
 use LuziApi\Newsletter\Domain\SubscriptionStatus;
 use RuntimeException;
 

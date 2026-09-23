@@ -72,6 +72,11 @@ LuziApi's business PHP code follows a **hexagonal architecture**, with **pragmat
 Significant new business developments must be placed under `src/`, organized by bounded context,
 then loaded with Composer's PSR-4 autoloader.
 
+The structuring decisions (bounded contexts, three layers, CQRS conventions) are recorded in
+[`docs/architecture/0001-architecture-hexagonale-cqrs.md`](docs/architecture/0001-architecture-hexagonale-cqrs.md),
+aligned on the sibling hellobees project. The current contexts are **Shop** (core), **Loyalty**,
+**Newsletter** and **OrderTracking**, plus the **Shared** kernel.
+
 The theme still contains legacy procedural code in `inc/`. This legacy code must be migrated
 progressively, in a dedicated effort and without functional regression. Do not extend this legacy
 architecture for an important new business feature.
@@ -88,9 +93,7 @@ www/wp-content/themes/luziapi/
 │   ├── <Context>/
 │   │   ├── Domain/
 │   │   ├── Application/
-│   │   ├── Infrastructure/
-│   │   ├── UserInterface/
-│   │   └── Bootstrap/
+│   │   └── Infrastructure/
 │   └── Shared/
 ├── resources/
 │   └── views/
@@ -117,39 +120,31 @@ The domain contains the entities, aggregates, value objects, services and busine
 The Application layer orchestrates the use cases.
 
 - commands for writes, queries for reads;
+- one handler per use case, whose `__invoke` **returns** its result (no presenter, no bus);
 - dedicated DTOs for inputs and outputs;
 - dependencies received through constructor injection;
-- use of ports for the clock, repositories, transactions, cache and exports;
+- the interfaces they depend on live in the **domain** — aggregate repositories in
+  `Domain/Repository/`, system or cross-context access (clock, external services, another context)
+  as `Domain/Gateway/` ports (an Anticorruption Layer);
 - no important business rule in a WordPress controller.
 
 ### Infrastructure
 
-The Infrastructure layer implements the ports with the site's concrete tools.
+The Infrastructure layer holds every adapter — both **driven** (implementing the domain's ports)
+and **driving** (the inbound WordPress entry points) — grouped by technology first
+(`WooCommerce/`, `WordPress/`, `Brevo/`, `Http/`).
 
 - WooCommerce and HPOS are adapters, not the domain;
 - use the WooCommerce CRUD objects, `wc_get_order()` and `wc_get_orders()`;
 - do not query the internal WooCommerce order tables directly;
 - isolate `$wpdb`, WordPress options, transients and calls to external services;
-- convert WooCommerce objects into internal objects or DTOs in dedicated mappers.
-
-### UserInterface
-
-This layer contains the inbound adapters: WordPress administration, forms, REST routes or,
-eventually, public order tracking.
-
-- check capabilities and nonces on entry;
-- validate and normalize data before calling a use case;
-- escape outputs as close to rendering as possible;
-- keep controllers thin;
-- do not bypass the Application to write directly into a repository.
-
-### Bootstrap
-
-The bootstrap is the composition point. It instantiates the adapters and injects them into the use
-cases, then registers the required WordPress hooks.
-
-Do not add a dependency injection container without a demonstrated need: manual assembly through
-constructors is preferred.
+- convert WooCommerce objects into internal objects or DTOs in dedicated mappers;
+- the **inbound** adapters (admin controllers, WooCommerce hooks, REST routes, the public order
+  tracking) live here too: they check capabilities and nonces, validate input, call a use case and
+  render — thin, with no business rule;
+- the **composition root** is a single `Infrastructure/<Context>ServiceProvider.php` that wires the
+  concrete adapters into the handlers and registers the WordPress hooks (manual assembly, no DI
+  container without a demonstrated need). `functions.php` only calls each provider's `boot()`.
 
 ## Composer and namespaces
 
@@ -235,9 +230,9 @@ PHPUnit runs on a **PHP matrix** (theme floor `8.2` + current version `8.3`; to 
 the version actually in production if it differs) and **measures coverage** (pcov, `--coverage-text`).
 The coverage scope is declared in `phpunit.xml.dist` (`<source>`: the DDD core `src/`, the `inc/`
 files actually tested, the newsletter mu-plugin) — not all of `inc/`, for an honest rate. PHPStan is
-at **level `max`** with a baseline (`phpstan-baseline.neon`) that freezes the existing debt: all new
-code must pass at max, and the baseline is to be paid down progressively (do not add lines to it to
-work around a new error). A **Dependency audit** job (`composer audit` + `npm audit`) runs in CI,
+at **level `max`** with **no baseline**: the whole theme passes at max, and it must stay that way —
+fix the underlying type instead of introducing a baseline or `@phpstan-ignore` to work around a new
+error. A **Dependency audit** job (`composer audit` + `npm audit`) runs in CI,
 **non-blocking** for now (CVE visibility; to be made blocking once any debt is addressed).
 
 Test doubles belong to the tests. Do not add test-specific conditions to the production code.

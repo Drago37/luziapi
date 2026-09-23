@@ -6,7 +6,8 @@ namespace LuziApi\Loyalty\Infrastructure\WooCommerce;
 
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyCommand;
 use LuziApi\Loyalty\Application\Command\ReconcileOrderLoyalty\ReconcileOrderLoyaltyHandler;
-use LuziApi\Loyalty\Application\Port\LoyaltyIdentityLinks;
+use LuziApi\Loyalty\Domain\Gateway\LoyaltyIdentityLinks;
+use LuziApi\Shared\Infrastructure\Wp;
 use Psr\Log\LoggerInterface;
 use WC_Order;
 
@@ -113,7 +114,7 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
     public function renderReconcileFailureNotice(): void
     {
         $key = self::ADMIN_NOTICE_TRANSIENT . get_current_user_id();
-        $orderId = (int) get_transient($key);
+        $orderId = Wp::int(get_transient($key));
         if ($orderId <= 0) {
             return;
         }
@@ -142,7 +143,7 @@ final readonly class WooCommerceLoyaltyEarningSubscriber
         // Garde : une commande explicitement exclue (ex. import d'historique)
         // ne cumule jamais de fidélité — cible à zéro quel que soit son statut,
         // ce qui la maintient sans crédit même si un hook se déclenche plus tard.
-        $excluded = 'yes' === (string) $order->get_meta(self::LOYALTY_EXCLUDED_META);
+        $excluded = 'yes' === Wp::str($order->get_meta(self::LOYALTY_EXCLUDED_META));
 
         $completed = $order->has_status('completed');
 

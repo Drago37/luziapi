@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
+use LuziApi\Shared\Infrastructure\Wp;
 use RuntimeException;
 use wpdb;
 
@@ -22,7 +23,8 @@ final readonly class WordPressStatusHistoryRepository implements StatusHistoryRe
 
     public function record(StatusTransition $transition): void
     {
-        $saved = $this->database->query($this->database->prepare(
+        $saved = $this->database->query(Wp::prepared(
+            $this->database,
             'INSERT IGNORE INTO ' . $this->schema->eventsTableName()
             . ' (order_id, from_status, to_status, occurred_at, reference_key) VALUES (%d, %s, %s, %s, %s)',
             $transition->orderId,
@@ -44,7 +46,8 @@ final readonly class WordPressStatusHistoryRepository implements StatusHistoryRe
         }
 
         $placeholders = implode(', ', array_fill(0, count($orderIds), '%d'));
-        $query = $this->database->prepare(
+        $query = Wp::prepared(
+            $this->database,
             'SELECT order_id, from_status, to_status, occurred_at, reference_key FROM '
             . $this->schema->eventsTableName()
             . " WHERE order_id IN ({$placeholders}) ORDER BY occurred_at ASC, id ASC",
@@ -52,14 +55,14 @@ final readonly class WordPressStatusHistoryRepository implements StatusHistoryRe
         );
         $rows = $this->database->get_results($query, ARRAY_A);
         $history = [];
-        foreach (is_array($rows) ? $rows : [] as $row) {
-            $orderId = (int) $row['order_id'];
+        foreach (Wp::rows($rows) as $row) {
+            $orderId = Wp::int($row['order_id']);
             $history[$orderId][] = new StatusTransition(
                 $orderId,
-                (string) $row['from_status'],
-                (string) $row['to_status'],
-                new DateTimeImmutable((string) $row['occurred_at'], $this->timezone),
-                (string) $row['reference_key'],
+                Wp::str($row['from_status']),
+                Wp::str($row['to_status']),
+                new DateTimeImmutable(Wp::str($row['occurred_at']), $this->timezone),
+                Wp::str($row['reference_key']),
             );
         }
 

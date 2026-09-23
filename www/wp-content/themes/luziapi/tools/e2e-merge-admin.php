@@ -14,26 +14,26 @@
 declare(strict_types=1);
 
 use LuziApi\Loyalty\Application\Query\GetCustomerLoyalty\GetCustomerLoyaltyQuery;
-use LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider;
+use LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider;
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WooCommerce\WooCommerceEligiblePotCounter;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
-use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
-use LuziApi\Pilotage\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
-use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
-use LuziApi\Pilotage\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
-use LuziApi\Pilotage\Domain\Customer\CustomerHistoryProjector;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\AuditedReceiptRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressCustomerProfileRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
-use LuziApi\Pilotage\UserInterface\Admin\CustomersController;
+use LuziApi\Shop\Application\Activity\ActivityRecorder;
+use LuziApi\Shop\Application\Command\AssignCustomerCategory\AssignCustomerCategoryHandler;
+use LuziApi\Shop\Application\Query\GetCustomerDirectory\GetCustomerDirectoryHandler;
+use LuziApi\Shop\Application\Query\GetCustomerDirectory\GetCustomerDirectoryQuery;
+use LuziApi\Shop\Domain\Customer\CustomerHistoryProjector;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceCustomerTimelineRepository;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderRepository;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedCustomerCategoryRepository;
+use LuziApi\Shop\Infrastructure\WordPress\AuditedReceiptRepository;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerCategoryRepository;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressCustomerProfileRepository;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Infrastructure\WordPress\Admin\CustomersController;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;
@@ -61,7 +61,7 @@ $net = static fn (string $key): int => null === $loyaltyRead
 // Reconstruit un CustomersController réel (dépendances du provider) pour piloter le
 // vrai chemin admin sans passer par admin-post/redirect.
 $clock = new WordPressClock();
-$schema = new PilotageSchemaManager($wpdb);
+$schema = new ShopSchemaManager($wpdb);
 $activity = new ActivityRecorder(new WordPressActivityRepository($wpdb, $schema, $clock->timezone()), $clock);
 $categories = new AuditedCustomerCategoryRepository(new WordPressCustomerCategoryRepository($wpdb, $schema), $activity);
 $directory = new GetCustomerDirectoryHandler(

@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace LuziApi\OrderTracking\Infrastructure\WooCommerce;
 
 use DateTimeImmutable;
-use LuziApi\OrderTracking\Application\Port\OrderTrackingGateway;
 use LuziApi\OrderTracking\Application\View\PublicOrderLine;
 use LuziApi\OrderTracking\Application\View\PublicOrderPage;
 use LuziApi\OrderTracking\Application\View\PublicOrderTotal;
 use LuziApi\OrderTracking\Application\View\PublicOrderUpdate;
 use LuziApi\OrderTracking\Application\View\PublicOrderView;
+use LuziApi\OrderTracking\Domain\Gateway\OrderTrackingGateway;
 use LuziApi\OrderTracking\Domain\PublicOrderStatus;
 use LuziApi\OrderTracking\Domain\StatusHistoryRepository;
 use LuziApi\OrderTracking\Domain\StatusTransition;
+use LuziApi\Shared\Infrastructure\Wp;
 
 final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGateway
 {
@@ -109,11 +110,14 @@ final readonly class WooCommerceOrderTrackingGateway implements OrderTrackingGat
             $updates[] = new PublicOrderUpdate('status', $status['label'], '', $transition->occurredAt);
         }
         foreach ($order->get_customer_order_notes() as $note) {
+            if (! $note instanceof \WP_Comment) {
+                continue;
+            }
             $updates[] = new PublicOrderUpdate(
                 'note',
                 'Message de LuziApi',
-                trim((string) $note->comment_content),
-                new DateTimeImmutable((string) $note->comment_date, wp_timezone()),
+                trim(Wp::str($note->comment_content)),
+                new DateTimeImmutable($note->comment_date, wp_timezone()),
             );
         }
         if ([] === $transitions) {

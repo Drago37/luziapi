@@ -19,16 +19,16 @@ declare(strict_types=1);
 
 use LuziApi\Loyalty\Domain\LoyaltyIdentity;
 use LuziApi\Loyalty\Infrastructure\WordPress\LoyaltySchemaManager;
-use LuziApi\Pilotage\Application\Activity\ActivityRecorder;
-use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
-use LuziApi\Pilotage\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
-use LuziApi\Pilotage\Application\Command\RecordReceipt\RecordReceiptHandler;
-use LuziApi\Pilotage\Domain\Sales\ThankYouDiscount;
-use LuziApi\Pilotage\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
-use LuziApi\Pilotage\Infrastructure\WordPress\PilotageSchemaManager;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressActivityRepository;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressClock;
-use LuziApi\Pilotage\Infrastructure\WordPress\WordPressReceiptRepository;
+use LuziApi\Shop\Application\Activity\ActivityRecorder;
+use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountCommand;
+use LuziApi\Shop\Application\Command\ApplyThankYouDiscount\ApplyThankYouDiscountHandler;
+use LuziApi\Shop\Application\Command\RecordReceipt\RecordReceiptHandler;
+use LuziApi\Shop\Domain\Sales\ThankYouDiscount;
+use LuziApi\Shop\Infrastructure\WooCommerce\WooCommerceOrderDiscountWriter;
+use LuziApi\Shop\Infrastructure\WordPress\ShopSchemaManager;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressActivityRepository;
+use LuziApi\Shared\Infrastructure\WordPress\WordPressClock;
+use LuziApi\Shop\Infrastructure\WordPress\WordPressReceiptRepository;
 
 if (! defined('ABSPATH') || ! defined('WP_CLI')) {
     return;
@@ -44,7 +44,7 @@ update_option('woocommerce_price_num_decimals', '2');
 global $wpdb;
 $loyaltySchema = new LoyaltySchemaManager($wpdb);
 $loyaltySchema->migrate();
-$pilotageSchema = new PilotageSchemaManager($wpdb);
+$pilotageSchema = new ShopSchemaManager($wpdb);
 $pilotageSchema->migrate();
 $timezone = wp_timezone();
 $clock = new WordPressClock();
@@ -141,7 +141,7 @@ try {
         $order2->save();
         $order2Id = (int) $order2->get_id();
     }
-    $forOrders = \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::loyaltyForOrdersHandler();
+    $forOrders = \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::loyaltyForOrdersHandler();
     $assert('Le handler de suivi de la fidélité est branché', null !== $forOrders);
     if (null !== $forOrders) {
         $sessionView = $forOrders->handle(array_filter([$orderId, $order2Id]));

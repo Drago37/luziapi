@@ -52,8 +52,8 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
         add_filter('pre_http_request', $intercept, 10, 3);
 
         try {
-            $lookup = new \LuziApi\Pilotage\Infrastructure\Http\BanAddressLookup();
-            $handler = new \LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressHandler($lookup);
+            $lookup = new \LuziApi\Shop\Infrastructure\Http\BanAddressLookup();
+            $handler = new \LuziApi\Shop\Application\Query\SearchAddress\SearchAddressHandler($lookup);
 
             $direct = $lookup->search('3 rue des abeilles', 8);
             $assert('Adaptateur : 2 suggestions parsées', 2 === count($direct), 'n=' . count($direct));
@@ -62,14 +62,14 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
             $assert('Adaptateur : recherche nationale simple (pas de biais lat/lon)', false === stripos($lastUrl, 'lat=') && false === stripos($lastUrl, 'lon='), 'url=' . $lastUrl);
             $assert('Adaptateur : pas de filtre type=housenumber (rues incluses)', false === stripos($lastUrl, 'type='));
 
-            $viaHandler = $handler->handle(new \LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressQuery('  3 rue des abeilles  '));
+            $viaHandler = $handler->handle(new \LuziApi\Shop\Application\Query\SearchAddress\SearchAddressQuery('  3 rue des abeilles  '));
             $assert('Handler : passe-plat après trim', 2 === count($viaHandler));
 
-            $tooShort = $handler->handle(new \LuziApi\Pilotage\Application\Query\SearchAddress\SearchAddressQuery('ab'));
+            $tooShort = $handler->handle(new \LuziApi\Shop\Application\Query\SearchAddress\SearchAddressQuery('ab'));
             $assert('Handler : rien sous 3 caractères', [] === $tooShort);
 
             // Câblage de l'endpoint admin-ajax (déterministe : on enregistre puis on vérifie).
-            $controller = new \LuziApi\Pilotage\UserInterface\Admin\AddressLookupController($handler);
+            $controller = new \LuziApi\Shop\Infrastructure\WordPress\Admin\AddressLookupController($handler);
             $controller->register();
             $assert('Endpoint admin-ajax câblé', false !== has_action('wp_ajax_luziapi_address_search', [$controller, 'search']));
 
@@ -78,7 +78,7 @@ if (! function_exists('luziapi_e2e_address_lookup_run')) {
             $fatal = $exception->getMessage();
         } finally {
             remove_filter('pre_http_request', $intercept, 10);
-            if ($controller instanceof \LuziApi\Pilotage\UserInterface\Admin\AddressLookupController) {
+            if ($controller instanceof \LuziApi\Shop\Infrastructure\WordPress\Admin\AddressLookupController) {
                 remove_action('wp_ajax_luziapi_address_search', [$controller, 'search']);
             }
             $cleanup = 'ok (filtre + action retirés ; aucun appel réseau réel, aucune donnée écrite)';

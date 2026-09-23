@@ -10,6 +10,8 @@
 
 declare(strict_types=1);
 
+use LuziApi\Shared\Infrastructure\Wp;
+
 if (! defined('ABSPATH')) {
     exit;
 }
@@ -21,10 +23,10 @@ if (! defined('ABSPATH')) {
 // ligne demeure cliquable et les actions groupées fonctionnent à nouveau.
 add_action('admin_enqueue_scripts', static function (string $hookSuffix): void {
     $postType = isset($_GET['post_type'])
-        ? sanitize_key(wp_unslash((string) $_GET['post_type']))
+        ? sanitize_key(Wp::str(wp_unslash($_GET['post_type'])))
         : '';
     $action = isset($_GET['action'])
-        ? sanitize_key(wp_unslash((string) $_GET['action']))
+        ? sanitize_key(Wp::str(wp_unslash($_GET['action'])))
         : '';
 
     $isLegacyOrderList = 'edit.php' === $hookSuffix && 'shop_order' === $postType;
@@ -80,10 +82,10 @@ add_action('admin_init', static function (): void {
     global $pagenow;
 
     $blocked = luziapi_is_native_order_creation_screen(
-        (string) $pagenow,
-        isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '',
-        isset($_GET['action']) ? sanitize_key(wp_unslash((string) $_GET['action'])) : '',
-        isset($_GET['post_type']) ? sanitize_key(wp_unslash((string) $_GET['post_type'])) : '',
+        Wp::str($pagenow),
+        isset($_GET['page']) ? sanitize_key(Wp::str(wp_unslash($_GET['page']))) : '',
+        isset($_GET['action']) ? sanitize_key(Wp::str(wp_unslash($_GET['action']))) : '',
+        isset($_GET['post_type']) ? sanitize_key(Wp::str(wp_unslash($_GET['post_type']))) : '',
     );
 
     if ($blocked) {
@@ -149,14 +151,17 @@ add_filter('woocommerce_hidden_order_itemmeta', static function (array $hidden):
 // clés attendues, sans changer le matching (WooCommerce lirait '' de toute façon).
 add_filter('woocommerce_cart_shipping_packages', static function (array $packages): array {
     foreach ($packages as $key => $package) {
-        if (! isset($package['destination']) || ! is_array($package['destination'])) {
+        if (! is_array($package) || ! isset($package['destination']) || ! is_array($package['destination'])) {
             continue;
         }
-        $packages[$key]['destination']['country'] = $package['destination']['country'] ?? '';
-        $packages[$key]['destination']['state'] = $package['destination']['state'] ?? '';
-        $packages[$key]['destination']['postcode'] = $package['destination']['postcode'] ?? '';
-        $packages[$key]['destination']['city'] = $package['destination']['city'] ?? '';
-        $packages[$key]['destination']['address'] = $package['destination']['address'] ?? '';
+        $destination = $package['destination'];
+        $destination['country'] ??= '';
+        $destination['state'] ??= '';
+        $destination['postcode'] ??= '';
+        $destination['city'] ??= '';
+        $destination['address'] ??= '';
+        $package['destination'] = $destination;
+        $packages[$key] = $package;
     }
 
     return $packages;
@@ -173,7 +178,7 @@ function luziapi_has_usable_coupon(): bool
 {
     static $hasUsableCoupon = null;
 
-    if (null !== $hasUsableCoupon) {
+    if (is_bool($hasUsableCoupon)) {
         return $hasUsableCoupon;
     }
 
@@ -351,7 +356,7 @@ add_filter('woocommerce_add_to_cart_fragments', static function (array $fragment
 // Produits similaires : afficher les autres miels même sans catégorie commune.
 add_filter('woocommerce_related_products', static function (array $related, int $product_id): array {
     if (empty($related)) {
-        $related = wc_get_products([
+        $found = wc_get_products([
             'status'  => 'publish',
             'limit'   => 4,
             'exclude' => [$product_id],
@@ -359,6 +364,7 @@ add_filter('woocommerce_related_products', static function (array $related, int 
             'orderby' => 'menu_order',
             'order'   => 'ASC',
         ]);
+        $related = is_array($found) ? $found : [];
     }
 
     return $related;
@@ -393,7 +399,7 @@ add_filter('woocommerce_mail_content', static function (string $content): string
     return str_replace('no-reply@luziapi.fr', 'luziapi37150@gmail.com', $content);
 });
 add_filter('woocommerce_email_headers', static function ($headers) {
-    return str_replace('no-reply@luziapi.fr', 'luziapi37150@gmail.com', (string) $headers);
+    return str_replace('no-reply@luziapi.fr', 'luziapi37150@gmail.com', Wp::str($headers));
 }, 10, 1);
 
 // Retire le bloc « méta » de la fiche (catégorie / SKU / étiquettes) : inutile ici.
@@ -407,8 +413,8 @@ function luziapi_offer_html(): string
         . '<span><b>À partir de 2 pots&nbsp;: −1&nbsp;€ sur chaque pot.</b> Livraison à domicile gratuite sur Luzillé et Bléré.</span>'
         . '</div>';
 
-    if (class_exists(\LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::class)
-        && null !== \LuziApi\Loyalty\Bootstrap\LoyaltyServiceProvider::customerLoyaltyHandler()) {
+    if (class_exists(\LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::class)
+        && null !== \LuziApi\Loyalty\Infrastructure\LoyaltyServiceProvider::customerLoyaltyHandler()) {
         $threshold = (new \LuziApi\Loyalty\Domain\LoyaltyProgress(0))->potsPerReward();
         $html .= '<div class="product-offer product-offer--loyalty">'
             . '<span class="product-offer__badge">Fidélité</span>'
@@ -443,7 +449,7 @@ remove_action('woocommerce_single_product_summary', 'woocommerce_template_single
 
 // Pot dessiné dans le panier quand le produit n'a pas de photo.
 add_filter('woocommerce_cart_item_thumbnail', static function ($thumbnail, $cart_item) {
-    $product = $cart_item['data'] ?? null;
+    $product = is_array($cart_item) ? ($cart_item['data'] ?? null) : null;
     if ($product instanceof \WC_Product && ! $product->get_image_id()) {
         return '<span class="wc-jar wc-jar--cart">' . luziapi_product_jar($product) . '</span>';
     }
@@ -457,7 +463,7 @@ function luziapi_product_attr(\WC_Product $product, string $label): string
     foreach ($product->get_attributes() as $attr) {
         if ($attr instanceof \WC_Product_Attribute && ! $attr->is_taxonomy()
             && mb_strtolower($attr->get_name()) === mb_strtolower($label)) {
-            return implode(', ', $attr->get_options());
+            return implode(', ', array_map(static fn ($option): string => Wp::str($option), $attr->get_options()));
         }
     }
 
@@ -552,9 +558,17 @@ add_filter('woocommerce_structured_data_product', static function ($markup, $pro
         return $markup;
     }
 
-    foreach ($markup['offers'] as $i => $offer) {
-        $markup['offers'][$i]['availability'] = $availability;
+    $offers = $markup['offers'];
+    if (! is_array($offers)) {
+        return $markup;
     }
+    foreach ($offers as $i => $offer) {
+        if (is_array($offer)) {
+            $offer['availability'] = $availability;
+        }
+        $offers[$i] = $offer;
+    }
+    $markup['offers'] = $offers;
 
     return $markup;
 }, 20, 2);
