@@ -21,7 +21,7 @@ THEME_SRC := www/wp-content/themes/luziapi/
 DEPLOY_EXCLUDES := -X '.git*' -X 'node_modules/' -X 'tools/' -X 'tests-js/' \
 	-X 'tests-browser/' -X 'playwright.config.js' \
 	-X '.php-cs-fixer.dist.php' -X '.php-cs-fixer.cache' \
-	-X 'phpstan.neon.dist' -X 'README.md' \
+	-X 'phpstan.neon.dist' -X 'phpstan-tools.neon.dist' -X 'README.md' \
 	-X 'package.json' -X 'package-lock.json' -X '.~lock.*\#'
 # Réglages lftp : FTPS forcé + chiffrement des données, mode passif, timeouts courts.
 LFTP_SETTINGS := set ftp:ssl-force true; set ftp:ssl-protect-data true; \

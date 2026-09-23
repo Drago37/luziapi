@@ -106,7 +106,7 @@ try {
     $order->save();
     $orderId = (int) $order->get_id();
 
-    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)->key;
     $phoneKey = LoyaltyIdentity::keysForContact('', $customerPhone)[0] ?? '';
     $assert('L\'identité fidélité de la commande est résolue', '' !== $customerKey);
 

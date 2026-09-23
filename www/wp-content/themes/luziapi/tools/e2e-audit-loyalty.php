@@ -61,7 +61,7 @@ try {
     $pot->update_meta_data(WooCommerceEligiblePotCounter::PRODUCT_ELIGIBLE_META, 'yes');
     $productId = (int) $pot->save();
 
-    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)->key;
     $assert('L\'identité fidélité de test est résolue', '' !== $customerKey);
 
     // Fabrique une commande « Terminée » avec $qty pots admissibles. Le passage à

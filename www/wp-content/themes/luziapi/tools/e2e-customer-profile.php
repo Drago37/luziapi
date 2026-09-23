@@ -89,7 +89,7 @@ if (! function_exists('luziapi_e2e_customer_profile_run')) {
             $stored = $profiles->forCustomerIds($identityIds);
             $first = $stored[$identityIds[0]] ?? null;
             $assert('Fiche relue depuis la base', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling);
-            $assert('Adresse persistée', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling && '3 rue des Abeilles' === $first->address1, 'address1=' . ($first?->address1 ?? '∅'));
+            $assert('Adresse persistée', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling && '3 rue des Abeilles' === $first->address1, 'address1=' . $first->address1);
             $assert('Code postal persisté', $first instanceof \LuziApi\Shop\Domain\Customer\CustomerBilling && '37150' === $first->postcode);
 
             // 4. La surcharge s'applique à l'affichage du profil.

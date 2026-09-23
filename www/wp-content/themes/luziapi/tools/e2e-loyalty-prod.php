@@ -113,7 +113,7 @@ try {
     $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
     $order->save();
     $orderId = (int) $order->get_id();
-    $key = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+    $key = LoyaltyIdentity::fromContact($email, $phone)->key;
 
     $potItemId = 0;
     foreach ($order->get_items() as $itemId => $item) {

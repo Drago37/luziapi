@@ -104,8 +104,8 @@ try {
     $makeOrder($nameA, $emailA, 5, 1, 250, $thisYear);
     $makeOrder($nameA, $emailA, 4, 0, 0, $lastYear);
     $makeOrder($nameB, $emailB, 3, 0, 0, $thisYear);
-    $keys[] = LoyaltyIdentity::fromContact($emailA, '')?->key ?? '';
-    $keys[] = LoyaltyIdentity::fromContact($emailB, '')?->key ?? '';
+    $keys[] = LoyaltyIdentity::fromContact($emailA, '')->key;
+    $keys[] = LoyaltyIdentity::fromContact($emailB, '')->key;
 
     $handler = new GetLoyaltyDashboardHandler(
         new WooCommerceOrderRepository(wp_timezone()),
@@ -157,7 +157,7 @@ try {
     // (delta isolé, robuste aux autres données de la base).
     $baseOwed = $handlerWithRewards->handle(new GetLoyaltyDashboardQuery('all'))->grandRewardsOwed;
     $makeOrder($nameC, $emailC, 15, 0, 0, $thisYear);
-    $keys[] = LoyaltyIdentity::fromContact($emailC, '')?->key ?? '';
+    $keys[] = LoyaltyIdentity::fromContact($emailC, '')->key;
     $afterOwed = $handlerWithRewards->handle(new GetLoyaltyDashboardQuery('all'))->grandRewardsOwed;
     $assert('Passif : +1 avantage dû après 15 pots (Carol)', $baseOwed + 1 === $afterOwed, 'base=' . $baseOwed . ' after=' . $afterOwed);
 } catch (Throwable $exception) {

@@ -1,0 +1,61 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+# Analyse statique des outils de `tools/` (runners e2e, backfills, inspecteurs).
+# Ce code est de la GLUE procédurale WordPress/WP-CLI (global $wpdb, getters WC qui
+# renvoient `mixed`) : le tenir au `level: max` du thème noierait le signal utile
+# sous des centaines d'avertissements `mixed`. On le fixe donc au **level 5** — le
+# niveau qui vérifie les TYPES D'ARGUMENTS (donc attrape une signature de
+# constructeur/méthode qui dérive, cf. la rot du cœur e2e fidélité) sans le bruit
+# `mixed`. Le code métier `src/` + `inc/` reste, lui, au `level: max`.
+parameters:
+    level: 5
+    bootstrapFiles:
+        - tools/phpstan-bootstrap.php
+    paths:
+        - tools
+    excludePaths:
+        - tools/phpstan-bootstrap.php
+        - tools/phpstan-wp-cli-stub.php
+    # `inc/` est de la glue procédurale (fonctions `luziapi_*`) chargée au runtime par
+    # `functions.php`, pas en PSR-4 : on la SCANNE pour connaître ses signatures sans la
+    # ré-analyser ici (elle l'est déjà au level max via `phpstan.neon.dist`).
+    scanDirectories:
+        - inc
+    scanFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+        - tools/phpstan-wp-cli-stub.php
+    treatPhpDocTypesAsCertain: false
+    # On garde le contrôle des ignores : un ignore qui ne matche plus (faux-positif
+    # disparu) fait échouer l'analyse, pour qu'on le retire.
+    reportUnmatchedIgnoredErrors: true
+    # Faux-positifs DOCUMENTÉS, propres à la glue de test (jamais la classe de la rot
+    # #57 : `argument.type` / `method.notFound` restent actifs). Ciblés par fichier.
+    ignoreErrors:
+        # Garde « jeton non substitué » des runners -prod : le placeholder
+        # REPLACE_WITH_TOKEN est remplacé par sed au déploiement ; en source il est
+        # comparé à lui-même → conditions « toujours vraies » et code « injoignable ».
+        - { identifier: identical.alwaysTrue, path: tools/e2e-orders.php }
+        - { identifier: booleanOr.leftAlwaysTrue, path: tools/e2e-orders.php }
+        - { identifier: deadCode.unreachable, path: tools/e2e-orders.php }
+        - { identifier: identical.alwaysTrue, path: tools/e2e-order-tracking-prod.php }
+        - { identifier: booleanOr.leftAlwaysTrue, path: tools/e2e-order-tracking-prod.php }
+        - { identifier: deadCode.unreachable, path: tools/e2e-order-tracking-prod.php }
+        # Globaux de test peuplés par des hooks (pre_wp_mail, interception Brevo,
+        # capture du lien magique par référence) : PHPStan ne voit pas la mutation via
+        # les callbacks et les type « vides » → comparaisons/foreach « constants ».
+        - { identifier: foreach.emptyArray, path: tools/e2e-orders.php }
+        - { identifier: foreach.emptyArray, path: tools/e2e-order-tracking-prod.php }
+        - { identifier: notIdentical.alwaysFalse, path: tools/e2e-order-tracking-prod.php }
+        - { identifier: booleanOr.alwaysTrue, path: tools/e2e-order-tracking-prod.php }
+        - { identifier: identical.alwaysFalse, path: tools/e2e-newsletter.php }
+        - { identifier: identical.alwaysTrue, path: tools/e2e-newsletter.php }
+        - { identifier: nullCoalesce.offset, path: tools/e2e-vente-loyalty.php }
+        - { identifier: identical.alwaysTrue, path: tools/e2e-vente-loyalty.php }
+        # Idiomes de test : $isCli dérivé de la constante WP_CLI (stubée), variable
+        # $createdOrders vestigiale toujours nulle, propriété liée par référence pour
+        # exfiltrer le lien capturé (écrite via la référence, lue à l'extérieur).
+        - { identifier: if.alwaysTrue, path: tools/e2e-orders.php }
+        - { identifier: nullCoalesce.variable, path: tools/e2e-orders.php }
+        - { identifier: property.onlyWritten, path: tools/e2e-order-tracking.php }

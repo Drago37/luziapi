@@ -102,7 +102,7 @@ if (! function_exists('luziapi_e2e_exclusion_run')) {
             $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
             $order->save();
             $orderId = (int) $order->get_id();
-            $key = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+            $key = LoyaltyIdentity::fromContact($email, $phone)->key;
 
             // Crédit de base, comme au passage « Terminée ».
             $subscriber->reconcile($orderId, wc_get_order($orderId));

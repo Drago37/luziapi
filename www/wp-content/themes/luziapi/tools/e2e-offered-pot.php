@@ -138,7 +138,7 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             $order->set_status('completed'); // set_status : ne déclenche PAS les hooks.
             $order->save();
             $orderId = (int) $order->get_id();
-            $key = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+            $key = LoyaltyIdentity::fromContact($email, $phone)->key;
 
             $subscriber->reconcile($orderId, wc_get_order($orderId));
             $assert('Base : ' . $potsForOneReward . ' pots crédités', $potsForOneReward === $ledger->orderTotals($orderId)['pots']);
@@ -210,7 +210,7 @@ if (! function_exists('luziapi_e2e_offered_pot_run')) {
             $order2->set_status('completed');
             $order2->save();
             $order2Id = (int) $order2->get_id();
-            $key2 = LoyaltyIdentity::fromContact($email2, $phone2)?->key ?? '';
+            $key2 = LoyaltyIdentity::fromContact($email2, $phone2)->key;
             $subscriber->reconcile($order2Id, wc_get_order($order2Id));
             $assert('Multi : 2 avantages disponibles au départ', 2 === luziapi_order_available_rewards(wc_get_order($order2Id)));
 

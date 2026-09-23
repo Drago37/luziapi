@@ -97,8 +97,8 @@ $createOrder = static function (string $email, int $productId): WC_Order {
     $order->set_payment_method('cod');
     $order->set_payment_method_title('À la remise');
     $order->add_product(wc_get_product($productId), 2);
-    $order->add_order_note('NOTE PRIVÉE E2E — NE JAMAIS AFFICHER', false);
-    $order->add_order_note('Votre commande sera prête demain matin.', true);
+    $order->add_order_note('NOTE PRIVÉE E2E — NE JAMAIS AFFICHER', 0);
+    $order->add_order_note('Votre commande sera prête demain matin.', 1);
     $order->set_customer_note('Merci de sonner au portail.');
     $order->calculate_totals();
     $order->save();
@@ -197,11 +197,11 @@ try {
             (string) $firstOrder->get_order_number(),
         );
         $assert('La session historique contient les douze commandes du client', 12 === $historyPage?->totalOrders);
-        $assert('La première page est limitée à dix commandes', 10 === count($historyPage?->orders ?? []));
+        $assert('La première page est limitée à dix commandes', 10 === count($historyPage->orders));
         $secondPage = $resolver->handle($historySession->token, 2, 10, '');
         $assert(
             'La pagination restitue les deux commandes suivantes sans changer le périmètre',
-            2 === count($secondPage?->orders ?? []) && 12 === $secondPage?->totalOrders,
+            2 === count($secondPage->orders) && 12 === $secondPage->totalOrders,
         );
 
         $selected = $historyPage?->selectedOrder;

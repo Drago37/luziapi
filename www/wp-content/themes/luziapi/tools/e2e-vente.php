@@ -156,7 +156,7 @@ try {
         }
     }
     $assert('Le client invité apparaît dans le répertoire', $aliceProfile instanceof CustomerProfile);
-    $assert('Le contact principal du répertoire est bien celui de la commande', $aliceProfile?->primaryEmail() === $alice['email'] && $aliceProfile?->primaryPhone() === $alice['phone']);
+    $assert('Le contact principal du répertoire est bien celui de la commande', $aliceProfile->primaryEmail() === $alice['email'] && $aliceProfile->primaryPhone() === $alice['phone']);
 
     if ($aliceProfile instanceof CustomerProfile) {
         // 3. Rendu réel de la Vente préremplie pour ce client.

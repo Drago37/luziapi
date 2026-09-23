@@ -126,7 +126,7 @@ try {
         }
     }
 
-    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($customerEmail, $customerPhone)->key;
     $assert('L\'identité fidélité de la commande est résolue', '' !== $customerKey);
     $assert('Le compteur ne retient que les pots payés (offerts exclus)', 3 === $counter->countEligiblePots($order));
     $assert('Le compteur des pots offerts fidélité vaut 1', 1 === $counter->countRewardPots($order));

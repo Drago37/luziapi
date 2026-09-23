@@ -126,7 +126,7 @@ try {
 
     $created = (new WooCommerceQuickSaleOrderWriter())->create($command);
     $orderId = $created->orderId;
-    $customerKey = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($email, $phone)->key;
 
     $order = wc_get_order($orderId);
     $paid = 0;
@@ -134,12 +134,15 @@ try {
     $reward = 0;
     $rewardProductIds = [];
     foreach ($order->get_items() as $item) {
+        if (! $item instanceof WC_Order_Item_Product) {
+            continue;
+        }
         $lineCents = $cents($item->get_total());
         $isOffered = 'yes' === (string) $item->get_meta(WooCommerceEligiblePotCounter::OFFERT_LINE_META);
         $isReward = 'yes' === (string) $item->get_meta(WooCommerceEligiblePotCounter::REWARD_LINE_META);
         if ($isReward) {
             ++$reward;
-            $rewardProductIds[] = $item instanceof WC_Order_Item_Product ? (int) $item->get_product_id() : 0;
+            $rewardProductIds[] = (int) $item->get_product_id();
             $assert('La ligne fidélité est à 0 € et marquée offerte', 0 === $lineCents && $isOffered);
         } elseif ($isOffered) {
             ++$gift;

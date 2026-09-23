@@ -94,7 +94,7 @@ try {
     $order->calculate_totals();
     $order->save();
     $orderId = (int) $order->get_id();
-    $customerKey = LoyaltyIdentity::fromContact($email, $phone)?->key ?? '';
+    $customerKey = LoyaltyIdentity::fromContact($email, $phone)->key;
 
     // Capture des e-mails déclenchés par la complétion (sans envoi réel).
     $mails = [];

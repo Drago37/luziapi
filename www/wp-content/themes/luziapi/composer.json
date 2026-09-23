@@ -21,7 +21,10 @@
     "scripts": {
         "cs": "php-cs-fixer fix",
         "cs:check": "php-cs-fixer fix --dry-run --diff",
-        "stan": "phpstan analyse"
+        "stan": [
+            "phpstan analyse",
+            "phpstan analyse -c phpstan-tools.neon.dist"
+        ]
     },
     "config": {
         "allow-plugins": {
