@@ -40,6 +40,11 @@ _Nothing yet._
   dashboard — all run in CI.
 - `make doctor` to repair a local dev environment whose WordPress roles/capabilities drifted (403 on
   `/wp-admin/`).
+- `make reset-test-loyalty-local` / `reset-test-loyalty-prod` (dry-run) / `reset-test-loyalty-prod-apply`
+  to reset the loyalty test-isolation state: the e2e loyalty suites reuse fixed test phones, and
+  identity aggregation can carry residual ledger data from an interrupted run into later runs; the tool
+  purges only the identity cluster reachable from those fake test numbers (links + residual ledger),
+  dry-run by default.
 
 ### Security
 
