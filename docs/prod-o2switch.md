@@ -756,6 +756,56 @@ Changements en prod :
 _PDF règlement `2026-09-16-v2` **réimprimé** depuis la page à jour et redéployé le 20 septembre 2026
 (commit `cded01e`, 1/1 SHA identique, millésime inchangé — seul le texte de l'article 2 est corrigé)._
 
+## Mise en production 1.4.0 — le 23 septembre 2026
+
+Déployée depuis `release/1.4.0` (PR #56, **encore ouverte** pendant le déploiement), `deploy-files.sh
+--yes`, delta `cded01e → 9b2d980`, **245 fichiers** thème. Bascule atomique `.ht-*`, **OPcache vidé**,
+**245/245 SHA-256 identiques** prod↔repo, contrôle post-déploiement 200 sur `/wp-login.php`, `/`,
+`/boutique/`, `/mon-compte/`. Aucune nouvelle dépendance Composer : le refacto ne fait que **déplacer**
+des classes sous le préfixe PSR-4 `LuziApi\ → src/` déjà en place, donc aucun `vendor/` à régénérer.
+Merge `main` + tag `1.4.0` + back-merge `develop` **à faire après**, sur feu vert explicite.
+
+**Purge des orphelins (gros renommage `Pilotage → Shop`).** `deploy-files.sh` **uploade** les nouveaux
+chemins mais **ne supprime pas** les anciens : `make deploy-prune-prod` (dry-run) puis
+`scripts/prune-prod-orphans.sh --apply` ont retiré **190 fichiers orphelins** sous `src/` (anciens
+`src/Pilotage/*`, `src/Support/*`, anciens chemins `Port`/`Bootstrap`/`Clock`), portée strictement
+limitée à `src/`, chemins revalidés. **`make verify-prod` : 350/350 SHA identiques** après purge.
+
+Changements en prod :
+
+- **Architecture interne — hexagonal + DDD pragmatique, sans changement de comportement.** Code métier
+  réorganisé en contextes bornés sous `src/` (**Shop** cœur, **Loyalty**, **Newsletter**,
+  **OrderTracking**) + un noyau **Shared**, sur 3 couches (Domain / Application / Infrastructure) ;
+  l'ex-module `Pilotage` devient `Shop`. Règles métier pures extraites de `inc/` vers des classes de
+  domaine sans WordPress (zone de livraison, mode de remise ⇄ statut, calendrier ouvré, contenu des
+  e-mails de statut, versionnage CGV/rétractation), `inc/` devenant de minces adaptateurs. Un test
+  d'archi interdit WordPress dans tout `Domain/`.
+- **Durcissement des tests du tableau de bord** (issue #3) + `make doctor` (réparation rôles/caps en
+  local) + garde d'injection de formule CSV renforcée.
+- Version du thème `1.3.1 → 1.4.0`.
+
+_Le boot du thème charge désormais `ShopServiceProvider::boot()` (ex-`PilotageServiceProvider`) — le
+piège « déploiement interrompu = 500 » reste identique (une classe `src/` manquante = fatal masqué par
+PowerBoost)._
+
+**Campagne e2e de prod complète (23 septembre 2026) — 13/13 verts.** Après déploiement, passage de
+toute la suite e2e de prod. Deux échecs initiaux, **tous deux hors refacto** :
+
+- **`e2e-offered-pot-prod` (20/24 → 24/24)** : résidu d'isolation de test. Les e2e fidélité réutilisent
+  des **téléphones fixes** (`0600000000`/`0600000001`) ; la fidélité agrège par identité (e-mail OU
+  téléphone) et `autoLink()` rattache à vie ce téléphone à l'e-mail du 1ᵉʳ run, si bien qu'un run
+  interrompu **avant** son nettoyage laisse une entrée de journal résiduelle ré-agrégée à la lecture,
+  gonflant la baseline. **Purgé** via le nouvel outil `make reset-test-loyalty-prod(-apply)` :
+  **1 entrée de journal (droits −1) + 4 liens d'identité** supprimés, portée limitée au cluster des
+  faux numéros de test (aucun vrai client — personne n'utilise ces numéros).
+- **`e2e-loyalty-prod` (réponse vide → 12/12)** : cœur de test **prod-only périmé depuis 1.3.0**. Il
+  construisait `GetCustomerLoyaltyHandler($ledger, new WordPressClock())` alors que le 2ᵉ paramètre est
+  devenu `?LoyaltyIdentityLinks` avec la liaison d'identités (commit `74c4ea3`, 1.3.0) → `TypeError`
+  non attrapé avant le `try` → réponse HTTP vide. Le câblage **production** (`LoyaltyServiceProvider`)
+  a toujours été correct ; correctif du seul cœur de test (commit `00dcadd`). _Ce type de cœur
+  prod-only n'est exécuté ni en local ni en CI et peut pourrir en silence — à rejouer après tout
+  changement de signature côté fidélité._
+
 ---
 
 **Aucun mot de passe ni jeton n'est stocké dans ce dépôt** : les accès vivent dans `.env.local`.

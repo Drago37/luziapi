@@ -129,6 +129,18 @@ loyalty-customer-inspect-local: ## Inspecte la fidélité d'un client en local (
 loyalty-customer-inspect-prod: ## Inspecte la fidélité d'un client sur la PROD (lecture seule) — ex : make loyalty-customer-inspect-prod Q="gaultier"
 	@LUZIAPI_INSPECT_QUERY="$(Q)" bash scripts/loyalty-customer-inspect-prod.sh
 
+.PHONY: reset-test-loyalty-local
+reset-test-loyalty-local: ## Purge l'isolation fidélité des e2e en local (DRY-RUN ; APPLY=1 pour supprimer)
+	$(DC) run --rm -e LUZIAPI_RESET_APPLY="$(APPLY)" wpcli wp eval "require ABSPATH . '$(THEME)/tools/reset-test-loyalty.php';" --user=admin
+
+.PHONY: reset-test-loyalty-prod
+reset-test-loyalty-prod: ## Rapporte le cluster d'identité des tests fidélité sur la PROD (DRY-RUN, lecture seule)
+	@bash scripts/reset-test-loyalty-prod.sh
+
+.PHONY: reset-test-loyalty-prod-apply
+reset-test-loyalty-prod-apply: ## Purge le cluster d'identité des tests fidélité sur la PROD (liens + journal résiduel)
+	@bash scripts/reset-test-loyalty-prod.sh --apply
+
 .PHONY: directory-inspect-prod
 directory-inspect-prod: ## Inspecte les listes Brevo + les groupes du répertoire client sur la PROD (lecture seule)
 	@bash scripts/directory-inspect-prod.sh
@@ -449,3 +461,11 @@ deploy-check-live: ## Vérifie que la prod répond (URL non cachées) — à lan
 .PHONY: verify-prod
 verify-prod: ## Vérifie l'intégrité de TOUT le thème en prod (SHA-256 local↔prod, fichiers manquants/divergents)
 	@bash scripts/verify-prod-integrity.sh
+
+.PHONY: deploy-prune-prod
+deploy-prune-prod: ## DRY-RUN : liste les orphelins src/ sur la prod (présents mais plus suivis en git) — rien supprimé
+	@bash scripts/prune-prod-orphans.sh
+
+.PHONY: deploy-prune-prod-apply
+deploy-prune-prod-apply: ## Supprime les orphelins src/ de la prod (confirmation) — à lancer APRÈS un déploiement qui renomme/supprime
+	@bash scripts/prune-prod-orphans.sh --apply
